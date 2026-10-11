@@ -32,7 +32,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('EXAMENS', style: TextStyle(
               fontSize: 12, letterSpacing: .5,
-              fontWeight: FontWeight.w800, color: Palette.forest)),
+              fontWeight: FontWeight.w700, color: Palette.forest)),
             const SizedBox(height: 8),
             const Text('Bilans médicaux', style: TextStyle(
               fontSize: 27, letterSpacing: -.6,
@@ -58,7 +58,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                     const SizedBox(height: 10),
                     Text('$pending', style: const TextStyle(
                       fontSize: 39, height: 1,
-                      letterSpacing: -1.7, fontWeight: FontWeight.w800,
+                      letterSpacing: -1.7, fontWeight: FontWeight.w700,
                       color: Palette.ink)),
                     const SizedBox(height: 5),
                     const Text('examens à suivre', style: TextStyle(
