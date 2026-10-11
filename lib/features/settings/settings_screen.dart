@@ -7,7 +7,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Paramètres')),
-    body: SafeArea(child: ListView(children: [ScreenWidth(child: Column(
+    body: const SafeArea(child: ListView(children: [ScreenWidth(child: Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
         const PageTitle(title: 'Mon espace', subtitle: 'État et paramètres de l’application'),
         const SizedBox(height: 21),
