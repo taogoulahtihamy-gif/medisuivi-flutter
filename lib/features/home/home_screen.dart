@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/demo_store.dart';
@@ -135,18 +136,27 @@ class _Summary extends StatelessWidget {
           fontWeight: FontWeight.w600, letterSpacing: .7))),
       ]),
       const SizedBox(height: 16),
-      Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-        Text('$total', style: const TextStyle(
-          color: Palette.white, fontSize: 43, height: 1,
-          fontWeight: FontWeight.w700)),
-        const SizedBox(width: 11),
-        const Flexible(child: Padding(
-          padding: EdgeInsets.only(bottom: 4),
-          child: Text('patients enregistrés',
-            maxLines: 2,
-            softWrap: true,
-            style: TextStyle(color: Palette.white, fontSize: 14)),
+      Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('$total', style: const TextStyle(
+              color: Palette.white, fontSize: 43, height: 1,
+              fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            const Text('patients enregistrés',
+              maxLines: 2,
+              style: TextStyle(color: Palette.white, fontSize: 14)),
+          ],
         )),
+        const SizedBox(width: 5),
+        SvgPicture.asset(
+          'assets/illustrations/consultation.svg',
+          width: 113,
+          height: 95,
+          fit: BoxFit.contain,
+          semanticsLabel: 'Scène de consultation médicale',
+        ),
       ]),
       const SizedBox(height: 18),
       const Divider(height: 1, color: Color(0x45FFFFFF)),
