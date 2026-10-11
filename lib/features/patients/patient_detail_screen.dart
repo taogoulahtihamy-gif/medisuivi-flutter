@@ -24,9 +24,8 @@ class PatientDetailScreen extends StatelessWidget {
           EntranceReveal(child: Container(
             padding: const EdgeInsets.all(19),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Palette.charcoal, Palette.charcoalSoft],
-                begin: Alignment.topLeft, end: Alignment.bottomRight),
+              color: Palette.white,
+              border: Border.all(color: Palette.border),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Row(children: [
@@ -36,18 +35,18 @@ class PatientDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(patient.name,
-                    style: const TextStyle(fontSize: 22,
-                      color: Palette.laser, fontWeight: FontWeight.w800,
+                    style: const TextStyle(fontSize: 21,
+                      color: Palette.ink, fontWeight: FontWeight.w700,
                       letterSpacing: -.6)),
                   const SizedBox(height: 6),
                   Text('${patient.id} · ${patient.age} ans',
                     style: const TextStyle(
-                      color: Palette.laserMuted, fontSize: 12.5)),
+                      color: Palette.muted, fontSize: 12.5)),
                   if (patient.followUp) ...[
                     const SizedBox(height: 8),
                     const Text('Visite de suivi à prévoir',
-                      style: TextStyle(color: Palette.laserMuted,
-                        fontSize: 11, fontWeight: FontWeight.w600)),
+                      style: TextStyle(color: Palette.muted,
+                        fontSize: 12.5, fontWeight: FontWeight.w600)),
                   ],
                 ],
               )),
@@ -121,7 +120,7 @@ class _Fact extends StatelessWidget {
   final String value;
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(label, style: const TextStyle(fontSize: 12, color: Palette.muted)),
+    Text(label, style: const TextStyle(fontSize: 13, color: Palette.muted)),
     const SizedBox(height: 7),
     Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
   ]);
@@ -135,7 +134,7 @@ class _Vital extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [Icon(icon, size: 16, color: Palette.teal), const SizedBox(width: 6),
-      Flexible(child: Text(label, style: const TextStyle(fontSize: 12, color: Palette.muted)))]),
+      Flexible(child: Text(label, style: const TextStyle(fontSize: 13, color: Palette.muted)))]),
     const SizedBox(height: 7),
     Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
   ]);
@@ -151,10 +150,10 @@ class _VisitLine extends StatelessWidget {
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(visit.reason, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
       const SizedBox(height: 5),
-      Text(shortDate(visit.date), style: const TextStyle(fontSize: 12, color: Palette.muted)),
+      Text(shortDate(visit.date), style: const TextStyle(fontSize: 13, color: Palette.muted)),
       if (visit.notes.isNotEmpty) ...[
         const SizedBox(height: 7),
-        Text(visit.notes, style: const TextStyle(fontSize: 12, color: Palette.muted)),
+        Text(visit.notes, style: const TextStyle(fontSize: 13, color: Palette.muted)),
       ],
     ])),
   ]);
@@ -178,7 +177,7 @@ class _ExamLine extends StatelessWidget {
           fontSize: 12, color: ready ? Palette.teal : Palette.laser)),
         if (ready && exam.result != null) ...[
           const SizedBox(height: 6),
-          Text(exam.result!, style: const TextStyle(fontSize: 12, color: Palette.muted)),
+          Text(exam.result!, style: const TextStyle(fontSize: 13, color: Palette.muted)),
         ],
       ])),
     ]);
