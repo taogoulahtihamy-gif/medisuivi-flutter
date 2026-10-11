@@ -22,7 +22,7 @@ void main() {
     await tester.pumpWidget(const MediSuiviApp());
     expect(find.text('MediSuivi'), findsOneWidget);
     expect(find.textContaining('Démonstration'), findsWidgets);
-    expect(find.text('Chaque patient,\nun suivi précis.'), findsOneWidget);
+    expect(find.text('Vue clinique'), findsOneWidget);
     expect(find.text('Accès rapide'), findsOneWidget);
   });
 
