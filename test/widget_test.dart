@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
 import 'package:medisuivi/app/theme.dart';
@@ -50,6 +52,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Suivi des patients'), findsOneWidget);
+  });
+
+  testWidgets('Illustrations médicales distinctes et embarquées', (tester) async {
+    const illustrations = [
+      'assets/illustrations/consultation.svg',
+      'assets/illustrations/patient_records.svg',
+      'assets/illustrations/laboratory.svg',
+      'assets/illustrations/care_calendar.svg',
+    ];
+    for (final asset in illustrations) {
+      final svg = await rootBundle.loadString(asset);
+      expect(svg, contains('<svg'), reason: asset);
+      expect(svg, contains('<title>'), reason: asset);
+    }
+  });
+
+  testWidgets('Images contextuelles visibles dans chaque onglet', (tester) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(const MediSuiviApp());
+    await tester.pumpAndSettle();
+    expect(find.byType(SvgPicture), findsOneWidget);
+    for (final tab in ['Patients', 'Bilans', 'Suivi']) {
+      await tester.tap(find.text(tab).last);
+      await tester.pumpAndSettle();
+      expect(find.byType(SvgPicture), findsOneWidget, reason: tab);
+      expect(tester.takeException(), isNull, reason: tab);
+    }
   });
 
   testWidgets('Navigation et recherche de patient fictif', (tester) async {
