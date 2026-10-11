@@ -55,7 +55,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   child: const Icon(
                     Icons.health_and_safety_outlined,
-                    color: Colors.white,
+                    color: Palette.night,
                     size: 22,
                   ),
                 ),
@@ -104,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                   height: 1.04,
                   letterSpacing: -1.1,
                   fontWeight: FontWeight.w800,
-                  color: Palette.charcoal,
+                  color: Palette.laser,
                 ),
               ),
               const SizedBox(height: 9),
@@ -138,7 +138,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'Bilans en attente',
                   value: '$pending',
                   icon: Icons.biotech_outlined,
-                  tint: const Color(0xFFF0F2EC),
+                  tint: Palette.laserVeil,
                   onTap: onExams,
                 )),
               ]),
@@ -151,7 +151,7 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 11),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Palette.night,
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: Palette.border),
                 ),
@@ -201,7 +201,7 @@ class _ActivityCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(21, 21, 21, 20),
     decoration: BoxDecoration(
-      color: Palette.charcoal,
+      color: Palette.laser,
       borderRadius: BorderRadius.circular(27),
     ),
     child: Column(
@@ -232,7 +232,7 @@ class _ActivityCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text('$patientCount', style: const TextStyle(
-              color: Colors.white,
+              color: Palette.night,
               fontSize: 51,
               height: 1,
               fontWeight: FontWeight.w700,
@@ -272,8 +272,8 @@ class _ActivityCard extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: onNewPatient,
               style: FilledButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Palette.charcoal,
+                backgroundColor: Palette.night,
+                foregroundColor: Palette.laser,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15)),
                 padding: const EdgeInsets.symmetric(horizontal: 9),
@@ -291,8 +291,8 @@ class _ActivityCard extends StatelessWidget {
               tooltip: 'Mes dossiers',
               onPressed: onPatients,
               style: IconButton.styleFrom(
-                backgroundColor: Palette.charcoalSoft,
-                foregroundColor: Colors.white,
+                backgroundColor: Palette.night,
+                foregroundColor: Palette.laser,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(15)),
               ),
@@ -320,14 +320,14 @@ class _DarkMiniStat extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     decoration: BoxDecoration(
-      color: const Color(0xFF2C302E),
+      color: Palette.laserVeil,
       borderRadius: BorderRadius.circular(17),
     ),
     child: Row(children: [
-      Icon(icon, size: 16, color: const Color(0xFFC9DAD0)),
+      Icon(icon, size: 16, color: Palette.night),
       const SizedBox(width: 9),
       Text('$count', style: const TextStyle(
-        color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700,
+        color: Palette.night, fontSize: 19, fontWeight: FontWeight.w700,
       )),
       const SizedBox(width: 7),
       Expanded(child: Text(label,
@@ -432,7 +432,7 @@ class _ArchiveNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: Colors.white,
+    color: Palette.night,
     borderRadius: BorderRadius.circular(20),
     child: InkWell(
       onTap: onTap,
