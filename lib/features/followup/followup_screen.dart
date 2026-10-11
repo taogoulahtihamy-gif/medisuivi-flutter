@@ -6,37 +6,84 @@ import '../patients/patient_detail_screen.dart';
 
 class FollowupScreen extends StatelessWidget {
   const FollowupScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final store = DemoScope.of(context);
     final followups = store.patients.where((p) => p.followUp).toList();
-    return ListView(children: [ScreenWidth(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const PageTitle(title: 'Suivi médical', subtitle: 'Continuité des soins et visites à revoir'),
-      const SizedBox(height: 23),
-      SurfaceCard(child: Row(children: [
-        const SoftIcon(icon: Icons.event_repeat_rounded),
-        const SizedBox(width: 13),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('${followups.length} dossiers à revoir', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 5),
-          const Text('Patients signalés pour un suivi dans les données fictives.',
-            style: TextStyle(fontSize: 12, height: 1.4, color: Palette.muted)),
-        ])),
-      ])),
-      const SizedBox(height: 27),
-      const SectionHeading(title: 'Patients à suivre'),
-      const SizedBox(height: 13),
-      if (followups.isEmpty)
-        const EmptyResults(title: 'Aucun suivi', detail: 'Les prochains suivis apparaîtront ici.')
-      else for (final p in followups) ...[
-        PatientRow(patient: p,
-          subtitle: 'Dernière visite : ${store.visitsFor(p.id).isEmpty ? 'non renseignée' : shortDate(store.visitsFor(p.id).first.date)}',
-          onTap: () => Navigator.push(context,
-            MaterialPageRoute<void>(builder: (_) => PatientDetailScreen(patientId: p.id)))),
-        const SizedBox(height: 9),
+
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      children: [
+        ScreenWidth(
+          padding: const EdgeInsets.fromLTRB(21, 27, 21, 42),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('CONTINUITÉ DES SOINS', style: TextStyle(
+              fontSize: 10.5, letterSpacing: 1.3,
+              color: Palette.forest, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 8),
+            const Text('Suivi médical', style: TextStyle(
+              fontSize: 30, letterSpacing: -1,
+              color: Palette.charcoal, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 7),
+            const Text('Retrouvez les patients à revoir.',
+              style: TextStyle(fontSize: 12.5, color: Palette.muted)),
+            const SizedBox(height: 23),
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+              decoration: BoxDecoration(
+                color: Palette.mintFog,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(children: [
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('DOSSIERS À REVOIR', style: TextStyle(
+                      fontSize: 10, color: Palette.forest,
+                      letterSpacing: 1.1, fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 8),
+                    Text('${followups.length}', style: const TextStyle(
+                      fontSize: 47, height: 1,
+                      letterSpacing: -1, fontWeight: FontWeight.w800,
+                      color: Palette.charcoal)),
+                    const SizedBox(height: 7),
+                    const Text('Suivi signalé dans les dossiers',
+                      style: TextStyle(fontSize: 11.5, color: Palette.muted)),
+                  ],
+                )),
+                Container(
+                  width: 54, height: 54,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18)),
+                  child: const Icon(Icons.monitor_heart_outlined,
+                    color: Palette.forest, size: 26),
+                ),
+              ]),
+            ),
+            const SizedBox(height: 28),
+            const SectionHeading(title: 'Patients à suivre'),
+            const SizedBox(height: 12),
+            if (followups.isEmpty)
+              const EmptyResults(
+                title: 'Aucun suivi',
+                detail: 'Les dossiers à revoir apparaîtront ici.')
+            else for (final p in followups) ...[
+              PatientRow(
+                patient: p,
+                subtitle: 'Dernière consultation : ${store.visitsFor(p.id).isEmpty ? 'non renseignée' : shortDate(store.visitsFor(p.id).first.date)}',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => PatientDetailScreen(patientId: p.id))),
+              ),
+              const SizedBox(height: 9),
+            ],
+            const SizedBox(height: 17),
+            const DemoNotice(compact: true),
+          ]),
+        ),
       ],
-      const SizedBox(height: 21),
-      const DemoNotice(compact: true),
-    ]))]);
+    );
   }
 }
