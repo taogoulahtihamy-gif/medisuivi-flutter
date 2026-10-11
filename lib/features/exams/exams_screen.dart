@@ -53,7 +53,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('EN ATTENTE DE RÉSULTAT', style: TextStyle(
-                      fontSize: 10, letterSpacing: 1.0,
+                      fontSize: 12, letterSpacing: .5,
                       color: Palette.muted, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 10),
                     Text('$pending', style: const TextStyle(
@@ -122,11 +122,11 @@ class _ExamsScreenState extends State<ExamsScreen> {
                       const SizedBox(height: 5),
                       Text(store.patientById(exam.patientId)?.name ??
                         'Patient', style: const TextStyle(
-                          fontSize: 11.5, color: Palette.muted)),
+                          fontSize: 13, color: Palette.muted)),
                       const SizedBox(height: 7),
                       Text(exam.status == ExamStatus.complete
                         ? 'Résultat disponible' : 'En attente de résultat',
-                        style: TextStyle(fontSize: 11.5,
+                        style: TextStyle(fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: exam.status == ExamStatus.complete
                             ? Palette.forest : Palette.laser)),
