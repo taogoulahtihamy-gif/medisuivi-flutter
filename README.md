@@ -12,8 +12,8 @@ Application de suivi clinique **personnelle pour une seule soignante**, avec int
 - Nouvelle consultation fictive avec validation des valeurs.
 - Bilans / résultats et liste des suivis.
 - Navigation mobile adaptative : Cupertino iOS et Material 3 Android.
-- Identité **Night Shift `#10131A` + Laser Lemon `#EFFF4F` uniquement**, typographie système, icônes officielles et animations courtes.
-- Visuels SVG embarqués et splash screens Android/iOS bicolores.
+- Identité **clinique sobre** : vert hospitalier `#16624F`, surfaces neutres, texte graphite, typographies système natives et animations courtes.
+- Visuels SVG embarqués et écrans de démarrage Android/iOS adaptés au thème médical.
 - Structure Offline First et contrat de synchronisation (non raccordés).
 - Tests widget initiaux et CI GitHub Actions.
 
