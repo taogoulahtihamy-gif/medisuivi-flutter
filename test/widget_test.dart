@@ -14,7 +14,20 @@ void main() {
     await tester.pumpWidget(const MediSuiviApp());
     expect(find.text('MediSuivi'), findsOneWidget);
     expect(find.textContaining('Démonstration'), findsWidgets);
-    expect(find.text('Mes dossiers  →'), findsOneWidget);
+    expect(find.text('Chaque patient,\nun suivi précis.'), findsOneWidget);
+    expect(find.text('Accès rapide'), findsOneWidget);
+  });
+
+  testWidgets('Accueil mobile sans débordement et actions accessibles', (tester) async {
+    tester.view.physicalSize = const Size(360, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(const MediSuiviApp());
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Nouveau patient'), findsOneWidget);
+    expect(find.text('Patients'), findsOneWidget);
   });
 
   testWidgets('Navigation et recherche de patient fictif', (tester) async {
