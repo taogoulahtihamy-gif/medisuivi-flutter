@@ -48,7 +48,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
               padding: const EdgeInsets.fromLTRB(20, 19, 20, 19),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(colors: [
-                  Palette.navy, Color(0xFF166F72),
+                  Palette.navy, Color(0xFF137758),
                 ], begin: Alignment.topLeft, end: Alignment.bottomRight),
                 borderRadius: BorderRadius.circular(23),
               ),
@@ -70,7 +70,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
                         fontSize: 23, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 3),
                     const Text('Historique, bilans et consultations',
-                      style: TextStyle(color: Color(0xFFE1F4F0),
+                      style: TextStyle(color: Color(0xFFE8FFF2),
                         fontSize: 11.5, height: 1.3)),
                   ],
                 )),
