@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
@@ -12,6 +13,29 @@ void main() {
     expect(Palette.teal, Palette.laser);
     expect(Palette.canvas, Palette.night);
     expect(Palette.mintFog, Palette.laserVeil);
+  });
+
+  test('Les ressources visibles restent strictement bicolores', () {
+    final dartFiles = Directory('lib').listSync(recursive: true)
+      .whereType<File>()
+      .where((file) => file.path.endsWith('.dart'));
+    final regex = RegExp(r'Color\\(0x([0-9a-fA-F]{8})\\)');
+    for (final file in dartFiles) {
+      final source = file.readAsStringSync();
+      for (final match in regex.allMatches(source)) {
+        final rgb = match.group(1)!.substring(2).toUpperCase();
+        expect({'10131A', 'EFFF4F'}.contains(rgb), isTrue,
+          reason: 'Teinte interdite dans ${file.path}: #$rgb');
+      }
+    }
+    for (final path in ['assets/illustrations/medical_care.svg', 'web/favicon.svg']) {
+      final source = File(path).readAsStringSync();
+      for (final match in RegExp(r'#([0-9A-Fa-f]{6})').allMatches(source)) {
+        final rgb = match.group(1)!.toUpperCase();
+        expect({'10131A', 'EFFF4F'}.contains(rgb), isTrue,
+          reason: 'Teinte interdite dans $path: #$rgb');
+      }
+    }
   });
 
   test('Initiales patient fictif', () {
