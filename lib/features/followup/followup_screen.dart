@@ -19,21 +19,22 @@ class FollowupScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(21, 27, 21, 42),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('CONTINUITÉ DES SOINS', style: TextStyle(
-              fontSize: 10.5, letterSpacing: 1.3,
+              fontSize: 12, letterSpacing: .5,
               color: Palette.forest, fontWeight: FontWeight.w800)),
             const SizedBox(height: 8),
             const Text('Suivi médical', style: TextStyle(
-              fontSize: 30, letterSpacing: -1,
-              color: Palette.laser, fontWeight: FontWeight.w800)),
+              fontSize: 27, letterSpacing: -.6,
+              color: Palette.ink, fontWeight: FontWeight.w700)),
             const SizedBox(height: 7),
             const Text('Retrouvez les patients à revoir.',
-              style: TextStyle(fontSize: 12.5, color: Palette.muted)),
+              style: TextStyle(fontSize: 14, color: Palette.muted)),
             const SizedBox(height: 23),
             Container(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
               decoration: BoxDecoration(
-                color: Palette.mintFog,
-                borderRadius: BorderRadius.circular(24),
+                color: Palette.white,
+                borderRadius: BorderRadius.circular(21),
+                border: Border.all(color: Palette.border),
               ),
               child: Row(children: [
                 Expanded(child: Column(
@@ -44,9 +45,9 @@ class FollowupScreen extends StatelessWidget {
                       letterSpacing: 1.1, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
                     Text('${followups.length}', style: const TextStyle(
-                      fontSize: 47, height: 1,
+                      fontSize: 39, height: 1,
                       letterSpacing: -1, fontWeight: FontWeight.w800,
-                      color: Palette.laser)),
+                      color: Palette.ink)),
                     const SizedBox(height: 7),
                     const Text('Suivi signalé dans les dossiers',
                       style: TextStyle(fontSize: 11.5, color: Palette.muted)),
@@ -55,8 +56,8 @@ class FollowupScreen extends StatelessWidget {
                 Container(
                   width: 54, height: 54,
                   decoration: BoxDecoration(
-                    color: Palette.night,
-                    borderRadius: BorderRadius.circular(18)),
+                    color: Palette.tealSoft,
+                    borderRadius: BorderRadius.circular(16)),
                   child: const Icon(Icons.monitor_heart_outlined,
                     color: Palette.forest, size: 26),
                 ),
