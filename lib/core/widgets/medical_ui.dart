@@ -26,8 +26,8 @@ class SurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
     color: Palette.white,
-    elevation: 1,
-    shadowColor: const Color(0x180D4150),
+    elevation: 0,
+    shadowColor: Palette.night,
     shape: RoundedRectangleBorder(
       side: const BorderSide(color: Palette.border),
       borderRadius: BorderRadius.circular(20),
@@ -60,11 +60,11 @@ class DemoNotice extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
     decoration: BoxDecoration(color: Palette.amberSoft, borderRadius: BorderRadius.circular(12)),
     child: Row(children: [
-      const Icon(Icons.info_outline_rounded, color: Color(0xFF8D5A20), size: 18),
+      const Icon(Icons.info_outline_rounded, color: Palette.laser, size: 18),
       const SizedBox(width: 9),
       Expanded(child: Text(compact ? 'Démonstration · données fictives' :
         'Prototype de démonstration · ne pas saisir de données médicales réelles.',
-        style: const TextStyle(fontSize: 12, color: Color(0xFF7A521F), fontWeight: FontWeight.w600))),
+        style: const TextStyle(fontSize: 12, color: Palette.laser, fontWeight: FontWeight.w600))),
     ]),
   );
 }
@@ -79,7 +79,7 @@ class PatientAvatar extends StatelessWidget {
     final box = Container(
       width: size, height: size, alignment: Alignment.center,
       decoration: BoxDecoration(color: Palette.tealSoft, borderRadius: BorderRadius.circular(size * 0.42)),
-      child: Text(patient.initials, style: TextStyle(color: Palette.tealDark, fontWeight: FontWeight.w800, fontSize: size * .29)),
+      child: Text(patient.initials, style: TextStyle(color: Palette.laser, fontWeight: FontWeight.w800, fontSize: size * .29)),
     );
     return hero ? Hero(tag: 'patient-${patient.id}', child: box) : box;
   }
