@@ -21,16 +21,38 @@ class PatientDetailScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Dossier patient')),
       body: SafeArea(child: ListView(children: [ScreenWidth(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            PatientAvatar(patient: patient, size: 70, hero: true),
-            const SizedBox(width: 16),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(patient.name, style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w800, letterSpacing: -0.6)),
-              const SizedBox(height: 6),
-              Text('${patient.id} · ${patient.age} ans',
-                style: const TextStyle(color: Palette.muted, fontSize: 13)),
-            ])),
-          ]),
+          EntranceReveal(child: Container(
+            padding: const EdgeInsets.all(19),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Palette.navy, Color(0xFF176E72)],
+                begin: Alignment.topLeft, end: Alignment.bottomRight),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Row(children: [
+              PatientAvatar(patient: patient, size: 68, hero: true),
+              const SizedBox(width: 15),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(patient.name,
+                    style: const TextStyle(fontSize: 22,
+                      color: Colors.white, fontWeight: FontWeight.w800,
+                      letterSpacing: -.6)),
+                  const SizedBox(height: 6),
+                  Text('${patient.id} · ${patient.age} ans',
+                    style: const TextStyle(
+                      color: Color(0xFFE0F4F0), fontSize: 12.5)),
+                  if (patient.followUp) ...[
+                    const SizedBox(height: 8),
+                    const Text('Visite de suivi à prévoir',
+                      style: TextStyle(color: Color(0xFFD1EEE8),
+                        fontSize: 11, fontWeight: FontWeight.w600)),
+                  ],
+                ],
+              )),
+            ]),
+          )),
           const SizedBox(height: 20),
           const DemoNotice(compact: true),
           const SizedBox(height: 17),
