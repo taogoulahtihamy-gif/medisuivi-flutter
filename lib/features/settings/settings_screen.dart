@@ -7,22 +7,22 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Paramètres')),
-    body: const SafeArea(child: ListView(children: [ScreenWidth(child: Column(
+    body: SafeArea(child: ListView(children: [const ScreenWidth(child: Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const PageTitle(title: 'Mon espace', subtitle: 'État et paramètres de l’application'),
-        const SizedBox(height: 21),
-        const DemoNotice(),
-        const SizedBox(height: 22),
-        const _Item(Icons.lock_outline_rounded, 'Protection des dossiers',
+        PageTitle(title: 'Mon espace', subtitle: 'État et paramètres de l’application'),
+        SizedBox(height: 21),
+        DemoNotice(),
+        SizedBox(height: 22),
+        _Item(Icons.lock_outline_rounded, 'Protection des dossiers',
           'À réaliser en V1 : stockage chiffré, authentification et verrouillage.'),
-        const SizedBox(height: 10),
-        const _Item(Icons.cloud_sync_outlined, 'Synchronisation hors ligne',
+        SizedBox(height: 10),
+        _Item(Icons.cloud_sync_outlined, 'Synchronisation hors ligne',
           'Prévue dans l’architecture. Aucun serveur n’est connecté en V0.'),
-        const SizedBox(height: 10),
-        const _Item(Icons.devices_rounded, 'iOS et Android',
+        SizedBox(height: 10),
+        _Item(Icons.devices_rounded, 'iOS et Android',
           'Interface adaptative Flutter avec navigation propre à chaque plateforme.'),
-        const SizedBox(height: 23),
-        const Text('MediSuivi · Prototype 0.1.0',
+        SizedBox(height: 23),
+        Text('MediSuivi · Prototype 0.1.0',
           style: TextStyle(color: Palette.muted, fontSize: 12, fontWeight: FontWeight.w600)),
       ]))])),
   );
