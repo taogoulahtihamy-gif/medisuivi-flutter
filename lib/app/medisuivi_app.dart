@@ -108,7 +108,7 @@ class _MainShellState extends State<MainShell> {
                 border: Border.all(color: Palette.border),
                 boxShadow: const [
                   BoxShadow(
-                    color: const Color(0x0B20362D),
+                    color: Color(0x0B20362D),
                     blurRadius: 17,
                     offset: Offset(0, 6),
                   ),
