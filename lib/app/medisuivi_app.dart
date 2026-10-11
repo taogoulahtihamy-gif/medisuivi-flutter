@@ -73,14 +73,14 @@ class _MainShellState extends State<MainShell> {
         bottom: false,
         child: AnimatedSwitcher(
           duration: reduceMotion ? Duration.zero :
-            const Duration(milliseconds: 290),
+            const Duration(milliseconds: 240),
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           transitionBuilder: (child, animation) => FadeTransition(
             opacity: animation,
             child: SlideTransition(
               position: Tween<Offset>(
-                begin: const Offset(0.035, 0),
+                begin: const Offset(0.025, 0),
                 end: Offset.zero,
               ).animate(animation),
               child: child,
@@ -100,11 +100,11 @@ class _MainShellState extends State<MainShell> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 540),
             child: Container(
-              height: 72,
+              height: 66,
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(25),
+                borderRadius: BorderRadius.circular(23),
                 border: Border.all(color: Palette.border),
                 boxShadow: const [
                   BoxShadow(
@@ -185,7 +185,7 @@ class _NavItem extends StatelessWidget {
                 const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: selected ? Palette.tealSoft : Colors.transparent,
+                color: selected ? Palette.charcoal : Colors.transparent,
                 borderRadius: BorderRadius.circular(19),
               ),
               child: Column(
@@ -193,12 +193,12 @@ class _NavItem extends StatelessWidget {
                 children: [
                   Icon(selected ? selectedIcon : icon,
                     size: 22,
-                    color: selected ? Palette.teal : Palette.muted),
+                    color: selected ? Colors.white : Palette.muted),
                   const SizedBox(height: 4),
                   Text(label, style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected ? Palette.tealDark : Palette.muted,
+                    color: selected ? Colors.white : Palette.muted,
                   )),
                 ],
               ),
