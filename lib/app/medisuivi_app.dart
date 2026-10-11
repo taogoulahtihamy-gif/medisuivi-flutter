@@ -100,7 +100,7 @@ class _MainShellState extends State<MainShell> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 540),
             child: Container(
-              height: 66,
+              height: 76,
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               decoration: BoxDecoration(
                 color: Colors.white,
