@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
@@ -65,13 +66,12 @@ class _ExamsScreenState extends State<ExamsScreen> {
                       fontSize: 12, color: Palette.ink)),
                   ],
                 )),
-                Container(
-                  width: 55, height: 55,
-                  decoration: BoxDecoration(
-                    color: Palette.tealSoft,
-                    borderRadius: BorderRadius.circular(16)),
-                  child: const Icon(Icons.biotech_outlined,
-                    color: Palette.forest, size: 27),
+                SvgPicture.asset(
+                  'assets/illustrations/laboratory.svg',
+                  width: 112,
+                  height: 91,
+                  fit: BoxFit.contain,
+                  semanticsLabel: 'Illustration de laboratoire et d'analyses',
                 ),
               ]),
             ),
