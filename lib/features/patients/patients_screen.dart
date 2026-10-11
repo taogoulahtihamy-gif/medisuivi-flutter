@@ -30,29 +30,26 @@ class _PatientsScreenState extends State<PatientsScreen> {
         ScreenWidth(
           padding: const EdgeInsets.fromLTRB(21, 27, 21, 42),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('RÉPERTOIRE', style: TextStyle(
-              color: Palette.forest, fontSize: 10.5,
-              fontWeight: FontWeight.w800, letterSpacing: 1.3)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
             Row(children: [
               const Expanded(child: Text('Mes patients', style: TextStyle(
-                fontSize: 30, letterSpacing: -1,
-                fontWeight: FontWeight.w800, color: Palette.laser))),
+                fontSize: 27, letterSpacing: -.6,
+                fontWeight: FontWeight.w700, color: Palette.ink))),
               IconButton.filled(
                 tooltip: 'Nouveau patient',
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
                   builder: (_) => const NewPatientScreen())),
                 style: IconButton.styleFrom(
-                  backgroundColor: Palette.laser,
-                  foregroundColor: Palette.night,
+                  backgroundColor: Palette.forest,
+                  foregroundColor: Palette.white,
                   minimumSize: const Size(48, 48)),
                 icon: const Icon(Icons.add_rounded),
               ),
             ]),
             const SizedBox(height: 8),
             Text('${all.length} dossiers de démonstration',
-              style: const TextStyle(color: Palette.muted, fontSize: 12.5)),
-            const SizedBox(height: 22),
+              style: const TextStyle(color: Palette.muted, fontSize: 14)),
+            const SizedBox(height: 23),
             TextField(
               onChanged: (text) => setState(() => query = text),
               textInputAction: TextInputAction.search,
@@ -72,9 +69,9 @@ class _PatientsScreenState extends State<PatientsScreen> {
             const SizedBox(height: 26),
             Row(children: [
               const Expanded(child: Text('Dossiers', style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w800))),
+                fontSize: 18, fontWeight: FontWeight.w700))),
               Text('${filtered.length} résultats', style: const TextStyle(
-                color: Palette.muted, fontSize: 12)),
+                color: Palette.muted, fontSize: 13)),
             ]),
             const SizedBox(height: 13),
             if (filtered.isEmpty)
@@ -107,7 +104,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: selected ? Palette.laser : Palette.night,
+    color: selected ? Palette.tealSoft : Palette.white,
     borderRadius: BorderRadius.circular(14),
     child: InkWell(
       onTap: onTap,
@@ -115,8 +112,8 @@ class _FilterChip extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
         child: Text(label, style: TextStyle(
-          fontSize: 12, fontWeight: FontWeight.w700,
-          color: selected ? Palette.night : Palette.laser)),
+          fontSize: 13, fontWeight: FontWeight.w600,
+          color: selected ? Palette.forest : Palette.muted)),
       ),
     ),
   );
