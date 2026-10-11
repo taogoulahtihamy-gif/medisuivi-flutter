@@ -2,21 +2,21 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 abstract final class Palette {
-  static const canvas = Color(0xFFF5F7F8);
+  static const canvas = Color(0xFFF8FCF9);
   static const white = Color(0xFFFFFFFF);
-  static const ink = Color(0xFF142D39);
-  static const muted = Color(0xFF697F88);
-  static const teal = Color(0xFF087A78);
-  static const tealDark = Color(0xFF0C4C58);
-  static const tealSoft = Color(0xFFE4F5F0);
-  static const border = Color(0xFFE6ECEF);
+  static const ink = Color(0xFF183A2E);
+  static const muted = Color(0xFF627A6E);
+  static const teal = Color(0xFF075E46);
+  static const tealDark = Color(0xFF064B39);
+  static const tealSoft = Color(0xFFE8FFF2);
+  static const border = Color(0xFFDDEEE4);
   static const amber = Color(0xFFF0B25F);
   static const amberSoft = Color(0xFFFFF3E3);
   static const danger = Color(0xFFAE4F4F);
-  static const navy = Color(0xFF123E52);
-  static const aqua = Color(0xFFDCF5EF);
-  static const blueSoft = Color(0xFFEAF1FD);
-  static const lavenderSoft = Color(0xFFF1EDFA);
+  static const navy = Color(0xFF064B39);
+  static const aqua = Color(0xFFD8F8E6);
+  static const blueSoft = Color(0xFFEAF7EF);
+  static const lavenderSoft = Color(0xFFF1F8EB);
 }
 
 abstract final class MediTheme {
