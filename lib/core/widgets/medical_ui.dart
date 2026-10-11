@@ -184,3 +184,61 @@ class EntranceReveal extends StatelessWidget {
     );
   }
 }
+
+/// Groupe de saisie réutilisable : lecture claire, sans troisième couleur.
+class ClinicalFormSection extends StatelessWidget {
+  const ClinicalFormSection({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.child,
+    this.subtitle,
+  });
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(17),
+    decoration: BoxDecoration(
+      color: Palette.night,
+      borderRadius: BorderRadius.circular(22),
+      border: Border.all(color: Palette.laserBorder),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: Palette.laserVeil,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(icon, size: 21, color: Palette.laser),
+          ),
+          const SizedBox(width: 11),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.w800,
+                color: Palette.laser,
+              )),
+              if (subtitle != null) ...[
+                const SizedBox(height: 3),
+                Text(subtitle!, style: const TextStyle(
+                  fontSize: 11.5, color: Palette.laserMuted)),
+              ],
+            ],
+          )),
+        ]),
+        const SizedBox(height: 19),
+        child,
+      ],
+    ),
+  );
+}
