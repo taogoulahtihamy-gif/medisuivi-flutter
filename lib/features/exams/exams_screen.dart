@@ -36,7 +36,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
             const SizedBox(height: 8),
             const Text('Bilans médicaux', style: TextStyle(
               fontSize: 30, letterSpacing: -1,
-              fontWeight: FontWeight.w800, color: Palette.charcoal)),
+              fontWeight: FontWeight.w800, color: Palette.laser)),
             const SizedBox(height: 7),
             const Text('Demandes et résultats par patient.',
               style: TextStyle(fontSize: 12.5, color: Palette.muted)),
@@ -44,7 +44,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Palette.charcoal,
+                color: Palette.laser,
                 borderRadius: BorderRadius.circular(25),
               ),
               child: Row(children: [
@@ -53,24 +53,24 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   children: [
                     const Text('EN ATTENTE DE RÉSULTAT', style: TextStyle(
                       fontSize: 10, letterSpacing: 1.0,
-                      color: Color(0xFFCBD8D0), fontWeight: FontWeight.w700)),
+                      color: Palette.laserMuted, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Text('$pending', style: const TextStyle(
                       fontSize: 47, height: 1,
                       letterSpacing: -1.7, fontWeight: FontWeight.w800,
-                      color: Colors.white)),
+                      color: Palette.laser)),
                     const SizedBox(height: 5),
                     const Text('examens à suivre', style: TextStyle(
-                      fontSize: 12, color: Color(0xFFD5E4DA))),
+                      fontSize: 12, color: Palette.laserMuted)),
                   ],
                 )),
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2F3732),
+                    color: const Palette.laserVeil,
                     borderRadius: BorderRadius.circular(18)),
                   child: const Icon(Icons.biotech_outlined,
-                    color: Colors.white, size: 27),
+                    color: Palette.laser, size: 27),
                 ),
               ]),
             ),
@@ -109,7 +109,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   SoftIcon(
                     icon: Icons.science_outlined,
                     color: exam.status == ExamStatus.complete
-                      ? Palette.forest : const Color(0xFF91642F),
+                      ? Palette.forest : const Palette.laser,
                     background: exam.status == ExamStatus.complete
                       ? Palette.mintFog : Palette.amberSoft),
                   const SizedBox(width: 13),
@@ -128,7 +128,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                         style: TextStyle(fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: exam.status == ExamStatus.complete
-                            ? Palette.forest : const Color(0xFF91642F))),
+                            ? Palette.forest : const Palette.laser)),
                     ],
                   )),
                   const Icon(Icons.chevron_right_rounded,
