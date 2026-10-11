@@ -41,7 +41,7 @@ class FollowupScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('DOSSIERS À REVOIR', style: TextStyle(
-                      fontSize: 10, color: Palette.forest,
+                      fontSize: 12, color: Palette.muted,
                       letterSpacing: 1.1, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 8),
                     Text('${followups.length}', style: const TextStyle(
@@ -50,7 +50,7 @@ class FollowupScreen extends StatelessWidget {
                       color: Palette.ink)),
                     const SizedBox(height: 7),
                     const Text('Suivi signalé dans les dossiers',
-                      style: TextStyle(fontSize: 11.5, color: Palette.muted)),
+                      style: TextStyle(fontSize: 13, color: Palette.muted)),
                   ],
                 )),
                 Container(
