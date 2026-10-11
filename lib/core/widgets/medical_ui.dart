@@ -13,7 +13,7 @@ class ScreenWidth extends StatelessWidget {
   final EdgeInsets padding;
   @override
   Widget build(BuildContext context) => Center(child: ConstrainedBox(
-    constraints: const BoxConstraints(maxWidth: 720),
+    constraints: const BoxConstraints(maxWidth: 620),
     child: Padding(padding: padding, child: child),
   ));
 }
@@ -57,14 +57,14 @@ class DemoNotice extends StatelessWidget {
   final bool compact;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
-    decoration: BoxDecoration(color: Palette.amberSoft, borderRadius: BorderRadius.circular(12)),
+    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+    decoration: BoxDecoration(color: Palette.blueSoft, borderRadius: BorderRadius.circular(10)),
     child: Row(children: [
-      const Icon(Icons.info_outline_rounded, color: Palette.laser, size: 18),
+      const Icon(Icons.info_outline_rounded, color: Palette.muted, size: 17),
       const SizedBox(width: 9),
       Expanded(child: Text(compact ? 'Démonstration · données fictives' :
         'Prototype de démonstration · ne pas saisir de données médicales réelles.',
-        style: const TextStyle(fontSize: 12, color: Palette.laser, fontWeight: FontWeight.w600))),
+        style: const TextStyle(fontSize: 12.5, color: Palette.muted, fontWeight: FontWeight.w500))),
     ]),
   );
 }
@@ -79,7 +79,7 @@ class PatientAvatar extends StatelessWidget {
     final box = Container(
       width: size, height: size, alignment: Alignment.center,
       decoration: BoxDecoration(color: Palette.tealSoft, borderRadius: BorderRadius.circular(size * 0.42)),
-      child: Text(patient.initials, style: TextStyle(color: Palette.laser, fontWeight: FontWeight.w800, fontSize: size * .29)),
+      child: Text(patient.initials, style: TextStyle(color: Palette.tealDark, fontWeight: FontWeight.w700, fontSize: size * .30)),
     );
     return hero ? Hero(tag: 'patient-${patient.id}', child: box) : box;
   }
@@ -93,17 +93,17 @@ class PatientRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SurfaceCard(
     onTap: onTap,
-    padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 14),
+    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
     child: Row(children: [
       PatientAvatar(patient: patient, hero: true),
-      const SizedBox(width: 13),
+      const SizedBox(width: 14),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(patient.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+          style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(subtitle ?? '${patient.id} · ${patient.age} ans',
           maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12, color: Palette.muted)),
+          style: const TextStyle(fontSize: 14, color: Palette.muted)),
       ])),
       if (patient.followUp) const Icon(Icons.event_repeat_rounded, size: 19, color: Palette.teal),
       const SizedBox(width: 4),
@@ -120,9 +120,9 @@ class PageTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontSize: 28, letterSpacing: -1, fontWeight: FontWeight.w800)),
+      Text(title, style: const TextStyle(fontSize: 27, letterSpacing: -0.7, fontWeight: FontWeight.w700)),
       const SizedBox(height: 7),
-      Text(subtitle, style: const TextStyle(fontSize: 13, color: Palette.muted)),
+      Text(subtitle, style: const TextStyle(fontSize: 14, color: Palette.muted)),
     ])),
     if (action != null) action!,
   ]);
@@ -155,7 +155,7 @@ class EmptyResults extends StatelessWidget {
       Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
       const SizedBox(height: 8),
       Text(detail, textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 13, color: Palette.muted)),
+        style: const TextStyle(fontSize: 14, color: Palette.muted)),
     ]),
   );
 }
@@ -204,9 +204,9 @@ class ClinicalFormSection extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(17),
     decoration: BoxDecoration(
-      color: Palette.night,
-      borderRadius: BorderRadius.circular(22),
-      border: Border.all(color: Palette.laserBorder),
+      color: Palette.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: Palette.border),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,23 +215,23 @@ class ClinicalFormSection extends StatelessWidget {
           Container(
             width: 40, height: 40,
             decoration: BoxDecoration(
-              color: Palette.laserVeil,
+              color: Palette.tealSoft,
               borderRadius: BorderRadius.circular(13),
             ),
-            child: Icon(icon, size: 21, color: Palette.laser),
+            child: Icon(icon, size: 21, color: Palette.forest),
           ),
           const SizedBox(width: 11),
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: const TextStyle(
-                fontSize: 16, fontWeight: FontWeight.w800,
-                color: Palette.laser,
+                fontSize: 17, fontWeight: FontWeight.w600,
+                color: Palette.forest,
               )),
               if (subtitle != null) ...[
                 const SizedBox(height: 3),
                 Text(subtitle!, style: const TextStyle(
-                  fontSize: 11.5, color: Palette.laserMuted)),
+                  fontSize: 11.5, color: Palette.forestMuted)),
               ],
             ],
           )),
