@@ -9,6 +9,7 @@ import '../patients/new_patient_screen.dart';
 import '../patients/patient_detail_screen.dart';
 import '../settings/settings_screen.dart';
 
+/// Tableau de bord personnel : navigation et vrais nombres issus du DemoStore.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({
     super.key,
@@ -21,256 +22,412 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onExams;
   final VoidCallback onFollowup;
 
+  void _newPatient(BuildContext context) => Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const NewPatientScreen()),
+  );
+
   @override
   Widget build(BuildContext context) {
     final store = DemoScope.of(context);
     final patients = store.patients;
-    final pending = store.exams.where((exam) => exam.status == ExamStatus.pending).length;
     final followUps = patients.where((patient) => patient.followUp).length;
+    final pending = store.exams.where((exam) =>
+      exam.status == ExamStatus.pending).length;
 
     return ListView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      key: const ValueKey('medisuivi-home'),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       children: [
         ScreenWidth(
-          padding: const EdgeInsets.fromLTRB(20, 17, 20, 40),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Container(
-                width: 43, height: 43,
-                decoration: BoxDecoration(
-                  color: Palette.navy, borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.medical_information_outlined,
-                  color: Colors.white, size: 23),
-              ),
-              const SizedBox(width: 11),
-              const Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('MediSuivi', style: TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -.5)),
-                  SizedBox(height: 1),
-                  Text('Espace clinique personnel',
-                    style: TextStyle(fontSize: 11, color: Palette.muted)),
-                ],
-              )),
-              Material(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                child: IconButton(
+          padding: const EdgeInsets.fromLTRB(21, 20, 21, 38),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Container(
+                  width: 41,
+                  height: 41,
+                  decoration: BoxDecoration(
+                    color: Palette.forest,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.health_and_safety_outlined,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 11),
+                const Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('MediSuivi', style: TextStyle(
+                      fontSize: 18.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -.5,
+                    )),
+                    Text('Espace personnel', style: TextStyle(
+                      fontSize: 11.5, color: Palette.muted,
+                    )),
+                  ],
+                )),
+                IconButton(
                   tooltip: 'Paramètres',
                   icon: const Icon(Icons.tune_rounded, size: 22),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Palette.border),
+                  ),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                      builder: (_) => const SettingsScreen())),
+                      builder: (_) => const SettingsScreen(),
+                    ),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 29),
+              Text(
+                shortDate(DateTime.now()),
+                style: const TextStyle(
+                  color: Palette.muted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ]),
-            const SizedBox(height: 25),
-            Text(shortDate(DateTime.now()).toUpperCase(),
-              style: const TextStyle(fontSize: 11, letterSpacing: 1.3,
-                fontWeight: FontWeight.w700, color: Palette.teal)),
-            const SizedBox(height: 7),
-            const Text('Votre espace de suivi',
-              style: TextStyle(fontSize: 27, letterSpacing: -.9,
-                fontWeight: FontWeight.w800, height: 1.14)),
-            const SizedBox(height: 6),
-            const Text('Patients, consultations et bilans au même endroit.',
-              style: TextStyle(color: Palette.muted, fontSize: 12.5)),
-            const SizedBox(height: 22),
-            EntranceReveal(
-              child: _CareHero(onNewPatient: () =>
-                Navigator.of(context).push(MaterialPageRoute<void>(
-                  builder: (_) => const NewPatientScreen()))),
-            ),
-            const SizedBox(height: 14),
-            const DemoNotice(compact: true),
-            const SizedBox(height: 25),
-            const SectionHeading(title: 'Vue d’ensemble'),
-            const SizedBox(height: 13),
-            Row(children: [
-              Expanded(child: _Metric(
-                value: patients.length.toString(),
-                title: 'Patients',
-                icon: Icons.people_alt_outlined,
-                background: Palette.aqua, foreground: Palette.teal)),
-              const SizedBox(width: 10),
-              Expanded(child: _Metric(
-                value: followUps.toString(),
-                title: 'À revoir',
-                icon: Icons.event_available_outlined,
-                background: Palette.blueSoft, foreground: Palette.navy)),
-              const SizedBox(width: 10),
-              Expanded(child: _Metric(
-                value: pending.toString(),
-                title: 'Bilans',
-                icon: Icons.biotech_outlined,
-                background: Palette.lavenderSoft,
-                foreground: Palette.tealDark)),
-            ]),
-            const SizedBox(height: 27),
-            const SectionHeading(title: 'Accès rapide'),
-            const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: _QuickAction(
-                icon: Icons.folder_shared_outlined,
-                label: 'Mes dossiers',
-                detail: 'Rechercher un patient',
-                onTap: onPatients,
-              )),
-              const SizedBox(width: 11),
-              Expanded(child: _QuickAction(
-                icon: Icons.monitor_heart_outlined,
-                label: 'Mes suivis',
-                detail: 'Visites à revoir',
-                onTap: onFollowup,
-              )),
-            ]),
-            const SizedBox(height: 28),
-            SectionHeading(title: 'Patients récents',
-              trailing: 'Voir tout', onTap: onPatients),
-            const SizedBox(height: 12),
-            for (final patient in patients.take(3)) ...[
-              PatientRow(
-                patient: patient,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) =>
-                    PatientDetailScreen(patientId: patient.id))),
+              const SizedBox(height: 6),
+              const Text(
+                'Vue clinique',
+                style: TextStyle(
+                  fontSize: 32,
+                  height: 1.04,
+                  letterSpacing: -1.1,
+                  fontWeight: FontWeight.w800,
+                  color: Palette.charcoal,
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 9),
+              const Text('L’essentiel de vos dossiers, au même endroit.',
+                style: TextStyle(fontSize: 12.5, color: Palette.muted)),
+              const SizedBox(height: 23),
+              EntranceReveal(
+                child: _ActivityCard(
+                  patientCount: patients.length,
+                  followUpCount: followUps,
+                  pendingCount: pending,
+                  onNewPatient: () => _newPatient(context),
+                  onPatients: onPatients,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const DemoNotice(compact: true),
+              const SizedBox(height: 29),
+              const SectionHeading(title: 'Accès rapide'),
+              const SizedBox(height: 13),
+              Row(children: [
+                Expanded(child: _ShortcutCard(
+                  label: 'Patients à revoir',
+                  value: '$followUps',
+                  icon: Icons.event_repeat_rounded,
+                  tint: Palette.mintFog,
+                  onTap: onFollowup,
+                )),
+                const SizedBox(width: 11),
+                Expanded(child: _ShortcutCard(
+                  label: 'Bilans en attente',
+                  value: '$pending',
+                  icon: Icons.biotech_outlined,
+                  tint: const Color(0xFFF0F2EC),
+                  onTap: onExams,
+                )),
+              ]),
+              const SizedBox(height: 29),
+              SectionHeading(
+                title: 'Dossiers récents',
+                trailing: 'Tout voir',
+                onTap: onPatients,
+              ),
+              const SizedBox(height: 11),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(color: Palette.border),
+                ),
+                child: Column(children: [
+                  for (var i = 0; i < patients.take(3).length; i++) ...[
+                    _RecentPatient(
+                      patient: patients[i],
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => PatientDetailScreen(
+                            patientId: patients[i].id,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (i < patients.take(3).length - 1)
+                      const Divider(height: 1, indent: 65, endIndent: 18),
+                  ],
+                ]),
+              ),
+              const SizedBox(height: 22),
+              _ArchiveNote(onTap: onPatients),
             ],
-            const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: onExams,
-              icon: const Icon(Icons.science_outlined, size: 18),
-              label: const Text('Consulter les bilans'),
-            ),
-          ]),
+          ),
         ),
       ],
     );
   }
 }
 
-class _CareHero extends StatelessWidget {
-  const _CareHero({required this.onNewPatient});
+class _ActivityCard extends StatelessWidget {
+  const _ActivityCard({
+    required this.patientCount,
+    required this.followUpCount,
+    required this.pendingCount,
+    required this.onNewPatient,
+    required this.onPatients,
+  });
+
+  final int patientCount;
+  final int followUpCount;
+  final int pendingCount;
   final VoidCallback onNewPatient;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final narrow = constraints.maxWidth < 345;
-      return Container(
-        height: narrow ? 256 : 250,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(26),
-          boxShadow: const [
-            BoxShadow(color: Color(0x190C4C58), blurRadius: 23,
-              offset: Offset(0, 11)),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(26),
-          child: Stack(fit: StackFit.expand, children: [
-            SvgPicture.asset('assets/illustrations/medical_care.svg',
-              fit: BoxFit.cover, alignment: Alignment.centerRight,
-              semanticsLabel: 'Illustration d’une professionnelle de santé'),
-            Positioned(
-              left: 21, top: 25,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: .14),
-                  borderRadius: BorderRadius.circular(9),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: const Text('DOSSIERS MÉDICAUX',
-                  style: TextStyle(color: Colors.white, fontSize: 9,
-                    letterSpacing: 1, fontWeight: FontWeight.w700)),
-              ),
-            ),
-            Positioned(
-              left: 21, top: 68,
-              right: narrow ? 94 : 132,
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Chaque patient,\nun suivi précis.',
-                    style: TextStyle(color: Colors.white,
-                      height: 1.13, letterSpacing: -.65,
-                      fontWeight: FontWeight.w800, fontSize: 23)),
-                  SizedBox(height: 11),
-                  Text('Retrouvez l’essentiel en quelques instants.',
-                    style: TextStyle(color: Color(0xFFE8FFF2),
-                      height: 1.4, fontSize: 11.5)),
-                ],
-              ),
-            ),
-            Positioned(
-              left: 18, bottom: 19,
-              child: ElevatedButton.icon(
-                onPressed: onNewPatient,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Palette.navy,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 15, vertical: 0),
-                  minimumSize: const Size(0, 42),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(13)),
-                ),
-                icon: const Icon(Icons.add_rounded, size: 19),
-                label: const Text('Nouveau patient',
-                  style: TextStyle(fontSize: 12.5)),
-              ),
-            ),
-          ]),
-        ),
-      );
-    },
-  );
-}
-
-class _Metric extends StatelessWidget {
-  const _Metric({required this.value, required this.title,
-    required this.icon, required this.background, required this.foreground});
-  final String value;
-  final String title;
-  final IconData icon;
-  final Color background;
-  final Color foreground;
+  final VoidCallback onPatients;
 
   @override
   Widget build(BuildContext context) => Container(
-    constraints: const BoxConstraints(minHeight: 126),
-    padding: const EdgeInsets.all(13),
+    padding: const EdgeInsets.fromLTRB(21, 21, 21, 20),
     decoration: BoxDecoration(
-      color: Colors.white, borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Palette.border)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Container(
-        width: 34, height: 34,
-        decoration: BoxDecoration(color: background,
-          borderRadius: BorderRadius.circular(11)),
-        child: Icon(icon, color: foreground, size: 19),
-      ),
-      const SizedBox(height: 13),
-      Text(value, style: const TextStyle(
-        fontSize: 25, fontWeight: FontWeight.w800,
-        height: 1, letterSpacing: -.5)),
-      const SizedBox(height: 5),
-      Text(title, style: const TextStyle(
-        fontSize: 11.5, color: Palette.muted, fontWeight: FontWeight.w600)),
+      color: Palette.charcoal,
+      borderRadius: BorderRadius.circular(27),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          const Icon(Icons.grid_view_rounded, color: Color(0xFFB7C9BE), size: 15),
+          const SizedBox(width: 8),
+          const Expanded(child: Text(
+            'APERÇU DES DOSSIERS',
+            style: TextStyle(
+              color: Color(0xFFB9CCC1),
+              fontSize: 10,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w700,
+            ),
+          )),
+          Container(
+            width: 9, height: 9,
+            decoration: const BoxDecoration(
+              color: Color(0xFF71C9A0),
+              shape: BoxShape.circle,
+            ),
+          ),
+        ]),
+        const SizedBox(height: 17),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text('$patientCount', style: const TextStyle(
+              color: Colors.white,
+              fontSize: 51,
+              height: 1,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -2.5,
+            )),
+            const SizedBox(width: 11),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 7),
+              child: Text('patients\nrépertoriés',
+                style: TextStyle(
+                  height: 1.25,
+                  fontSize: 12,
+                  color: Color(0xFFD9E4DD),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 19),
+        Row(children: [
+          Expanded(child: _DarkMiniStat(
+            count: followUpCount,
+            label: 'À revoir',
+            icon: Icons.calendar_today_outlined,
+          )),
+          const SizedBox(width: 10),
+          Expanded(child: _DarkMiniStat(
+            count: pendingCount,
+            label: 'Bilans',
+            icon: Icons.science_outlined,
+          )),
+        ]),
+        const SizedBox(height: 17),
+        Row(children: [
+          Expanded(child: SizedBox(
+            height: 46,
+            child: FilledButton.icon(
+              onPressed: onNewPatient,
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Palette.charcoal,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)),
+                padding: const EdgeInsets.symmetric(horizontal: 9),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: const Text('Nouveau patient',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+            ),
+          )),
+          const SizedBox(width: 9),
+          SizedBox(
+            width: 44, height: 46,
+            child: IconButton(
+              tooltip: 'Mes dossiers',
+              onPressed: onPatients,
+              style: IconButton.styleFrom(
+                backgroundColor: Palette.charcoalSoft,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)),
+              ),
+              icon: const Icon(Icons.arrow_outward_rounded, size: 20),
+            ),
+          ),
+        ]),
+      ],
+    ),
+  );
+}
+
+class _DarkMiniStat extends StatelessWidget {
+  const _DarkMiniStat({
+    required this.count,
+    required this.label,
+    required this.icon,
+  });
+
+  final int count;
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    decoration: BoxDecoration(
+      color: const Color(0xFF2C302E),
+      borderRadius: BorderRadius.circular(17),
+    ),
+    child: Row(children: [
+      Icon(icon, size: 16, color: const Color(0xFFC9DAD0)),
+      const SizedBox(width: 9),
+      Text('$count', style: const TextStyle(
+        color: Colors.white, fontSize: 19, fontWeight: FontWeight.w700,
+      )),
+      const SizedBox(width: 7),
+      Expanded(child: Text(label,
+        maxLines: 2, style: const TextStyle(
+        color: Color(0xFFBECAC1), fontSize: 11.5, height: 1.1,
+      ))),
     ]),
   );
 }
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({required this.icon, required this.label,
-    required this.detail, required this.onTap});
-  final IconData icon;
+class _ShortcutCard extends StatelessWidget {
+  const _ShortcutCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.tint,
+    required this.onTap,
+  });
+
   final String label;
-  final String detail;
+  final String value;
+  final IconData icon;
+  final Color tint;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: tint,
+    borderRadius: BorderRadius.circular(22),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 133),
+        padding: const EdgeInsets.fromLTRB(15, 15, 15, 17),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(icon, color: Palette.forest, size: 21),
+              const Spacer(),
+              const Icon(Icons.arrow_outward_rounded,
+                color: Palette.forest, size: 17),
+            ]),
+            const SizedBox(height: 16),
+            Text(value, style: const TextStyle(
+              fontSize: 27,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -.6,
+              height: 1,
+            )),
+            const SizedBox(height: 7),
+            Text(label, maxLines: 2, style: const TextStyle(
+              fontSize: 12, fontWeight: FontWeight.w600,
+              color: Palette.ink, height: 1.2,
+            )),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _RecentPatient extends StatelessWidget {
+  const _RecentPatient({required this.patient, required this.onTap});
+  final Patient patient;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(20),
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(13, 14, 13, 14),
+      child: Row(children: [
+        PatientAvatar(patient: patient, size: 40, hero: true),
+        const SizedBox(width: 11),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(patient.name, style: const TextStyle(
+              fontSize: 13.5, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 3),
+            Text('${patient.id}  ·  ${patient.age} ans',
+              style: const TextStyle(color: Palette.muted, fontSize: 11.5)),
+          ],
+        )),
+        if (patient.followUp)
+          const Icon(Icons.event_repeat_rounded,
+            color: Palette.forest, size: 17),
+        const SizedBox(width: 8),
+        const Icon(Icons.chevron_right_rounded,
+          color: Palette.muted, size: 19),
+      ]),
+    ),
+  );
+}
+
+class _ArchiveNote extends StatelessWidget {
+  const _ArchiveNote({required this.onTap});
   final VoidCallback onTap;
 
   @override
@@ -280,28 +437,35 @@ class _QuickAction extends StatelessWidget {
     child: InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Palette.border)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Icon(icon, color: Palette.teal, size: 23),
-              const Spacer(),
-              const Icon(Icons.arrow_outward_rounded,
-                color: Palette.muted, size: 17),
-            ]),
-            const SizedBox(height: 16),
-            Text(label, style: const TextStyle(fontSize: 14.5,
-              fontWeight: FontWeight.w700)),
-            const SizedBox(height: 5),
-            Text(detail, maxLines: 2,
-              style: const TextStyle(color: Palette.muted, fontSize: 10.5)),
-          ],
-        ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(13, 12, 13, 12),
+        child: Row(children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: SvgPicture.asset(
+              'assets/illustrations/medical_care.svg',
+              width: 72,
+              height: 62,
+              fit: BoxFit.cover,
+              alignment: Alignment.centerRight,
+              semanticsLabel: 'Illustration médicale',
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Historique médical', style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w700,
+              )),
+              SizedBox(height: 5),
+              Text('Consulter les dossiers et les visites.',
+                style: TextStyle(fontSize: 11, color: Palette.muted)),
+            ],
+          )),
+          const Icon(Icons.chevron_right_rounded,
+            color: Palette.muted),
+        ]),
       ),
     ),
   );
