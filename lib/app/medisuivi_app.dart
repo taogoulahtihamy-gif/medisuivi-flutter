@@ -94,22 +94,22 @@ class _MainShellState extends State<MainShell> {
       ),
       bottomNavigationBar: SafeArea(
         top: false,
-        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        minimum: const EdgeInsets.fromLTRB(14, 0, 14, 8),
         child: Center(
           heightFactor: 1,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 540),
             child: Container(
-              height: 76,
+              height: 72,
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               decoration: BoxDecoration(
-                color: Palette.night,
-                borderRadius: BorderRadius.circular(23),
+                color: Palette.white,
+                borderRadius: BorderRadius.circular(22),
                 border: Border.all(color: Palette.border),
                 boxShadow: const [
                   BoxShadow(
-                    color: Palette.night,
-                    blurRadius: 24,
+                    color: const Color(0x0B20362D),
+                    blurRadius: 17,
                     offset: Offset(0, 6),
                   ),
                 ],
@@ -185,7 +185,7 @@ class _NavItem extends StatelessWidget {
                 const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: selected ? Palette.laser : Colors.transparent,
+                color: selected ? Palette.tealSoft : Colors.transparent,
                 borderRadius: BorderRadius.circular(19),
               ),
               child: Column(
@@ -193,12 +193,12 @@ class _NavItem extends StatelessWidget {
                 children: [
                   Icon(selected ? selectedIcon : icon,
                     size: 22,
-                    color: selected ? Palette.night : Palette.laserMuted),
+                    color: selected ? Palette.forest : Palette.muted),
                   const SizedBox(height: 4),
                   Text(label, style: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected ? Palette.night : Palette.laserMuted,
+                    color: selected ? Palette.forest : Palette.muted,
                   )),
                 ],
               ),
