@@ -67,7 +67,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: Palette.nightVeil,
+                    color: Palette.night,
                     borderRadius: BorderRadius.circular(18)),
                   child: const Icon(Icons.biotech_outlined,
                     color: Palette.laser, size: 27),
