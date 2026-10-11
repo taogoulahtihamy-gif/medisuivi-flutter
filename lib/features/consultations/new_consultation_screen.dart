@@ -96,7 +96,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               style: TextStyle(
                 color: Palette.laserMuted,
                 letterSpacing: 1.2,
-                fontSize: 10.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
               )),
             const SizedBox(height: 9),
@@ -168,7 +168,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               'Aucune donnée n’est envoyée à un serveur ou conservée après fermeture.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 11.5, color: Palette.laserMuted),
+                fontSize: 13, color: Palette.laserMuted),
             ),
           ],
         ),
