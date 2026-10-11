@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/theme.dart';
 import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
@@ -67,11 +68,25 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 onTap: () => setState(() => followUpOnly = true)),
             ]),
             const SizedBox(height: 26),
-            Row(children: [
-              const Expanded(child: Text('Dossiers', style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w700))),
-              Text('${filtered.length} résultats', style: const TextStyle(
-                color: Palette.muted, fontSize: 13)),
+            Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Dossiers', style: TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 5),
+                  Text('${filtered.length} résultats',
+                    style: const TextStyle(
+                      color: Palette.muted, fontSize: 13)),
+                ],
+              )),
+              SvgPicture.asset(
+                'assets/illustrations/patient_records.svg',
+                width: 112,
+                height: 76,
+                fit: BoxFit.contain,
+                semanticsLabel: 'Illustration de dossiers patients',
+              ),
             ]),
             const SizedBox(height: 13),
             if (filtered.isEmpty)
