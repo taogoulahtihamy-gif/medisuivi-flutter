@@ -25,7 +25,7 @@ class PatientDetailScreen extends StatelessWidget {
             padding: const EdgeInsets.all(19),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Palette.navy, Color(0xFF137758)],
+                colors: [Palette.charcoal, Palette.charcoalSoft],
                 begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(24),
             ),
@@ -53,7 +53,7 @@ class PatientDetailScreen extends StatelessWidget {
               )),
             ]),
           )),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           const DemoNotice(compact: true),
           const SizedBox(height: 17),
           SizedBox(width: double.infinity, child: ElevatedButton.icon(
