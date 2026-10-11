@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="540" viewBox="0 0 900 540">
   <title>MediSuivi | dossier clinique</title>
   <desc>Illustration vectorielle bicolore d'un dossier médical avec un tracé de suivi.</desc>
-  <rect width="900" height="540" rx="48" fill="#10131A"/>
-  <circle cx="732" cy="275" r="212" fill="#EFFF4F" opacity=".08"/>
-  <circle cx="732" cy="275" r="166" fill="none" stroke="#EFFF4F" stroke-opacity=".22" stroke-width="3"/>
-  <path d="M0 420c160-44 252-23 388 36s289 38 512-14" fill="none" stroke="#EFFF4F" stroke-opacity=".13" stroke-width="3"/>
-  <rect x="456" y="82" width="275" height="376" rx="30" fill="#10131A" stroke="#EFFF4F" stroke-width="10"/>
-  <rect x="485" y="112" width="215" height="57" rx="16" fill="#EFFF4F"/>
-  <path d="M594 124v32m-16-16h32" stroke="#10131A" stroke-width="10" stroke-linecap="round"/>
-  <path d="M496 246h44l22-39 37 87 26-49h63" fill="none" stroke="#EFFF4F" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M499 339h144m-144 36h178m-178 36h112" stroke="#EFFF4F" stroke-opacity=".65" stroke-width="9" stroke-linecap="round"/>
-  <circle cx="380" cy="220" r="51" fill="#EFFF4F"/>
-  <path d="M380 197v46m-23-23h46" stroke="#10131A" stroke-width="11" stroke-linecap="round"/>
-  <path d="M365 353h61m-31-30v61" stroke="#EFFF4F" stroke-width="5" stroke-opacity=".5" stroke-linecap="round"/>
-  <circle cx="818" cy="117" r="10" fill="#EFFF4F" opacity=".8"/>
-  <circle cx="405" cy="131" r="7" fill="#EFFF4F" opacity=".6"/>
+  <rect width="900" height="540" rx="48" fill="#FFFFFF"/>
+  <circle cx="732" cy="275" r="212" fill="#16624F" opacity=".08"/>
+  <circle cx="732" cy="275" r="166" fill="none" stroke="#16624F" stroke-opacity=".22" stroke-width="3"/>
+  <path d="M0 420c160-44 252-23 388 36s289 38 512-14" fill="none" stroke="#16624F" stroke-opacity=".13" stroke-width="3"/>
+  <rect x="456" y="82" width="275" height="376" rx="30" fill="#FFFFFF" stroke="#16624F" stroke-width="10"/>
+  <rect x="485" y="112" width="215" height="57" rx="16" fill="#16624F"/>
+  <path d="M594 124v32m-16-16h32" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+  <path d="M496 246h44l22-39 37 87 26-49h63" fill="none" stroke="#16624F" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M499 339h144m-144 36h178m-178 36h112" stroke="#16624F" stroke-opacity=".65" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="380" cy="220" r="51" fill="#16624F"/>
+  <path d="M380 197v46m-23-23h46" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round"/>
+  <path d="M365 353h61m-31-30v61" stroke="#16624F" stroke-width="5" stroke-opacity=".5" stroke-linecap="round"/>
+  <circle cx="818" cy="117" r="10" fill="#16624F" opacity=".8"/>
+  <circle cx="405" cy="131" r="7" fill="#16624F" opacity=".6"/>
 </svg>
