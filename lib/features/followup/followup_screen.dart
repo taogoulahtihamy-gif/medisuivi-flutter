@@ -24,7 +24,7 @@ class FollowupScreen extends StatelessWidget {
             const SizedBox(height: 8),
             const Text('Suivi médical', style: TextStyle(
               fontSize: 30, letterSpacing: -1,
-              color: Palette.charcoal, fontWeight: FontWeight.w800)),
+              color: Palette.laser, fontWeight: FontWeight.w800)),
             const SizedBox(height: 7),
             const Text('Retrouvez les patients à revoir.',
               style: TextStyle(fontSize: 12.5, color: Palette.muted)),
@@ -46,7 +46,7 @@ class FollowupScreen extends StatelessWidget {
                     Text('${followups.length}', style: const TextStyle(
                       fontSize: 47, height: 1,
                       letterSpacing: -1, fontWeight: FontWeight.w800,
-                      color: Palette.charcoal)),
+                      color: Palette.laser)),
                     const SizedBox(height: 7),
                     const Text('Suivi signalé dans les dossiers',
                       style: TextStyle(fontSize: 11.5, color: Palette.muted)),
@@ -55,7 +55,7 @@ class FollowupScreen extends StatelessWidget {
                 Container(
                   width: 54, height: 54,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Palette.night,
                     borderRadius: BorderRadius.circular(18)),
                   child: const Icon(Icons.monitor_heart_outlined,
                     color: Palette.forest, size: 26),
