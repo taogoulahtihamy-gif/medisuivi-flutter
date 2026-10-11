@@ -71,7 +71,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   width: 112,
                   height: 91,
                   fit: BoxFit.contain,
-                  semanticsLabel: 'Illustration de laboratoire et d'analyses',
+                  semanticsLabel: "Illustration de laboratoire et d'analyses",
                 ),
               ]),
             ),
