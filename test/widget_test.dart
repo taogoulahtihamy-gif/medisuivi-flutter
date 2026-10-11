@@ -5,11 +5,13 @@ import 'package:medisuivi/app/theme.dart';
 import 'package:medisuivi/core/models/medical_models.dart';
 
 void main() {
-  test('Palette Forest Code et Mint Fog', () {
-    expect(Palette.forest, const Color(0xFF075E46));
-    expect(Palette.mintFog, const Color(0xFFE8FFF2));
-    expect(Palette.teal, Palette.forest);
-    expect(Palette.tealSoft, Palette.mintFog);
+  test('Palette Night Shift et Laser Lemon exclusivement', () {
+    expect(Palette.night, const Color(0xFF10131A));
+    expect(Palette.laser, const Color(0xFFEFFF4F));
+    expect(Palette.forest, Palette.laser);
+    expect(Palette.teal, Palette.laser);
+    expect(Palette.canvas, Palette.night);
+    expect(Palette.mintFog, Palette.laserVeil);
   });
 
   test('Initiales patient fictif', () {
