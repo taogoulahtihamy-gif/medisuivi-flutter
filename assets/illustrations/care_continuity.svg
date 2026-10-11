@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260" viewBox="0 0 420 260">
+<!-- Original geometric vector composition for MediSuivi; no third-party artwork. -->
+<circle cx="215" cy="130" r="112" fill="#E8FFF2" opacity=".07"/>
+<circle cx="215" cy="130" r="88" fill="none" stroke="#E8FFF2" opacity=".2"/>
+<path d="M38 186h75m189-84h80M75 68h35" stroke="#E8FFF2" stroke-width="2" opacity=".3"/>
+<g transform="rotate(-9 209 130)">
+<rect x="132" y="34" width="160" height="204" rx="19" fill="#064B39"/>
+<rect x="123" y="25" width="160" height="204" rx="19" fill="#E8FFF2"/>
+<rect x="167" y="16" width="72" height="25" rx="10" fill="#A9DCC2"/>
+<circle cx="156" cy="75" r="12" fill="#075E46"/>
+<path d="M151 75h10m-5-5v10" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+<path d="M182 69h69m-69 12h45" stroke="#075E46" stroke-width="5" stroke-linecap="round" opacity=".4"/>
+<rect x="142" y="108" width="122" height="55" rx="10" fill="#FFFFFF"/>
+<path d="M151 137h23l9-15 13 27 12-19 9 7h36" stroke="#075E46" fill="none" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M145 184h68m-68 14h94" stroke="#075E46" stroke-width="5" stroke-linecap="round" opacity=".25"/>
+</g>
+<circle cx="295" cy="189" r="33" fill="#FFFFFF"/>
+<path d="M283 189l8 8 16-18" fill="none" stroke="#075E46" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="84" cy="104" r="20" fill="#E8FFF2" opacity=".8"/>
+<path d="M77 104h14m-7-7v14" stroke="#075E46" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -25,16 +25,22 @@ class DemoStore extends ChangeNotifier {
     return null;
   }
 
-  void addPatient({required String name, required int age, required String sex, required String phone}) {
+  void addPatient(
+      {required String name,
+      required int age,
+      required String sex,
+      required String phone}) {
     final identifier = DateTime.now().microsecondsSinceEpoch;
-    _patients.insert(0, Patient(
-      id: 'DEMO-$identifier',
-      name: name.trim(),
-      age: age,
-      sex: sex,
-      phone: phone.trim().isEmpty ? 'Non renseigné' : phone.trim(),
-      createdAt: DateTime.now(),
-    ));
+    _patients.insert(
+        0,
+        Patient(
+          id: 'DEMO-$identifier',
+          name: name.trim(),
+          age: age,
+          sex: sex,
+          phone: phone.trim().isEmpty ? 'Non renseigné' : phone.trim(),
+          createdAt: DateTime.now(),
+        ));
     notifyListeners();
   }
 
@@ -48,18 +54,20 @@ class DemoStore extends ChangeNotifier {
     int? spo2,
     String notes = '',
   }) {
-    _visits.insert(0, Visit(
-      id: 'DEMO-${DateTime.now().microsecondsSinceEpoch}',
-      patientId: patientId,
-      date: DateTime.now(),
-      reason: reason.trim(),
-      temperature: temperature,
-      systolic: systolic,
-      diastolic: diastolic,
-      pulse: pulse,
-      spo2: spo2,
-      notes: notes.trim(),
-    ));
+    _visits.insert(
+        0,
+        Visit(
+          id: 'DEMO-${DateTime.now().microsecondsSinceEpoch}',
+          patientId: patientId,
+          date: DateTime.now(),
+          reason: reason.trim(),
+          temperature: temperature,
+          systolic: systolic,
+          diastolic: diastolic,
+          pulse: pulse,
+          spo2: spo2,
+          notes: notes.trim(),
+        ));
     notifyListeners();
   }
 }

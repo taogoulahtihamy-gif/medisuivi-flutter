@@ -1,7 +1,15 @@
 /// Contrats préparatoires. AUCUNE synchronisation réseau ou donnée
 /// médicale réelle n'est activée dans le prototype.
 /// Architecture détaillée : docs/OFFLINE_SYNC.md.
-enum SyncState { notConfigured, offline, pending, syncing, synced, failed, conflict }
+enum SyncState {
+  notConfigured,
+  offline,
+  pending,
+  syncing,
+  synced,
+  failed,
+  conflict
+}
 
 class PendingOperation {
   const PendingOperation({

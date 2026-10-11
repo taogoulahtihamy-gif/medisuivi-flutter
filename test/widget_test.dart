@@ -13,8 +13,13 @@ void main() {
   });
 
   test('Initiales patient fictif', () {
-    final patient = Patient(id: 'TEST-001', name: 'Aminata Diallo', age: 32,
-      sex: 'F', phone: '', createdAt: DateTime(2026, 1, 1));
+    final patient = Patient(
+        id: 'TEST-001',
+        name: 'Aminata Diallo',
+        age: 32,
+        sex: 'F',
+        phone: '',
+        createdAt: DateTime(2026, 1, 1));
     expect(patient.initials, 'AD');
   });
 
@@ -26,7 +31,8 @@ void main() {
     expect(find.text('Accès rapide'), findsOneWidget);
   });
 
-  testWidgets('Accueil mobile sans débordement et actions accessibles', (tester) async {
+  testWidgets('Accueil mobile sans débordement et actions accessibles',
+      (tester) async {
     tester.view.physicalSize = const Size(360, 780);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
