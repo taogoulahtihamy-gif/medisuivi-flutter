@@ -36,7 +36,9 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MediSuiviApp());
     await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
+    final overflow = tester.takeException();
+    if (overflow != null) debugDumpRenderTree();
+    expect(overflow, isNull);
     expect(find.text('Nouveau patient'), findsOneWidget);
     expect(find.text('Patients'), findsWidgets);
   });
