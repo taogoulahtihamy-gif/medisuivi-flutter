@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="245" viewBox="0 0 360 245">
+<title>Scène de consultation médicale</title><desc>Une soignante examine un dossier face à un patient, avec un stéthoscope.</desc>
+<defs><linearGradient id="coat" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#DCEFE3"/></linearGradient></defs>
+<circle cx="246" cy="109" r="94" fill="#C1E0CE" opacity=".25"/>
+<path d="M48 216H337" fill="none" stroke="#C5E3D1" stroke-width="3" stroke-linecap="round"/>
+<rect x="70" y="149" width="168" height="62" rx="18" fill="#B4D3C4"/>
+<path d="M77 160c26-19 48-17 66 0v55H77Z" fill="#E5F3EA"/>
+<circle cx="114" cy="117" r="29" fill="#C9DBCF"/>
+<path d="M89 114c0-38 52-47 59-10l-14-6-15-14-9 20Z" fill="#234A3B"/>
+<path d="M88 150c10-13 37-15 50-2l10 64H81Z" fill="#FFFFFF"/>
+<path d="M90 170c14 12 31 13 43 0" fill="none" stroke="#16624F" stroke-width="4" stroke-linecap="round"/>
+<rect x="166" y="169" width="79" height="55" rx="10" transform="rotate(-12 166 169)" fill="#FFFFFF" stroke="#9ABAAA" stroke-width="3"/>
+<path d="m179 183 31-6m-28 20 40-8m-37 22 25-6" stroke="#6D9984" stroke-width="3" stroke-linecap="round"/>
+<path d="M141 183c12-12 20-11 35-3m-33 5 27 5" fill="none" stroke="#D5E7DC" stroke-width="11" stroke-linecap="round"/>
+<path d="M212 148c-7-25 12-45 35-45h22c27 0 37 21 35 45v66H205Z" fill="url(#coat)"/>
+<path d="M242 149l17 27 15-27" fill="#C1DCCB"/>
+<path d="M255 148v34" stroke="#9BC4AD" stroke-width="4"/>
+<circle cx="258" cy="74" r="34" fill="#D1E3D7"/>
+<path d="M225 73c-2-41 66-51 71-6-12-7-21-23-28-30-6 16-19 25-43 36Z" fill="#2C5747"/>
+<path d="M237 116c-18 14-21 27-20 43m60-44c19 11 23 31 21 47" fill="none" stroke="#16624F" stroke-width="4" stroke-linecap="round"/>
+<path d="M232 159c-5 17 1 29 16 29s23-12 18-28" fill="none" stroke="#16624F" stroke-width="4" stroke-linecap="round"/>
+<circle cx="248" cy="188" r="8" fill="#EAF6ED" stroke="#16624F" stroke-width="3"/>
+<path d="M310 135h24v50h-24z" fill="#8AB6A0"/><path d="M316 148h12m-6-6v12" stroke="#FFFFFF" stroke-width="3"/>
+</svg>
