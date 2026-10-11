@@ -8,7 +8,7 @@ String shortDate(DateTime d) {
 }
 
 class ScreenWidth extends StatelessWidget {
-  const ScreenWidth({super.key, required this.child, this.padding = const EdgeInsets.fromLTRB(22, 22, 22, 30)});
+  const ScreenWidth({super.key, required this.child, this.padding = const EdgeInsets.fromLTRB(20, 22, 20, 36)});
   final Widget child;
   final EdgeInsets padding;
   @override
@@ -26,9 +26,11 @@ class SurfaceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
     color: Palette.white,
+    elevation: 1,
+    shadowColor: const Color(0x180D4150),
     shape: RoundedRectangleBorder(
       side: const BorderSide(color: Palette.border),
-      borderRadius: BorderRadius.circular(19),
+      borderRadius: BorderRadius.circular(20),
     ),
     child: InkWell(
       borderRadius: BorderRadius.circular(19),
@@ -55,7 +57,7 @@ class DemoNotice extends StatelessWidget {
   final bool compact;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
     decoration: BoxDecoration(color: Palette.amberSoft, borderRadius: BorderRadius.circular(12)),
     child: Row(children: [
       const Icon(Icons.info_outline_rounded, color: Color(0xFF8D5A20), size: 18),
@@ -76,7 +78,7 @@ class PatientAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final box = Container(
       width: size, height: size, alignment: Alignment.center,
-      decoration: BoxDecoration(color: Palette.tealSoft, borderRadius: BorderRadius.circular(size * 0.35)),
+      decoration: BoxDecoration(color: Palette.tealSoft, borderRadius: BorderRadius.circular(size * 0.42)),
       child: Text(patient.initials, style: TextStyle(color: Palette.tealDark, fontWeight: FontWeight.w800, fontSize: size * .29)),
     );
     return hero ? Hero(tag: 'patient-${patient.id}', child: box) : box;
@@ -156,4 +158,29 @@ class EmptyResults extends StatelessWidget {
         style: const TextStyle(fontSize: 13, color: Palette.muted)),
     ]),
   );
+}
+
+
+/// One gentle entrance; disabled when the user requests reduced motion.
+class EntranceReveal extends StatelessWidget {
+  const EntranceReveal({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 520),
+      curve: Curves.easeOutCubic,
+      builder: (context, progress, child) => Opacity(
+        opacity: progress,
+        child: Transform.translate(
+          offset: Offset(0, 16 * (1 - progress)),
+          child: child,
+        ),
+      ),
+      child: child,
+    );
+  }
 }
