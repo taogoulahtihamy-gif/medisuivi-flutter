@@ -77,7 +77,7 @@ class HomeScreen extends StatelessWidget {
                   tooltip: 'Paramètres',
                   icon: const Icon(Icons.tune_rounded, size: 22),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: Palette.night,
                     side: const BorderSide(color: Palette.border),
                   ),
                   onPressed: () => Navigator.of(context).push(
@@ -208,12 +208,12 @@ class _ActivityCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
-          const Icon(Icons.grid_view_rounded, color: Color(0xFFB7C9BE), size: 15),
+          const Icon(Icons.grid_view_rounded, color: Palette.night, size: 15),
           const SizedBox(width: 8),
           const Expanded(child: Text(
             'APERÇU DES DOSSIERS',
             style: TextStyle(
-              color: Color(0xFFB9CCC1),
+              color: Palette.night,
               fontSize: 10,
               letterSpacing: 1.2,
               fontWeight: FontWeight.w700,
@@ -222,7 +222,7 @@ class _ActivityCard extends StatelessWidget {
           Container(
             width: 9, height: 9,
             decoration: const BoxDecoration(
-              color: Color(0xFF71C9A0),
+              color: Palette.night,
               shape: BoxShape.circle,
             ),
           ),
@@ -245,7 +245,7 @@ class _ActivityCard extends StatelessWidget {
                 style: TextStyle(
                   height: 1.25,
                   fontSize: 12,
-                  color: Color(0xFFD9E4DD),
+                  color: Palette.night,
                 ),
               ),
             ),
@@ -320,7 +320,7 @@ class _DarkMiniStat extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
     decoration: BoxDecoration(
-      color: Palette.laserVeil,
+      color: Palette.night.withValues(alpha: .12),
       borderRadius: BorderRadius.circular(17),
     ),
     child: Row(children: [
@@ -332,7 +332,7 @@ class _DarkMiniStat extends StatelessWidget {
       const SizedBox(width: 7),
       Expanded(child: Text(label,
         maxLines: 2, style: const TextStyle(
-        color: Color(0xFFBECAC1), fontSize: 11.5, height: 1.1,
+        color: Palette.night, fontSize: 11.5, height: 1.1,
       ))),
     ]),
   );
