@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'dart:convert';
+
+import '../../core/assets/clinical_hero_photo.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/demo_store.dart';
@@ -116,77 +118,175 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _Summary extends StatelessWidget {
-  const _Summary({required this.total, required this.onAdd,
-    required this.onPatients});
+  const _Summary({
+    required this.total,
+    required this.onAdd,
+    required this.onPatients,
+  });
+
   final int total;
   final VoidCallback onAdd;
   final VoidCallback onPatients;
 
+  // Décompression unique de la photo fictive embarquée, y compris hors ligne.
+  static final _photoBytes = base64Decode(clinicalHeroPhotoWebpBase64);
+
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(color: Palette.navy,
-      borderRadius: BorderRadius.circular(22)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Row(children: [
-        Icon(Icons.folder_shared_outlined, color: Palette.white, size: 19),
-        SizedBox(width: 9),
-        Expanded(child: Text('MES DOSSIERS', style: TextStyle(
-          color: Palette.white, fontSize: 12.5,
-          fontWeight: FontWeight.w600, letterSpacing: .7))),
-      ]),
-      const SizedBox(height: 16),
-      Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('$total', style: const TextStyle(
-              color: Palette.white, fontSize: 43, height: 1,
-              fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            const Text('patients enregistrés',
-              maxLines: 2,
-              style: TextStyle(color: Palette.white, fontSize: 14)),
-          ],
-        )),
-        const SizedBox(width: 5),
-        SvgPicture.asset(
-          'assets/illustrations/consultation.svg',
-          width: 113,
-          height: 95,
-          fit: BoxFit.contain,
-          semanticsLabel: 'Scène de consultation médicale',
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(22),
+    child: Stack(
+      children: [
+        const Positioned.fill(
+          child: ColoredBox(color: Palette.navy),
         ),
-      ]),
-      const SizedBox(height: 18),
-      const Divider(height: 1, color: Color(0x45FFFFFF)),
-      const SizedBox(height: 17),
-      Row(children: [
-        Expanded(child: SizedBox(height: 46, child: ElevatedButton.icon(
-          onPressed: onAdd,
-          style: ElevatedButton.styleFrom(backgroundColor: Palette.white,
-            foregroundColor: Palette.navy, elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13))),
-          icon: const Icon(Icons.add_rounded, size: 20),
-          label: const Text('Nouveau patient', maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        ))),
-        const SizedBox(width: 10),
-        SizedBox(width: 47, height: 46, child: IconButton(
-          tooltip: 'Mes dossiers',
-          onPressed: onPatients,
-          style: IconButton.styleFrom(
-            side: const BorderSide(color: Color(0x45FFFFFF)),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(13))),
-          icon: const Icon(Icons.arrow_forward_rounded,
-            color: Palette.white),
-        )),
-      ]),
-    ]),
+        // Image à droite. On garde les textes et actions indépendants.
+        Positioned(
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: 195,
+          child: Image.memory(
+            _photoBytes,
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+            filterQuality: FilterQuality.medium,
+            excludeFromSemantics: true,
+          ),
+        ),
+        // Gauche opaque pour les chiffres, droite plus photographique.
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+                stops: [0, .31, .69, 1],
+                colors: [
+                  Palette.navy,
+                  Palette.navy,
+                  Color(0xD7193F34),
+                  Color(0x3B193F34),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Bande inférieure foncée pour les boutons et le séparateur.
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0, .40, .76, 1],
+                colors: [
+                  Color(0x00193F34),
+                  Color(0x00193F34),
+                  Color(0xB8193F34),
+                  Palette.navy,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.folder_shared_outlined,
+                    color: Palette.white, size: 19),
+                  SizedBox(width: 9),
+                  Expanded(
+                    child: Text('MES DOSSIERS',
+                      style: TextStyle(
+                        color: Palette.white,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: .7,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('$total', style: const TextStyle(
+                          color: Palette.white, fontSize: 43,
+                          height: 1, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 8),
+                        const Text('patients enregistrés',
+                          maxLines: 2,
+                          style: TextStyle(
+                            color: Palette.white, fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 105, height: 95),
+                ],
+              ),
+              const SizedBox(height: 18),
+              const Divider(height: 1, color: Color(0x5CFFFFFF)),
+              const SizedBox(height: 17),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: ElevatedButton.icon(
+                        onPressed: onAdd,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Palette.white,
+                          foregroundColor: Palette.navy,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                        ),
+                        icon: const Icon(Icons.add_rounded, size: 20),
+                        label: const Text('Nouveau patient',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 47,
+                    height: 46,
+                    child: IconButton(
+                      tooltip: 'Mes dossiers',
+                      onPressed: onPatients,
+                      style: IconButton.styleFrom(
+                        side: const BorderSide(
+                          color: Color(0x5CFFFFFF)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                      ),
+                      icon: const Icon(Icons.arrow_forward_rounded,
+                        color: Palette.white),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
   );
 }
 
