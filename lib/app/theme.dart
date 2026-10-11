@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'design_system.dart';
+export 'design_system.dart';
 
 abstract final class Palette {
   static const canvas = Color(0xFFF8FCF9);
@@ -11,6 +13,7 @@ abstract final class Palette {
   static const mintFog = Color(0xFFE8FFF2);
   // Alias conservés pour les composants existants.
   static const teal = forest;
+  static const deepForest = AppColors.deepForest;
   static const tealDark = Color(0xFF064B39);
   static const tealSoft = mintFog;
   static const border = Color(0xFFDDEEE4);
@@ -26,13 +29,13 @@ abstract final class Palette {
 abstract final class MediTheme {
   static ThemeData light() {
     const radius = 22.0;
-    final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
     final scheme = ColorScheme.fromSeed(
       seedColor: Palette.teal,
       primary: Palette.teal,
       surface: Palette.white,
       brightness: Brightness.light,
     );
+    final base = ThemeData(useMaterial3: true, colorScheme: scheme);
     return base.copyWith(
       colorScheme: scheme,
       scaffoldBackgroundColor: Palette.canvas,
@@ -45,10 +48,17 @@ abstract final class MediTheme {
         elevation: 0,
         centerTitle: false,
       ),
-      textTheme: base.textTheme.apply(
-        bodyColor: Palette.ink,
-        displayColor: Palette.ink,
-      ),
+      textTheme: AppTypography.apply(base.textTheme),
+      pageTransitionsTheme: const PageTransitionsTheme(builders: {
+        TargetPlatform.android: MedicalPageTransitions(),
+        TargetPlatform.iOS: MedicalCupertinoTransitions(),
+      }),
+      chipTheme: ChipThemeData(
+          backgroundColor: Palette.white,
+          selectedColor: Palette.mintFog,
+          side: const BorderSide(color: Palette.border),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
       cardTheme: CardThemeData(
         color: Palette.white,
         surfaceTintColor: Colors.transparent,
@@ -62,7 +72,8 @@ abstract final class MediTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Palette.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         hintStyle: const TextStyle(color: Palette.muted),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(17),
@@ -83,7 +94,8 @@ abstract final class MediTheme {
           foregroundColor: Colors.white,
           elevation: 0,
           minimumSize: const Size(0, 52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ),
@@ -92,12 +104,18 @@ abstract final class MediTheme {
           foregroundColor: Palette.teal,
           minimumSize: const Size(0, 50),
           side: const BorderSide(color: Palette.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
         ),
       ),
       dividerColor: Palette.border,
       iconTheme: const IconThemeData(color: Palette.ink),
-      cupertinoOverrideTheme: const CupertinoThemeData(primaryColor: Palette.teal),
+      cupertinoOverrideTheme:
+          const CupertinoThemeData(primaryColor: Palette.teal),
     );
   }
+}
+
+abstract final class AppTheme {
+  static ThemeData light() => MediTheme.light();
 }
