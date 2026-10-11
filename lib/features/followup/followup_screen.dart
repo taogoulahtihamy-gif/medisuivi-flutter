@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/theme.dart';
 import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
@@ -53,13 +54,12 @@ class FollowupScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 13, color: Palette.muted)),
                   ],
                 )),
-                Container(
-                  width: 54, height: 54,
-                  decoration: BoxDecoration(
-                    color: Palette.tealSoft,
-                    borderRadius: BorderRadius.circular(16)),
-                  child: const Icon(Icons.monitor_heart_outlined,
-                    color: Palette.forest, size: 26),
+                SvgPicture.asset(
+                  'assets/illustrations/care_calendar.svg',
+                  width: 112,
+                  height: 91,
+                  fit: BoxFit.contain,
+                  semanticsLabel: 'Illustration de calendrier de soins',
                 ),
               ]),
             ),
