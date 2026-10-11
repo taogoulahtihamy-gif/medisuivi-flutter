@@ -53,21 +53,21 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   children: [
                     const Text('EN ATTENTE DE RÉSULTAT', style: TextStyle(
                       fontSize: 10, letterSpacing: 1.0,
-                      color: Palette.laserMuted, fontWeight: FontWeight.w700)),
+                      color: Palette.night, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Text('$pending', style: const TextStyle(
                       fontSize: 47, height: 1,
                       letterSpacing: -1.7, fontWeight: FontWeight.w800,
-                      color: Palette.laser)),
+                      color: Palette.night)),
                     const SizedBox(height: 5),
                     const Text('examens à suivre', style: TextStyle(
-                      fontSize: 12, color: Palette.laserMuted)),
+                      fontSize: 12, color: Palette.night)),
                   ],
                 )),
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: Palette.laserVeil,
+                    color: Palette.nightVeil,
                     borderRadius: BorderRadius.circular(18)),
                   child: const Icon(Icons.biotech_outlined,
                     color: Palette.laser, size: 27),
