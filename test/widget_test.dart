@@ -36,11 +36,20 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MediSuiviApp());
     await tester.pumpAndSettle();
-    final overflow = tester.takeException();
-    if (overflow != null) debugDumpRenderTree();
-    expect(overflow, isNull);
+    expect(tester.takeException(), isNull);
     expect(find.text('Nouveau patient'), findsOneWidget);
     expect(find.text('Patients'), findsWidgets);
+  });
+
+  testWidgets('Accueil à 320 px sans débordement', (tester) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(const MediSuiviApp());
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Suivi des patients'), findsOneWidget);
   });
 
   testWidgets('Navigation et recherche de patient fictif', (tester) async {
