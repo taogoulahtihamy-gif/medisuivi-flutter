@@ -103,12 +103,12 @@ class _MainShellState extends State<MainShell> {
               height: 76,
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Palette.night,
                 borderRadius: BorderRadius.circular(23),
                 border: Border.all(color: Palette.border),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x14072B39),
+                    color: Palette.night,
                     blurRadius: 24,
                     offset: Offset(0, 6),
                   ),
@@ -185,7 +185,7 @@ class _NavItem extends StatelessWidget {
                 const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: selected ? Palette.charcoal : Colors.transparent,
+                color: selected ? Palette.laser : Colors.transparent,
                 borderRadius: BorderRadius.circular(19),
               ),
               child: Column(
@@ -193,12 +193,12 @@ class _NavItem extends StatelessWidget {
                 children: [
                   Icon(selected ? selectedIcon : icon,
                     size: 22,
-                    color: selected ? Colors.white : Palette.muted),
+                    color: selected ? Palette.night : Palette.laserMuted),
                   const SizedBox(height: 4),
                   Text(label, style: TextStyle(
                     fontSize: 10.5,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected ? Colors.white : Palette.muted,
+                    color: selected ? Palette.night : Palette.laserMuted,
                   )),
                 ],
               ),
