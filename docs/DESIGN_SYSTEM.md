@@ -5,13 +5,20 @@ Application médicale personnelle : sobre, attentive et élégante, sans fausse 
 Direction éditoriale avec illustration originale embarquée dans le binaire : `assets/illustrations/medical_care.svg`.
 **Aucune image distante obligatoire**, afin que l'interface reste identique hors connexion.
 
-## Palette
-- Canvas `#F5F7F8`, surface `#FFFFFF`.
-- Encre `#142D39`, secondaire `#697F88`.
-- Teal actif `#087A78`, teal profond `#0C4C58`.
-- Marine `#123E52`, aqua `#DCF5EF`.
-- Accents limités : bleu pâle `#EAF1FD`, lavande `#F1EDFA`.
-- Les couleurs des cartes de statistiques ne qualifient jamais une donnée médicale comme « normale ».
+## Palette officielle : Forest Code × Mint Fog
+
+Couleurs reprises à l'identique de la référence choisie :
+- **Forest Code** : `#075E46` — boutons primaires, état actif, liens et accents dominants.
+- **Mint Fog** : `#E8FFF2` — arrière-plans doux, tags, avatars fictifs et navigation sélectionnée.
+- Fond général : `#F8FCF9`; surfaces : `#FFFFFF`.
+- Encre de lecture : `#183A2E`; secondaire : `#627A6E`.
+- Vert profond : `#064B39` pour les zones immersives.
+- Traits et bordures : `#DDEEE4`.
+
+La palette est centralisée dans `lib/app/theme.dart` (`Palette.forest`, `Palette.mintFog`).
+Les anciens noms `Palette.teal` et `Palette.tealSoft` sont des alias de compatibilité.
+Le fichier `assets/illustrations/medical_care.svg` utilise maintenant le même vert.
+Les couleurs médicales d'alerte restent distinctes : pas de vert pour qualifier un résultat biologique de « normal ».
 
 ## Composition
 - Répartition volontaire entre illustration d'accueil, raccourcis et données de travail.
