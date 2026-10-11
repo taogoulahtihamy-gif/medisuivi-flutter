@@ -6,9 +6,13 @@ abstract final class Palette {
   static const white = Color(0xFFFFFFFF);
   static const ink = Color(0xFF183A2E);
   static const muted = Color(0xFF627A6E);
-  static const teal = Color(0xFF075E46);
+  // Couleurs de marque approuvées : Forest Code et Mint Fog.
+  static const forest = Color(0xFF075E46);
+  static const mintFog = Color(0xFFE8FFF2);
+  // Alias conservés pour les composants existants.
+  static const teal = forest;
   static const tealDark = Color(0xFF064B39);
-  static const tealSoft = Color(0xFFE8FFF2);
+  static const tealSoft = mintFog;
   static const border = Color(0xFFDDEEE4);
   static const amber = Color(0xFFF0B25F);
   static const amberSoft = Color(0xFFFFF3E3);
