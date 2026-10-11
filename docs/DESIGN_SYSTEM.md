@@ -1,71 +1,57 @@
-# MediSuivi — Night Shift × Laser Lemon
+# MediSuivi | Identité clinique sobre (V0.4)
 
-Direction artistique reprise de notre projet « Analyse du projet sérieux » :
-interface professionnelle compacte, navigation flottante, coins maîtrisés,
-typographie lisible, micro-interactions utiles, sans pastilles décoratives.
+Référence ergonomique : application métier premium, réutilisation de nos principes
+du projet « Analyse du projet sérieux » : composants compacts, navigation mobile
+flottante, lisibilité élevée, hiérarchie des actions, animations discrètes.
 
-## Palette strictement bicolore
+## Palette mesurée, non monochrome
 
-| Token | Couleur | HEX |
-| --- | --- | --- |
-| `Palette.night` | Night Shift | `#10131A` |
-| `Palette.laser` | Laser Lemon | `#EFFF4F` |
+- Vert clinique (action) : `#16624F`
+- Vert sombre (surface forte ponctuelle) : `#193F34`
+- Vert doux (état sélectionné) : `#EDF6F0`
+- Blanc : `#FFFFFF`
+- Toile : `#F7F9F8`
+- Texte principal : `#21352F`
+- Texte secondaire : `#687A73`
+- Séparation : `#E2EAE5`
+- États nécessitant une distinction clinique : **libellés + icônes**.
+  Les alertes ne reposent jamais uniquement sur la couleur.
 
-Aucune autre **teinte source** ne doit être introduite, y compris pour les alertes.
-Surfaces secondaires, bordures, champs, éléments désactivés et textes secondaires
-utilisent seulement ces mêmes RGB avec différentes opacités :
-`laserMuted`, `laserBorder`, `laserVeil`.
-Les noms historiques `teal`, `forest`, `mintFog`, `amberSoft` existent
-uniquement comme **alias de compatibilité** et ne correspondent plus à des
-couleurs supplémentaires.
+**Règle :** 80 % surfaces neutres, vert utilisé comme point d’attention.
+Les composants métiers ne doivent jamais devenir entièrement verts par défaut.
 
-La palette est définie centralement dans `lib/app/theme.dart`, avec un
-`ColorScheme` explicite. Ne pas utiliser `ColorScheme.fromSeed`, qui pourrait
-générer des teintes supplémentaires.
+## Typographie
 
-## Composition des écrans
+Polices système natives, intégrées et disponibles hors connexion :
+SF Pro sur iOS, Roboto sur Android. Pas de police téléchargée au lancement.
 
-- **Accueil** : grand résumé jaune citron, chiffres Night Shift, raccourcis
-  contrastés, dossiers récents organisés en registre.
-- **Patients** : recherche immédiate, état sélectionné jaune, lignes compactes.
-- **Dossier** : chronologie et constantes, valeurs médicales lisibles.
-- **Bilans** : statut textuel obligatoire ; pas de confusion entre couleur et
-  interprétation médicale.
-- **Suivi** : liste des patients à revoir, navigation directe.
-- **Formulaires** : sections `ClinicalFormSection`, clavier adapté aux mesures,
-  unités visibles, validation et sauvegarde démo explicites.
-- **Navigation** : dock flottant Night Shift, sélection Laser Lemon, icônes
-  Flutter Material sur Android et Cupertino sur iOS.
+- Grand titre : 27–30 px, poids 700, interlettrage léger.
+- Titre de section : 17–21 px, poids 600–700.
+- Corps : 14–16 px.
+- Secondaire : 13 px minimum (hors micro-labels/metadata).
+- Navigation : 12 px et 22 px pour les icônes.
+- Les écrans doivent respecter l’échelle de texte de l’appareil.
 
-## Motion et accessibilité
+## Écrans
 
-- Courbes `easeOutCubic` ; navigation animée sur 240–250 ms.
-- Apparition douce d'une section quand cela aide la lecture.
-- Animation Hero sur l'avatar **fictif** lors de l'ouverture d'un dossier.
-- Respect de `MediaQuery.disableAnimationsOf(context)`.
-- Cibles tactiles confortables ; largeur mobile testée à 360 px.
-- Si le jaune sert de couleur d'alerte **et** d'accent, un mot et une icône
-  décrivent toujours la situation. Ne pas indiquer « normal/anormal » sans
-  règle médicale validée.
+- Accueil : sommaire clinique bref, actions immédiates, deux accès de suivi,
+  puis dossiers récents. **Pas un tableau de bord administratif.**
+- Patients : recherche visible, filtres discrets, dossiers en surfaces neutres.
+- Dossier : identité lisible, historique des visites, constantes avec unités.
+- Bilans : statut textuel clair, séparation résultats disponibles/en attente.
+- Suivi : liste actionnable sans indicateurs décoratifs.
+- Formulaires : sections `ClinicalFormSection`, validations et unités.
+- Barre flottante : fond blanc, sélection vert pâle, libellés lisibles.
 
-## Images et données
+Animation : transitions des onglets 240 ms, apparition du résumé,
+Hero de l’avatar fictif ; respecter `MediaQuery.disableAnimationsOf`.
 
-- Seul visuel médical SVG embarqué : `assets/illustrations/medical_care.svg`.
-  Le SVG utilise exclusivement les deux couleurs approuvées, sans Internet.
-- Dossiers patients : initiales fictives, jamais de portraits réels intégrés
-  au dépôt.
-- **Cette version est une démonstration** sans persistance médicalement sûre.
-  Le chiffrement local et la synchronisation offline réelle ne sont pas prêts.
-- Ne pas saisir de données réelles et ne pas les publier dans GitHub.
+## État du produit
 
-## Vérification
+**Démonstration fictive uniquement** : pas de base chiffrée,
+pas d’authentification réelle ni de synchronisation médicale.
+Aucun nom de patient réel sur GitHub. Les éléments visuels sont embarqués
+localement pour rester visibles sans réseau.
 
-```bash
-flutter pub get
-flutter analyze
-flutter test
-flutter run -d web-server --web-hostname=127.0.0.1
-```
-
-Les nouvelles fonctionnalités ne doivent pas réintroduire d'autres couleurs,
-en dur dans un widget ou générées par un thème tiers.
+Vérification : `flutter pub get`, `flutter analyze`, `flutter test`.
+Tester également Android, iOS et la mise à l’échelle des polices.
