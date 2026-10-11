@@ -1,53 +1,71 @@
-# MediSuivi | Design system v0.2
+# MediSuivi — Night Shift × Laser Lemon
 
-## Identité
-Application médicale personnelle : sobre, attentive et élégante, sans fausse promesse clinique.
-Direction éditoriale avec illustration originale embarquée dans le binaire : `assets/illustrations/medical_care.svg`.
-**Aucune image distante obligatoire**, afin que l'interface reste identique hors connexion.
+Direction artistique reprise de notre projet « Analyse du projet sérieux » :
+interface professionnelle compacte, navigation flottante, coins maîtrisés,
+typographie lisible, micro-interactions utiles, sans pastilles décoratives.
 
-## Palette officielle : Forest Code × Mint Fog
+## Palette strictement bicolore
 
-Couleurs reprises à l'identique de la référence choisie :
-- **Forest Code** : `#075E46` — boutons primaires, état actif, liens et accents dominants.
-- **Mint Fog** : `#E8FFF2` — arrière-plans doux, tags, avatars fictifs et navigation sélectionnée.
-- Fond général : `#F8FCF9`; surfaces : `#FFFFFF`.
-- Encre de lecture : `#183A2E`; secondaire : `#627A6E`.
-- Vert profond : `#064B39` pour les zones immersives.
-- Traits et bordures : `#DDEEE4`.
+| Token | Couleur | HEX |
+| --- | --- | --- |
+| `Palette.night` | Night Shift | `#10131A` |
+| `Palette.laser` | Laser Lemon | `#EFFF4F` |
 
-La palette est centralisée dans `lib/app/theme.dart` (`Palette.forest`, `Palette.mintFog`).
-Les anciens noms `Palette.teal` et `Palette.tealSoft` sont des alias de compatibilité.
-Le fichier `assets/illustrations/medical_care.svg` utilise maintenant le même vert.
-Les couleurs médicales d'alerte restent distinctes : pas de vert pour qualifier un résultat biologique de « normal ».
+Aucune autre **teinte source** ne doit être introduite, y compris pour les alertes.
+Surfaces secondaires, bordures, champs, éléments désactivés et textes secondaires
+utilisent seulement ces mêmes RGB avec différentes opacités :
+`laserMuted`, `laserBorder`, `laserVeil`.
+Les noms historiques `teal`, `forest`, `mintFog`, `amberSoft` existent
+uniquement comme **alias de compatibilité** et ne correspondent plus à des
+couleurs supplémentaires.
 
-## Composition
-- Répartition volontaire entre illustration d'accueil, raccourcis et données de travail.
-- Rayon principal 20–26 px, marges latérales 20 px, grille compacte.
-- Listes patients à forte hiérarchie d'information, noms lisibles et identifiants secondaires.
-- Onglets inférieurs sur plateau flottant, actions tactiles généreuses.
-- Icônes officielles Material sur Android, Cupertino sur iOS.
-- Typographie native de chaque OS, sans police téléchargée.
+La palette est définie centralement dans `lib/app/theme.dart`, avec un
+`ColorScheme` explicite. Ne pas utiliser `ColorScheme.fromSeed`, qui pourrait
+générer des teintes supplémentaires.
 
-## Motion
-- Entrée de l'accueil : fondu + translation verticale 520 ms.
-- Changement d'onglet : fondu + très légère translation 290 ms.
-- Sélection navigation : fond animé 250 ms.
-- Transition Hero pour les initiales des dossiers patients.
-- Animations désactivées si `MediaQuery.disableAnimationsOf(context)` est activé.
-- Pas d'animations inutiles sur des résultats médicaux sensibles.
+## Composition des écrans
 
-## Images et confidentialité
-- L'illustration locale représente une soignante fictive, pas une identité médicale réelle.
-- Aucun portrait patient réel ou généré ; initiales uniquement.
-- Aucun nom, résultat d'examen ou photographie personnelle ne doit être ajouté à GitHub.
-- Le prototype affiche l'avertissement « Démonstration · données fictives ».
-- Stockage chiffré et synchronisation médicale réelle **non implémentés** dans cette version.
+- **Accueil** : grand résumé jaune citron, chiffres Night Shift, raccourcis
+  contrastés, dossiers récents organisés en registre.
+- **Patients** : recherche immédiate, état sélectionné jaune, lignes compactes.
+- **Dossier** : chronologie et constantes, valeurs médicales lisibles.
+- **Bilans** : statut textuel obligatoire ; pas de confusion entre couleur et
+  interprétation médicale.
+- **Suivi** : liste des patients à revoir, navigation directe.
+- **Formulaires** : sections `ClinicalFormSection`, clavier adapté aux mesures,
+  unités visibles, validation et sauvegarde démo explicites.
+- **Navigation** : dock flottant Night Shift, sélection Laser Lemon, icônes
+  Flutter Material sur Android et Cupertino sur iOS.
 
-## Validation
+## Motion et accessibilité
+
+- Courbes `easeOutCubic` ; navigation animée sur 240–250 ms.
+- Apparition douce d'une section quand cela aide la lecture.
+- Animation Hero sur l'avatar **fictif** lors de l'ouverture d'un dossier.
+- Respect de `MediaQuery.disableAnimationsOf(context)`.
+- Cibles tactiles confortables ; largeur mobile testée à 360 px.
+- Si le jaune sert de couleur d'alerte **et** d'accent, un mot et une icône
+  décrivent toujours la situation. Ne pas indiquer « normal/anormal » sans
+  règle médicale validée.
+
+## Images et données
+
+- Seul visuel médical SVG embarqué : `assets/illustrations/medical_care.svg`.
+  Le SVG utilise exclusivement les deux couleurs approuvées, sans Internet.
+- Dossiers patients : initiales fictives, jamais de portraits réels intégrés
+  au dépôt.
+- **Cette version est une démonstration** sans persistance médicalement sûre.
+  Le chiffrement local et la synchronisation offline réelle ne sont pas prêts.
+- Ne pas saisir de données réelles et ne pas les publier dans GitHub.
+
+## Vérification
+
 ```bash
 flutter pub get
 flutter analyze
 flutter test
-flutter run -d chrome
+flutter run -d web-server --web-hostname=127.0.0.1
 ```
-Vérifier Android, iOS, lecteur d'écran, grandes tailles de caractères et petits appareils avant publication.
+
+Les nouvelles fonctionnalités ne doivent pas réintroduire d'autres couleurs,
+en dur dans un widget ou générées par un thème tiers.
