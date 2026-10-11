@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../app/theme.dart';
 import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
 import 'new_patient_screen.dart';
