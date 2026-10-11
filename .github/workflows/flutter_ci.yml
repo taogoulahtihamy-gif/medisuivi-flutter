@@ -1,0 +1,22 @@
+name: Flutter quality checks
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate Android platform
+        run: flutter create --platforms=android,web --project-name medisuivi .
+      - name: Get dependencies
+        run: flutter pub get
+      - name: Static analysis
+        run: flutter analyze
+      - name: Flutter tests
+        run: flutter test
