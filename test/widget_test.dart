@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
+import 'package:medisuivi/app/theme.dart';
 import 'package:medisuivi/core/models/medical_models.dart';
 
 void main() {
+  test('Palette Forest Code et Mint Fog', () {
+    expect(Palette.forest, const Color(0xFF075E46));
+    expect(Palette.mintFog, const Color(0xFFE8FFF2));
+    expect(Palette.teal, Palette.forest);
+    expect(Palette.tealSoft, Palette.mintFog);
+  });
+
   test('Initiales patient fictif', () {
     final patient = Patient(id: 'TEST-001', name: 'Aminata Diallo', age: 32,
       sex: 'F', phone: '', createdAt: DateTime(2026, 1, 1));
