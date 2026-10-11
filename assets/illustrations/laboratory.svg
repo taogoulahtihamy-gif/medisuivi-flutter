@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="250" viewBox="0 0 360 250">
+<title>Examens de laboratoire</title><desc>Un microscope, des éprouvettes et des résultats biologiques.</desc>
+<circle cx="215" cy="124" r="103" fill="#EDF6F0"/>
+<path d="M85 217h253" stroke="#AECDBC" stroke-width="4" stroke-linecap="round"/>
+<path d="M156 200h100v12H156z" rx="5" fill="#2B6250"/>
+<path d="M183 193c-35-13-50-52-32-86l19 11c-8 18-4 38 18 53l-5 22Z" fill="#83B29A"/>
+<path d="m171 102 27-39 25 18-26 40Z" fill="#16624F"/>
+<path d="m201 57 21-30 25 17-21 30Z" fill="#8BBBA2"/>
+<path d="m205 88 18 12-15 23-18-12Z" fill="#FFFFFF" stroke="#16624F" stroke-width="4"/>
+<path d="M197 184h48c22-2 34-18 35-41" fill="none" stroke="#16624F" stroke-width="12" stroke-linecap="round"/>
+<circle cx="285" cy="133" r="15" fill="#C8E1D2" stroke="#16624F" stroke-width="4"/>
+<rect x="36" y="177" width="112" height="32" rx="7" fill="#B2D1BF"/>
+<path d="M53 98v84m29-84v84m29-84v84" stroke="#678E7A" stroke-width="5"/>
+<rect x="44" y="83" width="17" height="99" rx="8" fill="#FFFFFF" stroke="#92B8A4" stroke-width="3"/>
+<rect x="73" y="83" width="17" height="99" rx="8" fill="#FFFFFF" stroke="#92B8A4" stroke-width="3"/>
+<rect x="102" y="83" width="17" height="99" rx="8" fill="#FFFFFF" stroke="#92B8A4" stroke-width="3"/>
+<path d="M47 151h11v22H47zm29-15h11v37H76zm29 24h11v13h-11z" fill="#86B99D"/>
+<path d="M44 90h17m12 0h17m12 0h17" stroke="#16624F" stroke-width="5" stroke-linecap="round"/>
+<rect x="263" y="36" width="78" height="80" rx="11" fill="#FFFFFF" stroke="#AECDBB" stroke-width="3"/>
+<path d="M279 55h44m-44 13h33m-33 15h44" stroke="#A4C5B1" stroke-width="4" stroke-linecap="round"/>
+<path d="m280 96 12-10 10 5 22-20" fill="none" stroke="#16624F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
