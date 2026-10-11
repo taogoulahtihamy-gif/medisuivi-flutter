@@ -99,7 +99,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
             const SizedBox(height: 25),
             Row(children: [
               const Expanded(child: Text('Dossiers',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w750))),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700))),
               Text(filtered.length.toString() + ' résultats',
                 style: const TextStyle(color: Palette.muted, fontSize: 12)),
             ]),
