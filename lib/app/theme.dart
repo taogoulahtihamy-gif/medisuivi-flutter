@@ -21,6 +21,10 @@ abstract final class Palette {
   static const aqua = Color(0xFFD8F8E6);
   static const blueSoft = Color(0xFFEAF7EF);
   static const lavenderSoft = Color(0xFFF1F8EB);
+  // Surfaces contrastées inspirées des interfaces mobiles éditoriales.
+  static const charcoal = Color(0xFF171B19);
+  static const charcoalSoft = Color(0xFF292E2B);
+  static const canvasEditorial = Color(0xFFF7F8F6);
 }
 
 abstract final class MediTheme {
@@ -35,11 +39,11 @@ abstract final class MediTheme {
     );
     return base.copyWith(
       colorScheme: scheme,
-      scaffoldBackgroundColor: Palette.canvas,
+      scaffoldBackgroundColor: Palette.canvasEditorial,
       splashFactory: InkRipple.splashFactory,
       visualDensity: VisualDensity.standard,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Palette.canvas,
+        backgroundColor: Palette.canvasEditorial,
         foregroundColor: Palette.ink,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -97,6 +101,14 @@ abstract final class MediTheme {
       ),
       dividerColor: Palette.border,
       iconTheme: const IconThemeData(color: Palette.ink),
+      chipTheme: ChipThemeData(
+        backgroundColor: Palette.white,
+        selectedColor: Palette.mintFog,
+        side: const BorderSide(color: Palette.border),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        labelStyle: const TextStyle(color: Palette.ink, fontWeight: FontWeight.w600),
+        showCheckmark: false,
+      ),
       cupertinoOverrideTheme: const CupertinoThemeData(primaryColor: Palette.teal),
     );
   }
