@@ -1,37 +1,46 @@
-# Direction artistique mobile : MediSuivi
+# MediSuivi | Design system v0.2
 
-## Principes
+## Identité
+Application médicale personnelle : sobre, attentive et élégante, sans fausse promesse clinique.
+Direction éditoriale avec illustration originale embarquée dans le binaire : `assets/illustrations/medical_care.svg`.
+**Aucune image distante obligatoire**, afin que l'interface reste identique hors connexion.
 
-Clinique, lisible, rapide, sans décoration superflue. L'utilisateur doit identifier un patient et son historique plus vite qu'avec une pile de papiers.
+## Palette
+- Canvas `#F5F7F8`, surface `#FFFFFF`.
+- Encre `#142D39`, secondaire `#697F88`.
+- Teal actif `#087A78`, teal profond `#0C4C58`.
+- Marine `#123E52`, aqua `#DCF5EF`.
+- Accents limités : bleu pâle `#EAF1FD`, lavande `#F1EDFA`.
+- Les couleurs des cartes de statistiques ne qualifient jamais une donnée médicale comme « normale ».
 
-## Couleurs
+## Composition
+- Répartition volontaire entre illustration d'accueil, raccourcis et données de travail.
+- Rayon principal 20–26 px, marges latérales 20 px, grille compacte.
+- Listes patients à forte hiérarchie d'information, noms lisibles et identifiants secondaires.
+- Onglets inférieurs sur plateau flottant, actions tactiles généreuses.
+- Icônes officielles Material sur Android, Cupertino sur iOS.
+- Typographie native de chaque OS, sans police téléchargée.
 
-- Fond : `#F5F7F6`
-- Blanc : `#FFFFFF`
-- Texte principal : `#17323A`
-- Texte secondaire : `#687A80`
-- Vert profond : `#0F5559`
-- Vert action : `#146C70`
-- Vert clair : `#E6F2F0`
-- Bordures : `#E1E9E7`
-- Alerte neutre / données démo : `#FFF3E3`
+## Motion
+- Entrée de l'accueil : fondu + translation verticale 520 ms.
+- Changement d'onglet : fondu + très légère translation 290 ms.
+- Sélection navigation : fond animé 250 ms.
+- Transition Hero pour les initiales des dossiers patients.
+- Animations désactivées si `MediaQuery.disableAnimationsOf(context)` est activé.
+- Pas d'animations inutiles sur des résultats médicaux sensibles.
 
-Le vert est un accent d'identité, jamais une confirmation implicite qu'un résultat médical est « normal ». Les résultats anormaux doivent dépendre de références explicites et être évalués par un professionnel.
+## Images et confidentialité
+- L'illustration locale représente une soignante fictive, pas une identité médicale réelle.
+- Aucun portrait patient réel ou généré ; initiales uniquement.
+- Aucun nom, résultat d'examen ou photographie personnelle ne doit être ajouté à GitHub.
+- Le prototype affiche l'avertissement « Démonstration · données fictives ».
+- Stockage chiffré et synchronisation médicale réelle **non implémentés** dans cette version.
 
-## Composants
-
-- Surface 20 px de rayon, bordure légère, sans ombre ostentatoire.
-- Boutons ≥ 48 px, cible tactile confortable sur Android et iOS.
-- Marges latérales 22 px, contenu max. 720 px tablette.
-- Polices système : Roboto (Android), San Francisco (iOS), pas de police distribuée.
-- Icônes officielles `Icons.*` (Material) et `CupertinoIcons.*` sur iOS.
-- Transitions 220 ms, désactivées lorsque l'OS demande la réduction des animations.
-- Accessibilité : contraste, zoom texte et lecteurs d'écran à auditer en V1.
-
-## Parcours prioritaires
-
-Accueil -> Recherche patient -> Fiche patient -> Consultation -> Constantes -> Historique -> Bilans.
-
-## Version actuelle
-
-Interfaces natives Flutter avec quelques transitions légères et données fictives ; reste à réaliser : accessibilité et adaptativité complète testées sur appareils réels, graphiques de tendance, pièces jointes, synchronisation réelle.
+## Validation
+```bash
+flutter pub get
+flutter analyze
+flutter test
+flutter run -d chrome
+```
+Vérifier Android, iOS, lecteur d'écran, grandes tailles de caractères et petits appareils avant publication.
