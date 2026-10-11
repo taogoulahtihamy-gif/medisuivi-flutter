@@ -31,21 +31,22 @@ class _ExamsScreenState extends State<ExamsScreen> {
           padding: const EdgeInsets.fromLTRB(21, 27, 21, 40),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('EXAMENS', style: TextStyle(
-              fontSize: 10.5, letterSpacing: 1.3,
+              fontSize: 12, letterSpacing: .5,
               fontWeight: FontWeight.w800, color: Palette.forest)),
             const SizedBox(height: 8),
             const Text('Bilans médicaux', style: TextStyle(
-              fontSize: 30, letterSpacing: -1,
-              fontWeight: FontWeight.w800, color: Palette.laser)),
+              fontSize: 27, letterSpacing: -.6,
+              fontWeight: FontWeight.w700, color: Palette.ink)),
             const SizedBox(height: 7),
             const Text('Demandes et résultats par patient.',
-              style: TextStyle(fontSize: 12.5, color: Palette.muted)),
+              style: TextStyle(fontSize: 14, color: Palette.muted)),
             const SizedBox(height: 22),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Palette.laser,
-                borderRadius: BorderRadius.circular(25),
+                color: Palette.white,
+                borderRadius: BorderRadius.circular(21),
+                border: Border.all(color: Palette.border),
               ),
               child: Row(children: [
                 Expanded(child: Column(
@@ -53,24 +54,24 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   children: [
                     const Text('EN ATTENTE DE RÉSULTAT', style: TextStyle(
                       fontSize: 10, letterSpacing: 1.0,
-                      color: Palette.night, fontWeight: FontWeight.w700)),
+                      color: Palette.muted, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 10),
                     Text('$pending', style: const TextStyle(
-                      fontSize: 47, height: 1,
+                      fontSize: 39, height: 1,
                       letterSpacing: -1.7, fontWeight: FontWeight.w800,
-                      color: Palette.night)),
+                      color: Palette.ink)),
                     const SizedBox(height: 5),
                     const Text('examens à suivre', style: TextStyle(
-                      fontSize: 12, color: Palette.night)),
+                      fontSize: 12, color: Palette.ink)),
                   ],
                 )),
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: Palette.night,
-                    borderRadius: BorderRadius.circular(18)),
+                    color: Palette.tealSoft,
+                    borderRadius: BorderRadius.circular(16)),
                   child: const Icon(Icons.biotech_outlined,
-                    color: Palette.laser, size: 27),
+                    color: Palette.forest, size: 27),
                 ),
               ]),
             ),
@@ -88,9 +89,9 @@ class _ExamsScreenState extends State<ExamsScreen> {
             const SizedBox(height: 24),
             Row(children: [
               const Expanded(child: Text('Dossiers', style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w800))),
+                fontSize: 18, fontWeight: FontWeight.w700))),
               Text('${exams.length} examens',
-                style: const TextStyle(fontSize: 12, color: Palette.muted)),
+                style: const TextStyle(fontSize: 13, color: Palette.muted)),
             ]),
             const SizedBox(height: 13),
             if (exams.isEmpty)
@@ -111,7 +112,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                     color: exam.status == ExamStatus.complete
                       ? Palette.forest : Palette.laser,
                     background: exam.status == ExamStatus.complete
-                      ? Palette.mintFog : Palette.amberSoft),
+                      ? Palette.tealSoft : Palette.blueSoft),
                   const SizedBox(width: 13),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
