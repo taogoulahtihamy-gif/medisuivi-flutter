@@ -168,14 +168,14 @@ class _ExamLine extends StatelessWidget {
     final ready = exam.status == ExamStatus.complete;
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       SoftIcon(icon: Icons.biotech_outlined,
-        color: ready ? Palette.teal : const Palette.laser,
+        color: ready ? Palette.teal : Palette.laser,
         background: ready ? Palette.tealSoft : Palette.amberSoft),
       const SizedBox(width: 12),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(exam.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
         const SizedBox(height: 5),
         Text(ready ? 'Résultat disponible' : 'Résultat en attente', style: TextStyle(
-          fontSize: 12, color: ready ? Palette.teal : const Palette.laser)),
+          fontSize: 12, color: ready ? Palette.teal : Palette.laser)),
         if (ready && exam.result != null) ...[
           const SizedBox(height: 6),
           Text(exam.result!, style: const TextStyle(fontSize: 12, color: Palette.muted)),
