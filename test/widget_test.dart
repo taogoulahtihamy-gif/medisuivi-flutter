@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
 import 'package:medisuivi/app/theme.dart';
@@ -33,7 +34,11 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MediSuiviApp());
     await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
+    final layoutError = tester.takeException();
+    if (layoutError != null) {
+      debugDumpRenderTree();
+    }
+    expect(layoutError, isNull);
     expect(find.text('Nouveau patient'), findsOneWidget);
     expect(find.text('Patients'), findsWidgets);
   });
