@@ -67,7 +67,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                 Container(
                   width: 55, height: 55,
                   decoration: BoxDecoration(
-                    color: const Palette.laserVeil,
+                    color: Palette.laserVeil,
                     borderRadius: BorderRadius.circular(18)),
                   child: const Icon(Icons.biotech_outlined,
                     color: Palette.laser, size: 27),
@@ -109,7 +109,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   SoftIcon(
                     icon: Icons.science_outlined,
                     color: exam.status == ExamStatus.complete
-                      ? Palette.forest : const Palette.laser,
+                      ? Palette.forest : Palette.laser,
                     background: exam.status == ExamStatus.complete
                       ? Palette.mintFog : Palette.amberSoft),
                   const SizedBox(width: 13),
@@ -128,7 +128,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                         style: TextStyle(fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: exam.status == ExamStatus.complete
-                            ? Palette.forest : const Palette.laser)),
+                            ? Palette.forest : Palette.laser)),
                     ],
                   )),
                   const Icon(Icons.chevron_right_rounded,
