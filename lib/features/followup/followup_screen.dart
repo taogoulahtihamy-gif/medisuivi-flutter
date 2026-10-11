@@ -20,7 +20,7 @@ class FollowupScreen extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('CONTINUITÉ DES SOINS', style: TextStyle(
               fontSize: 12, letterSpacing: .5,
-              color: Palette.forest, fontWeight: FontWeight.w800)),
+              color: Palette.forest, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             const Text('Suivi médical', style: TextStyle(
               fontSize: 27, letterSpacing: -.6,
@@ -42,11 +42,11 @@ class FollowupScreen extends StatelessWidget {
                   children: [
                     const Text('DOSSIERS À REVOIR', style: TextStyle(
                       fontSize: 12, color: Palette.muted,
-                      letterSpacing: 1.1, fontWeight: FontWeight.w800)),
+                      letterSpacing: 1.1, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
                     Text('${followups.length}', style: const TextStyle(
                       fontSize: 39, height: 1,
-                      letterSpacing: -1, fontWeight: FontWeight.w800,
+                      letterSpacing: -1, fontWeight: FontWeight.w700,
                       color: Palette.ink)),
                     const SizedBox(height: 7),
                     const Text('Suivi signalé dans les dossiers',
