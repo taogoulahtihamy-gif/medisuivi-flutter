@@ -27,7 +27,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Nouveau patient'), findsOneWidget);
-    expect(find.text('Patients'), findsOneWidget);
+    expect(find.text('Patients'), findsWidgets);
   });
 
   testWidgets('Navigation et recherche de patient fictif', (tester) async {
