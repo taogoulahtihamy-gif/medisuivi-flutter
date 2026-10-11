@@ -33,11 +33,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MediSuiviApp());
     await tester.pumpAndSettle();
-    final layoutError = tester.takeException();
-    if (layoutError != null) {
-      debugDumpRenderTree();
-    }
-    expect(layoutError, isNull);
+    expect(tester.takeException(), isNull);
     expect(find.text('Nouveau patient'), findsOneWidget);
     expect(find.text('Patients'), findsWidgets);
   });
