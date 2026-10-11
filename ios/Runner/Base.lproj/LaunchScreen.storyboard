@@ -16,7 +16,7 @@
                     <view key="view" contentMode="scaleToFill" id="Ze5-6b-2t3">
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         
-                        <color key="backgroundColor" red="0.062745098" green="0.074509804" blue="0.101960784" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.968627451" green="0.976470588" blue="0.972549020" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         
                     </view>
                 </viewController>
