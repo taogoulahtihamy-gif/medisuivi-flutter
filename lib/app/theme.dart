@@ -63,7 +63,7 @@ abstract final class MediTheme {
       brightness: Brightness.light,
     );
     // Polices système : SF Pro sur iOS, Roboto sur Android.
-    const text = TextTheme(
+    final text = const TextTheme(
       headlineLarge: TextStyle(fontSize: 30, height: 1.14,
         fontWeight: FontWeight.w700, letterSpacing: -0.8),
       headlineMedium: TextStyle(fontSize: 26, height: 1.2,
