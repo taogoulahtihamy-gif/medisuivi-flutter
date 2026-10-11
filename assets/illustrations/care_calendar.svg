@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="235" viewBox="0 0 360 235">
+<title>Calendrier de suivi médical</title><desc>Un agenda de consultations et une courbe de suivi des constantes.</desc>
+<circle cx="264" cy="107" r="93" fill="#E9F5ED"/>
+<rect x="58" y="43" width="214" height="160" rx="19" fill="#FFFFFF" stroke="#A6C6B3" stroke-width="4"/>
+<path d="M77 43h175c11 0 20 9 20 20v27H58V63c0-11 8-20 19-20Z" fill="#16624F"/>
+<path d="M108 29v29m113-29v29" stroke="#77A98D" stroke-width="11" stroke-linecap="round"/>
+<g fill="#D3E6D9"><rect x="78" y="106" width="36" height="27" rx="7"/><rect x="124" y="106" width="36" height="27" rx="7"/><rect x="170" y="106" width="36" height="27" rx="7"/><rect x="216" y="106" width="36" height="27" rx="7"/><rect x="78" y="143" width="36" height="27" rx="7"/><rect x="124" y="143" width="36" height="27" rx="7"/><rect x="170" y="143" width="36" height="27" rx="7"/><rect x="216" y="143" width="36" height="27" rx="7"/></g>
+<rect x="170" y="106" width="36" height="27" rx="7" fill="#16624F"/>
+<path d="m179 119 6 6 12-14" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M193 206h113c10 0 18-8 18-18v-56c0-10-8-18-18-18h-58" fill="#FFFFFF" stroke="#B9D8C5" stroke-width="3"/>
+<path d="M226 160h21l10-21 15 41 12-25h20" fill="none" stroke="#16624F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="314" cy="68" r="24" fill="#FFFFFF" stroke="#16624F" stroke-width="3"/>
+<path d="M314 55v14l10 6" fill="none" stroke="#16624F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
