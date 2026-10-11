@@ -25,7 +25,7 @@ class PatientDetailScreen extends StatelessWidget {
             padding: const EdgeInsets.all(19),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Palette.navy, Color(0xFF176E72)],
+                colors: [Palette.navy, Color(0xFF137758)],
                 begin: Alignment.topLeft, end: Alignment.bottomRight),
               borderRadius: BorderRadius.circular(24),
             ),
@@ -42,11 +42,11 @@ class PatientDetailScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text('${patient.id} · ${patient.age} ans',
                     style: const TextStyle(
-                      color: Color(0xFFE0F4F0), fontSize: 12.5)),
+                      color: Color(0xFFE8FFF2), fontSize: 12.5)),
                   if (patient.followUp) ...[
                     const SizedBox(height: 8),
                     const Text('Visite de suivi à prévoir',
-                      style: TextStyle(color: Color(0xFFD1EEE8),
+                      style: TextStyle(color: Color(0xFFD4F6E2),
                         fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ],
