@@ -1,115 +1,201 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+/// Identité unique de MediSuivi.
+/// Aucune autre teinte source : uniquement Night Shift et Laser Lemon.
+/// Les couleurs translucides conservent le RGB de Laser Lemon.
 abstract final class Palette {
-  static const canvas = Color(0xFFF8FCF9);
-  static const white = Color(0xFFFFFFFF);
-  static const ink = Color(0xFF183A2E);
-  static const muted = Color(0xFF627A6E);
-  // Couleurs de marque approuvées : Forest Code et Mint Fog.
-  static const forest = Color(0xFF075E46);
-  static const mintFog = Color(0xFFE8FFF2);
-  // Alias conservés pour les composants existants.
-  static const teal = forest;
-  static const tealDark = Color(0xFF064B39);
-  static const tealSoft = mintFog;
-  static const border = Color(0xFFDDEEE4);
-  static const amber = Color(0xFFF0B25F);
-  static const amberSoft = Color(0xFFFFF3E3);
-  static const danger = Color(0xFFAE4F4F);
-  static const navy = Color(0xFF064B39);
-  static const aqua = Color(0xFFD8F8E6);
-  static const blueSoft = Color(0xFFEAF7EF);
-  static const lavenderSoft = Color(0xFFF1F8EB);
-  // Surfaces contrastées inspirées des interfaces mobiles éditoriales.
-  static const charcoal = Color(0xFF171B19);
-  static const charcoalSoft = Color(0xFF292E2B);
-  static const canvasEditorial = Color(0xFFF7F8F6);
+  static const night = Color(0xFF10131A);
+  static const laser = Color(0xFFEFFF4F);
+  static const laserMuted = Color(0xB3EFFF4F);
+  static const laserBorder = Color(0x50EFFF4F);
+  static const laserVeil = Color(0x1AEFFF4F);
+
+  // Compatibilité avec les écrans de la V0, sans introduire de couleurs.
+  static const canvas = night;
+  static const canvasEditorial = night;
+  static const charcoal = night;
+  static const charcoalSoft = laserVeil;
+  static const navy = night;
+  static const white = night;
+  static const ink = laser;
+  static const muted = laserMuted;
+  static const teal = laser;
+  static const tealDark = night;
+  static const tealSoft = laserVeil;
+  static const forest = laser;
+  static const mintFog = laserVeil;
+  static const border = laserBorder;
+  static const amber = laser;
+  static const amberSoft = laserVeil;
+  static const danger = laser;
+  static const aqua = laserVeil;
+  static const blueSoft = laserVeil;
+  static const lavenderSoft = laserVeil;
 }
 
 abstract final class MediTheme {
   static ThemeData light() {
-    const radius = 22.0;
-    final base = ThemeData(useMaterial3: true, brightness: Brightness.light);
-    final scheme = ColorScheme.fromSeed(
-      seedColor: Palette.teal,
-      primary: Palette.teal,
-      surface: Palette.white,
-      brightness: Brightness.light,
+    // Nom de méthode conservé pour compatibilité, le design est exclusivement sombre.
+    const scheme = ColorScheme(
+      brightness: Brightness.dark,
+      primary: Palette.laser,
+      onPrimary: Palette.night,
+      primaryContainer: Palette.night,
+      onPrimaryContainer: Palette.laser,
+      primaryFixed: Palette.laser,
+      primaryFixedDim: Palette.laser,
+      onPrimaryFixed: Palette.night,
+      onPrimaryFixedVariant: Palette.night,
+      secondary: Palette.laser,
+      onSecondary: Palette.night,
+      secondaryContainer: Palette.night,
+      onSecondaryContainer: Palette.laser,
+      secondaryFixed: Palette.laser,
+      secondaryFixedDim: Palette.laser,
+      onSecondaryFixed: Palette.night,
+      onSecondaryFixedVariant: Palette.night,
+      tertiary: Palette.laser,
+      onTertiary: Palette.night,
+      tertiaryContainer: Palette.night,
+      onTertiaryContainer: Palette.laser,
+      tertiaryFixed: Palette.laser,
+      tertiaryFixedDim: Palette.laser,
+      onTertiaryFixed: Palette.night,
+      onTertiaryFixedVariant: Palette.night,
+      error: Palette.laser,
+      onError: Palette.night,
+      errorContainer: Palette.night,
+      onErrorContainer: Palette.laser,
+      surface: Palette.night,
+      onSurface: Palette.laser,
+      surfaceDim: Palette.night,
+      surfaceBright: Palette.night,
+      surfaceContainerLowest: Palette.night,
+      surfaceContainerLow: Palette.night,
+      surfaceContainer: Palette.night,
+      surfaceContainerHigh: Palette.night,
+      surfaceContainerHighest: Palette.night,
+      onSurfaceVariant: Palette.laserMuted,
+      outline: Palette.laserBorder,
+      outlineVariant: Palette.laserBorder,
+      shadow: Palette.night,
+      scrim: Palette.night,
+      inverseSurface: Palette.laser,
+      onInverseSurface: Palette.night,
+      inversePrimary: Palette.night,
+      surfaceTint: Palette.laser,
+    );
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: scheme,
     );
     return base.copyWith(
-      colorScheme: scheme,
-      scaffoldBackgroundColor: Palette.canvasEditorial,
+      scaffoldBackgroundColor: Palette.night,
       splashFactory: InkRipple.splashFactory,
-      visualDensity: VisualDensity.standard,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Palette.canvasEditorial,
-        foregroundColor: Palette.ink,
-        surfaceTintColor: Colors.transparent,
+        backgroundColor: Palette.night,
+        foregroundColor: Palette.laser,
         elevation: 0,
         centerTitle: false,
+        surfaceTintColor: Colors.transparent,
       ),
       textTheme: base.textTheme.apply(
-        bodyColor: Palette.ink,
-        displayColor: Palette.ink,
+        bodyColor: Palette.laser,
+        displayColor: Palette.laser,
       ),
+      iconTheme: const IconThemeData(color: Palette.laser),
       cardTheme: CardThemeData(
-        color: Palette.white,
+        color: Palette.night,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          side: const BorderSide(color: Palette.border),
-          borderRadius: BorderRadius.circular(radius),
+          side: const BorderSide(color: Palette.laserBorder),
+          borderRadius: BorderRadius.circular(22),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Palette.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        hintStyle: const TextStyle(color: Palette.muted),
+        fillColor: Palette.laserVeil,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16, vertical: 16),
+        hintStyle: const TextStyle(color: Palette.laserMuted),
+        labelStyle: const TextStyle(color: Palette.laserMuted),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(17),
-          borderSide: const BorderSide(color: Palette.border),
+          borderSide: const BorderSide(color: Palette.laserBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(17),
-          borderSide: const BorderSide(color: Palette.border),
+          borderSide: const BorderSide(color: Palette.laserBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(17),
-          borderSide: const BorderSide(color: Palette.teal, width: 1.5),
+          borderSide: const BorderSide(color: Palette.laser, width: 1.5),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Palette.teal,
-          foregroundColor: Colors.white,
+          backgroundColor: Palette.laser,
+          foregroundColor: Palette.night,
           elevation: 0,
-          minimumSize: const Size(0, 52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          minimumSize: const Size(0, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: Palette.laser,
+          foregroundColor: Palette.night,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: Palette.teal,
-          minimumSize: const Size(0, 50),
-          side: const BorderSide(color: Palette.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17)),
+          foregroundColor: Palette.laser,
+          side: const BorderSide(color: Palette.laserBorder),
+          minimumSize: const Size(0, 48),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
         ),
       ),
-      dividerColor: Palette.border,
-      iconTheme: const IconThemeData(color: Palette.ink),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: Palette.laser),
+      ),
+      dividerColor: Palette.laserBorder,
       chipTheme: ChipThemeData(
-        backgroundColor: Palette.white,
-        selectedColor: Palette.mintFog,
-        side: const BorderSide(color: Palette.border),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        labelStyle: const TextStyle(color: Palette.ink, fontWeight: FontWeight.w600),
+        backgroundColor: Palette.night,
+        selectedColor: Palette.laser,
+        side: const BorderSide(color: Palette.laserBorder),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14)),
+        labelStyle: const TextStyle(
+          color: Palette.laser, fontWeight: FontWeight.w600),
+        secondaryLabelStyle: const TextStyle(
+          color: Palette.night, fontWeight: FontWeight.w700),
+        checkmarkColor: Palette.night,
         showCheckmark: false,
       ),
-      cupertinoOverrideTheme: const CupertinoThemeData(primaryColor: Palette.teal),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: Palette.laser,
+        contentTextStyle: TextStyle(color: Palette.night),
+      ),
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: Palette.laser,
+        selectionColor: Palette.laserVeil,
+        selectionHandleColor: Palette.laser,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Palette.night,
+        modalBackgroundColor: Palette.night,
+      ),
+      cupertinoOverrideTheme:
+        const CupertinoThemeData(primaryColor: Palette.laser),
     );
   }
 }
