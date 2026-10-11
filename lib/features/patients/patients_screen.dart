@@ -65,7 +65,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(all.length.toString() + ' dossiers',
+                    Text('${all.length} dossiers',
                       style: const TextStyle(color: Colors.white,
                         fontSize: 23, fontWeight: FontWeight.w800)),
                     const SizedBox(height: 3),
@@ -100,7 +100,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
             Row(children: [
               const Expanded(child: Text('Dossiers',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700))),
-              Text(filtered.length.toString() + ' résultats',
+              Text('${filtered.length} résultats',
                 style: const TextStyle(color: Palette.muted, fontSize: 12)),
             ]),
             const SizedBox(height: 13),
