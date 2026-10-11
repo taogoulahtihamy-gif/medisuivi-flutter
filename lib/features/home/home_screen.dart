@@ -296,7 +296,7 @@ class _QuickAction extends StatelessWidget {
             ]),
             const SizedBox(height: 16),
             Text(label, style: const TextStyle(fontSize: 14.5,
-              fontWeight: FontWeight.w750)),
+              fontWeight: FontWeight.w700)),
             const SizedBox(height: 5),
             Text(detail, maxLines: 2,
               style: const TextStyle(color: Palette.muted, fontSize: 10.5)),
