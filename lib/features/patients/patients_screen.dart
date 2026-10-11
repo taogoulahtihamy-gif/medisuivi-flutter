@@ -37,14 +37,14 @@ class _PatientsScreenState extends State<PatientsScreen> {
             Row(children: [
               const Expanded(child: Text('Mes patients', style: TextStyle(
                 fontSize: 30, letterSpacing: -1,
-                fontWeight: FontWeight.w800, color: Palette.charcoal))),
+                fontWeight: FontWeight.w800, color: Palette.laser))),
               IconButton.filled(
                 tooltip: 'Nouveau patient',
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
                   builder: (_) => const NewPatientScreen())),
                 style: IconButton.styleFrom(
-                  backgroundColor: Palette.charcoal,
-                  foregroundColor: Colors.white,
+                  backgroundColor: Palette.laser,
+                  foregroundColor: Palette.night,
                   minimumSize: const Size(48, 48)),
                 icon: const Icon(Icons.add_rounded),
               ),
@@ -107,7 +107,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: selected ? Palette.charcoal : Colors.white,
+    color: selected ? Palette.laser : Palette.night,
     borderRadius: BorderRadius.circular(14),
     child: InkWell(
       onTap: onTap,
@@ -116,7 +116,7 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
         child: Text(label, style: TextStyle(
           fontSize: 12, fontWeight: FontWeight.w700,
-          color: selected ? Colors.white : Palette.ink)),
+          color: selected ? Palette.night : Palette.laser)),
       ),
     ),
   );
