@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
 import 'package:medisuivi/app/theme.dart';
 import 'package:medisuivi/core/models/medical_models.dart';
+import 'package:medisuivi/features/patients/new_patient_screen.dart';
+import 'package:medisuivi/features/consultations/new_consultation_screen.dart';
 
 void main() {
   test('Palette Night Shift et Laser Lemon exclusivement', () {
@@ -84,4 +86,36 @@ void main() {
     expect(find.text('Dossier patient'), findsOneWidget);
     expect(find.text('Dernières constantes'), findsOneWidget);
   });
+  testWidgets('Formulaire patient sur mobile étroit', (tester) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(MaterialApp(
+      theme: MediTheme.light(),
+      home: const NewPatientScreen(),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Créer un dossier'), findsOneWidget);
+  });
+
+  testWidgets('Formulaire de consultation sur mobile étroit', (tester) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final fictif = Patient(
+      id: 'TEST-002', name: 'Patient Démo', age: 31,
+      sex: 'F', phone: '', createdAt: DateTime(2026, 1, 1),
+    );
+    await tester.pumpWidget(MaterialApp(
+      theme: MediTheme.light(),
+      home: NewConsultationScreen(patient: fictif),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Constantes vitales'), findsOneWidget);
+  });
+
 }
