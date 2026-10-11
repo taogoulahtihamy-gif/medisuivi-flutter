@@ -19,7 +19,7 @@ void main() {
     final dartFiles = Directory('lib').listSync(recursive: true)
       .whereType<File>()
       .where((file) => file.path.endsWith('.dart'));
-    final regex = RegExp(r'Color\\(0x([0-9a-fA-F]{8})\\)');
+    final regex = RegExp(r'Color\(0x([0-9a-fA-F]{8})\)');
     for (final file in dartFiles) {
       final source = file.readAsStringSync();
       for (final match in regex.allMatches(source)) {
