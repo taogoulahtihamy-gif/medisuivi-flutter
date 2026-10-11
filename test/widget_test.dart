@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
@@ -8,36 +7,12 @@ import 'package:medisuivi/features/patients/new_patient_screen.dart';
 import 'package:medisuivi/features/consultations/new_consultation_screen.dart';
 
 void main() {
-  test('Palette Night Shift et Laser Lemon exclusivement', () {
-    expect(Palette.night, const Color(0xFF10131A));
-    expect(Palette.laser, const Color(0xFFEFFF4F));
-    expect(Palette.forest, Palette.laser);
-    expect(Palette.teal, Palette.laser);
-    expect(Palette.canvas, Palette.night);
-    expect(Palette.mintFog, Palette.laserVeil);
-  });
-
-  test('Les ressources visibles restent strictement bicolores', () {
-    final dartFiles = Directory('lib').listSync(recursive: true)
-      .whereType<File>()
-      .where((file) => file.path.endsWith('.dart'));
-    final regex = RegExp(r'Color\(0x([0-9a-fA-F]{8})\)');
-    for (final file in dartFiles) {
-      final source = file.readAsStringSync();
-      for (final match in regex.allMatches(source)) {
-        final rgb = match.group(1)!.substring(2).toUpperCase();
-        expect({'10131A', 'EFFF4F'}.contains(rgb), isTrue,
-          reason: 'Teinte interdite dans ${file.path}: #$rgb');
-      }
-    }
-    for (final path in ['assets/illustrations/medical_care.svg', 'web/favicon.svg']) {
-      final source = File(path).readAsStringSync();
-      for (final match in RegExp(r'#([0-9A-Fa-f]{6})').allMatches(source)) {
-        final rgb = match.group(1)!.toUpperCase();
-        expect({'10131A', 'EFFF4F'}.contains(rgb), isTrue,
-          reason: 'Teinte interdite dans $path: #$rgb');
-      }
-    }
+  test('Palette clinique et polices lisibles', () {
+    expect(Palette.canvas, const Color(0xFFF7F9F8));
+    expect(Palette.forest, const Color(0xFF16624F));
+    expect(Palette.ink, const Color(0xFF21352F));
+    expect(MediTheme.light().brightness, Brightness.light);
+    expect(MediTheme.light().textTheme.bodyMedium!.fontSize, 14);
   });
 
   test('Initiales patient fictif', () {
@@ -50,8 +25,8 @@ void main() {
     await tester.pumpWidget(const MediSuiviApp());
     expect(find.text('MediSuivi'), findsOneWidget);
     expect(find.textContaining('Démonstration'), findsWidgets);
-    expect(find.text('Vue clinique'), findsOneWidget);
-    expect(find.text('Accès rapide'), findsOneWidget);
+    expect(find.text('Suivi des patients'), findsOneWidget);
+    expect(find.text('À consulter'), findsOneWidget);
   });
 
   testWidgets('Accueil mobile sans débordement et actions accessibles', (tester) async {
