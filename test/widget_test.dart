@@ -75,7 +75,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(const MediSuiviApp());
     await tester.pumpAndSettle();
-    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
     for (final tab in ['Patients', 'Bilans', 'Suivi']) {
       await tester.tap(find.text(tab).last);
       await tester.pumpAndSettle();
