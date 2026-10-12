@@ -7,6 +7,7 @@ import '../features/followup/followup_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/patients/patients_screen.dart';
 import 'theme.dart';
+import 'design_tokens.dart';
 
 class MediSuiviApp extends StatefulWidget {
   const MediSuiviApp({super.key});
@@ -31,6 +32,8 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
       title: 'MediSuivi',
       debugShowCheckedModeBanner: false,
       theme: MediTheme.light(),
+      darkTheme: MediTheme.dark(),
+      themeMode: ThemeMode.system,
       home: const MainShell(),
     ),
   );
@@ -68,31 +71,89 @@ class _MainShellState extends State<MainShell> {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     final isIos = Theme.of(context).platform == TargetPlatform.iOS;
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: AnimatedSwitcher(
-          duration: reduceMotion ? Duration.zero :
-            const Duration(milliseconds: 240),
-          switchInCurve: Curves.easeOutCubic,
-          switchOutCurve: Curves.easeInCubic,
-          transitionBuilder: (child, animation) => FadeTransition(
-            opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.025, 0),
-                end: Offset.zero,
-              ).animate(animation),
-              child: child,
-            ),
-          ),
-          child: KeyedSubtree(
-            key: ValueKey<int>(selected),
-            child: screens[selected],
+    final palette = Palette.of(context);
+    final width = MediaQuery.sizeOf(context).width;
+    final showRail = width >= ClinicalBreakpoints.mobile;
+    final expandedRail = width >= ClinicalBreakpoints.tablet;
+
+    final content = SafeArea(
+      bottom: false,
+      child: AnimatedSwitcher(
+        duration: reduceMotion ? Duration.zero : ClinicalMotion.brisk,
+        switchInCurve: ClinicalMotion.easeOut,
+        switchOutCurve: ClinicalMotion.easeInOut,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.025, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
           ),
         ),
+        child: KeyedSubtree(
+          key: ValueKey<int>(selected),
+          child: screens[selected],
+        ),
       ),
-      bottomNavigationBar: SafeArea(
+    );
+
+    return Scaffold(
+      body: showRail
+          ? SafeArea(
+              child: Row(children: [
+                NavigationRail(
+                  selectedIndex: selected,
+                  onDestinationSelected: _select,
+                  extended: expandedRail,
+                  minWidth: 76,
+                  minExtendedWidth: 252,
+                  backgroundColor: palette.surface,
+                  indicatorColor: palette.tealSoft,
+                  selectedIconTheme: IconThemeData(color: palette.forest, size: 24),
+                  unselectedIconTheme: IconThemeData(color: palette.muted, size: 24),
+                  selectedLabelTextStyle: TextStyle(
+                    color: palette.ink, fontSize: 13, fontWeight: FontWeight.w700),
+                  unselectedLabelTextStyle: TextStyle(
+                    color: palette.muted, fontSize: 13),
+                  labelType: expandedRail
+                      ? NavigationRailLabelType.none
+                      : NavigationRailLabelType.selected,
+                  leading: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 22),
+                    child: Icon(Icons.medical_services_outlined,
+                      color: palette.forest, size: 28),
+                  ),
+                  destinations: [
+                    NavigationRailDestination(
+                      icon: Icon(isIos ? CupertinoIcons.house : Icons.home_outlined),
+                      selectedIcon: Icon(isIos ? CupertinoIcons.house_fill : Icons.home_rounded),
+                      label: const Text('Accueil'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(isIos ? CupertinoIcons.person_2 : Icons.people_outline_rounded),
+                      selectedIcon: Icon(isIos ? CupertinoIcons.person_2_fill : Icons.people_rounded),
+                      label: const Text('Patients'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(isIos ? CupertinoIcons.doc_text : Icons.biotech_outlined),
+                      selectedIcon: Icon(isIos ? CupertinoIcons.doc_text_fill : Icons.biotech_rounded),
+                      label: const Text('Bilans'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(isIos ? CupertinoIcons.chart_bar : Icons.insights_outlined),
+                      selectedIcon: Icon(isIos ? CupertinoIcons.chart_bar_fill : Icons.insights_rounded),
+                      label: const Text('Suivi'),
+                    ),
+                  ],
+                ),
+                VerticalDivider(width: 1, thickness: 1, color: palette.border),
+                Expanded(child: content),
+              ]),
+            )
+          : content,
+      bottomNavigationBar: showRail ? null : SafeArea(
         top: false,
         minimum: const EdgeInsets.fromLTRB(14, 0, 14, 8),
         child: Center(
@@ -100,17 +161,17 @@ class _MainShellState extends State<MainShell> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 540),
             child: Container(
-              height: 72,
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              height: 64,
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: Palette.surface,
+                color: palette.surface,
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: Palette.border),
-                boxShadow: const [
+                border: Border.all(color: palette.border),
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x0B20362D),
-                    blurRadius: 17,
-                    offset: Offset(0, 6),
+                    color: palette.night.withValues(
+                      alpha: palette.isDark ? 0.22 : 0.08),
+                    blurRadius: 16, offset: const Offset(0, 5),
                   ),
                 ],
               ),
@@ -170,6 +231,7 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final palette = Palette.of(context);
     return Expanded(
       child: Semantics(
         button: true,
@@ -181,11 +243,10 @@ class _NavItem extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(20),
             child: AnimatedContainer(
-              duration: reduceMotion ? Duration.zero :
-                const Duration(milliseconds: 250),
+              duration: reduceMotion ? Duration.zero : ClinicalMotion.brisk,
               curve: Curves.easeOutCubic,
               decoration: BoxDecoration(
-                color: selected ? Palette.forest : Colors.transparent,
+                color: selected ? palette.tealSoft : Colors.transparent,
                 borderRadius: BorderRadius.circular(19),
               ),
               child: Column(
@@ -193,10 +254,10 @@ class _NavItem extends StatelessWidget {
                 children: [
                   Icon(selected ? selectedIcon : icon,
                     size: 22,
-                    color: selected ? Palette.white : Palette.muted),
+                    color: selected ? palette.forest : palette.muted),
                   const SizedBox(height: 4),
                   Text(label, style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                     color: selected ? Palette.white : Palette.muted,
                   )),
