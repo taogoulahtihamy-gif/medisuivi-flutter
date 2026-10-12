@@ -10,9 +10,9 @@ import 'package:medisuivi/features/consultations/new_consultation_screen.dart';
 
 void main() {
   test('Palette clinique et polices lisibles', () {
-    expect(Palette.canvas, const Color(0xFFF7F9F8));
-    expect(Palette.forest, const Color(0xFF16624F));
-    expect(Palette.ink, const Color(0xFF21352F));
+    expect(Palette.canvas, const Color(0xFFF5F5F2));
+    expect(Palette.forest, const Color(0xFF164B40));
+    expect(Palette.ink, const Color(0xFF1B2421));
     expect(MediTheme.light().brightness, Brightness.light);
     expect(MediTheme.light().textTheme.bodyMedium!.fontSize, 14);
   });
