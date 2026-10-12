@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 
 class NewConsultationScreen extends StatefulWidget {
@@ -65,7 +65,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
 
   void save() {
     if (!(form.currentState?.validate() ?? false)) return;
-    DemoScope.of(context).addVisit(
+    context.store.addVisit(
       patientId: widget.patient.id,
       reason: reason.text,
       temperature: number(temp.text),
