@@ -214,7 +214,7 @@ class ClinicalFormSection extends StatelessWidget {
               if (subtitle != null) ...[
                 const SizedBox(height: 3),
                 Text(subtitle!, style: const TextStyle(
-                  fontSize: 11.5, color: Palette.muted)),
+                  fontSize: 13.5, height: 1.4, color: Palette.muted)),
               ],
             ],
           )),
