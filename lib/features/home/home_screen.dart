@@ -226,26 +226,51 @@ class HomeScreen extends StatelessWidget {
                             color: p.ink, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: ClinicalSpacing.lg),
-                        Row(
-                          children: [
-                            ClinicalButton(
-                              label: 'Nouveau patient',
-                              onPressed: onAdd,
-                              level: ClinicalButtonLevel.primary,
-                              height: 44,
-                              icon: Icons.add_rounded,
-                              expanded: false,
-                              minWidth: 140,
-                            ),
-                            const SizedBox(width: ClinicalSpacing.sm),
-                            ClinicalButton(
-                              label: 'Mes dossiers',
-                              onPressed: onPatients,
-                              level: ClinicalButtonLevel.secondary,
-                              height: 44,
-                              expanded: false,
-                            ),
-                          ],
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            // Sur 320 px le double CTA dépassait le bandeau.
+                            if (constraints.maxWidth < 310) {
+                              return Row(children: [
+                                Expanded(child: ClinicalButton(
+                                  label: 'Nouveau patient',
+                                  onPressed: onAdd,
+                                  level: ClinicalButtonLevel.primary,
+                                  height: 44,
+                                  icon: Icons.add_rounded,
+                                )),
+                                const SizedBox(width: 8),
+                                IconButton.outlined(
+                                  tooltip: 'Mes dossiers',
+                                  onPressed: onPatients,
+                                  icon: const Icon(Icons.folder_open_outlined, size: 21),
+                                  style: IconButton.styleFrom(
+                                    foregroundColor: p.ink,
+                                    backgroundColor: p.surface.withValues(alpha: 0.70),
+                                    minimumSize: const Size(44, 44),
+                                  ),
+                                ),
+                              ]);
+                            }
+                            return Row(children: [
+                              ClinicalButton(
+                                label: 'Nouveau patient',
+                                onPressed: onAdd,
+                                level: ClinicalButtonLevel.primary,
+                                height: 44,
+                                icon: Icons.add_rounded,
+                                expanded: false,
+                                minWidth: 140,
+                              ),
+                              const SizedBox(width: ClinicalSpacing.sm),
+                              Flexible(child: ClinicalButton(
+                                label: 'Mes dossiers',
+                                onPressed: onPatients,
+                                level: ClinicalButtonLevel.secondary,
+                                height: 44,
+                                expanded: false,
+                              )),
+                            ]);
+                          },
                         ),
                       ],
                     ),
