@@ -192,15 +192,12 @@ class _Summary extends StatelessWidget {
           child: ColoredBox(color: Palette.navy),
         ),
         // Image à droite. On garde les textes et actions indépendants.
-        Positioned(
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: 205,
+        Positioned.fill(
           child: Image.memory(
             _photoBytes,
             fit: BoxFit.cover,
-            alignment: Alignment.center,
+            // Source panoramique : davantage de decor et portrait a droite.
+            alignment: Alignment.centerRight,
             filterQuality: FilterQuality.medium,
             excludeFromSemantics: true,
           ),
@@ -212,12 +209,12 @@ class _Summary extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
-                stops: [0, .35, .68, 1],
+                stops: [0, .26, .61, 1],
                 colors: [
                   Palette.navy,
                   Palette.navy,
-                  Color(0x8F164B40),
-                  Color(0x10164B40),
+                  Color(0xB2103E32),
+                  Color(0x10103E32),
                 ],
               ),
             ),
@@ -232,9 +229,9 @@ class _Summary extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 stops: [0, .48, .78, 1],
                 colors: [
+                  Color(0x00103E32),
                   Color(0x00164B40),
-                  Color(0x00164B40),
-                  Color(0x73164B40),
+                  Color(0x73103E32),
                   Palette.navy,
                 ],
               ),
