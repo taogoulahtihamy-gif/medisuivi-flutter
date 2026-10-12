@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 
 class NewPatientScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
 
   void save() {
     if (!(form.currentState?.validate() ?? false)) return;
-    DemoScope.of(context).addPatient(
+    context.store.addPatient(
       name: name.text,
       age: int.parse(age.text.trim()),
       sex: sex,
