@@ -1,6 +1,7 @@
 /// DAO pour la table Exams
 library;
 
+import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../database.dart';
@@ -18,15 +19,28 @@ class ExamDao extends DatabaseAccessor<AppDatabase> with _$ExamDaoMixin {
   }) async {
     final id = generateId();
     final now = DateTime.now().toUtc();
-    await into(exams).insert(ExamsCompanion(
-      id: Value(id),
-      patientId: Value(patientId),
-      title: Value(title),
-      date: Value(now),
-      status: const Value(0), // pending
-      createdAt: Value(now),
-      updatedAt: Value(now),
-    ));
+    await attachedDatabase.transaction(() async {
+      await into(exams).insert(ExamsCompanion(
+        id: Value(id),
+        patientId: Value(patientId),
+        title: Value(title),
+        date: Value(now),
+        status: const Value(0), // pending
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'exam',
+        entityId: id,
+        operationType: 'create',
+        payload: jsonEncode({
+          'id': id, 'patientId': patientId, 'title': title,
+          'status': 0, 'date': now.toIso8601String(),
+        }),
+        baseRevision: 0,
+      );
+    });
     return id;
   }
 
@@ -80,14 +94,32 @@ class ExamDao extends DatabaseAccessor<AppDatabase> with _$ExamDaoMixin {
     required String result,
   }) async {
     final now = DateTime.now().toUtc();
-    await (update(exams)..where((e) => e.id.equals(examId))).write(
-      ExamsCompanion(
-        status: const Value(1), // complete
-        result: Value(result),
-        resultRecordedAt: Value(now),
-        updatedAt: Value(now),
-      ),
-    );
+    await attachedDatabase.transaction(() async {
+      final exam = await getExamById(examId);
+      if (exam == null) throw StateError('Examen introuvable.');
+      if (exam.status == 1) throw StateError('Ce bilan possède déjà un résultat.');
+      if (result.trim().isEmpty) throw ArgumentError('Résultat obligatoire.');
+
+      await (update(exams)..where((e) => e.id.equals(examId))).write(
+        ExamsCompanion(
+          status: const Value(1),
+          result: Value(result.trim()),
+          resultRecordedAt: Value(now),
+          updatedAt: Value(now),
+        ),
+      );
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'exam',
+        entityId: examId,
+        operationType: 'update',
+        payload: jsonEncode({
+          'id': examId, 'status': 1, 'result': result.trim(),
+          'resultRecordedAt': now.toIso8601String(),
+        }),
+        baseRevision: 0,
+      );
+    });
   }
 
   /// Met à jour un examen
