@@ -20,9 +20,10 @@ class _ExamsScreenState extends State<ExamsScreen> {
   @override
   Widget build(BuildContext context) {
     final store = context.store;
-    final pending = store.exams.where((e) =>
+    final allExams = List<LabExam>.from(store.exams);
+    final pending = allExams.where((e) =>
       e.status == ExamStatus.pending).length;
-    final exams = store.exams.where((e) =>
+    final exams = allExams.where((e) =>
       !pendingOnly || e.status == ExamStatus.pending).toList()
         ..sort((a, b) => b.date.compareTo(a.date));
 
