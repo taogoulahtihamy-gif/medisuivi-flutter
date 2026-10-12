@@ -17,14 +17,14 @@ class ExamDetailScreen extends StatelessWidget {
     // Toujours lire la version actuelle depuis le store, pas l'ancienne
     // instance transmise avant la saisie du compte rendu.
     final store = context.store;
-    final exam = store.examById(examId);
+    final LabExam? exam = store.examById(examId);
     if (exam == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Bilan médical')),
         body: const Center(child: Text('Bilan introuvable.')),
       );
     }
-    final patient = store.patientById(exam.patientId);
+    final Patient? patient = store.patientById(exam.patientId);
     final completed = exam.status == ExamStatus.complete;
     return Scaffold(
       appBar: AppBar(title: const Text('Détail du bilan')),
