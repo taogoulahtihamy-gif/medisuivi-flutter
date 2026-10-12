@@ -36,7 +36,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(const SnackBar(
-      content: Text('Fiche fictive ajoutée temporairement.'),
+      content: Text('Patient ajouté pour cette session.'),
     ));
   }
 
@@ -64,8 +64,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                   subtitle: 'Identité et coordonnées du patient.',
                 ),
                 const SizedBox(height: 20),
-                const DemoNotice(),
-                const SizedBox(height: 18),
+
                 ClinicalFormSection(
                   title: 'Identité du patient',
                   subtitle: 'Informations d’identification',
@@ -80,7 +79,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                         controller: name,
                         textCapitalization: TextCapitalization.words,
                         decoration: const InputDecoration(
-                          hintText: 'Ex. Patient Démo',
+                          hintText: 'Ex. Aminata Diallo',
                         ),
                         validator: (v) => (v?.trim().length ?? 0) < 2
                           ? 'Saisissez au moins deux caractères.' : null,
@@ -141,7 +140,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                 ElevatedButton.icon(
                   onPressed: save,
                   icon: const Icon(Icons.check_rounded),
-                  label: const Text('Ajouter ce patient démo'),
+                  label: const Text('Ajouter le patient'),
                 ),
                 const SizedBox(height: 12),
                 const Text(
