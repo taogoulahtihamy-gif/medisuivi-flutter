@@ -144,7 +144,7 @@ class _Summary extends StatelessWidget {
           top: 0,
           right: 0,
           bottom: 0,
-          width: 195,
+          width: 205,
           child: Image.memory(
             _photoBytes,
             fit: BoxFit.cover,
@@ -160,12 +160,12 @@ class _Summary extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
-                stops: [0, .31, .69, 1],
+                stops: [0, .35, .68, 1],
                 colors: [
                   Palette.navy,
                   Palette.navy,
-                  Color(0xD7193F34),
-                  Color(0x3B193F34),
+                  Color(0x86193F34),
+                  Color(0x0C193F34),
                 ],
               ),
             ),
@@ -178,11 +178,11 @@ class _Summary extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                stops: [0, .40, .76, 1],
+                stops: [0, .48, .78, 1],
                 colors: [
                   Color(0x00193F34),
                   Color(0x00193F34),
-                  Color(0xB8193F34),
+                  Color(0x7D193F34),
                   Palette.navy,
                 ],
               ),
