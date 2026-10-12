@@ -1,7 +1,7 @@
 name: Flutter quality checks
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, 'feat/medisuivi-premium-redesign']
   pull_request:
 jobs:
   validate:
