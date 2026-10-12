@@ -100,7 +100,7 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final patients = context.store.patients;
+    final List<Patient> patients = List<Patient>.from(context.store.patients);
     return Scaffold(
       appBar: AppBar(title: Text(
         widget.plan == null ? 'Programmer un suivi' : 'Modifier le suivi')),
