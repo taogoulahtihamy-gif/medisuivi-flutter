@@ -19,13 +19,13 @@ class ScreenWidth extends StatelessWidget {
 }
 
 class SurfaceCard extends StatelessWidget {
-  const SurfaceCard({super.key, required this.child, this.onTap, this.padding = const EdgeInsets.all(18)});
+  const SurfaceCard({super.key, required this.child, this.onTap, this.padding = const EdgeInsets.all(16)});
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsets padding;
   @override
   Widget build(BuildContext context) => Material(
-    color: Palette.white,
+    color: Palette.surface,
     elevation: 0,
     shadowColor: Palette.night,
     shape: RoundedRectangleBorder(
@@ -47,7 +47,7 @@ class SectionHeading extends StatelessWidget {
   final VoidCallback? onTap;
   @override
   Widget build(BuildContext context) => Row(children: [
-    Expanded(child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: -0.3))),
+    Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.35))),
     if (trailing != null) TextButton(onPressed: onTap, child: Text(trailing!)),
   ]);
 }
@@ -103,7 +103,7 @@ class PageTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontSize: 27, letterSpacing: -0.7, fontWeight: FontWeight.w700)),
+      Text(title, style: const TextStyle(fontSize: 23, height: 1.18, letterSpacing: -0.75, fontWeight: FontWeight.w700)),
       const SizedBox(height: 7),
       Text(subtitle, style: const TextStyle(fontSize: 14, color: Palette.muted)),
     ])),
@@ -187,7 +187,7 @@ class ClinicalFormSection extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(17),
     decoration: BoxDecoration(
-      color: Palette.white,
+      color: Palette.surface,
       borderRadius: BorderRadius.circular(20),
       border: Border.all(color: Palette.border),
     ),
@@ -208,7 +208,7 @@ class ClinicalFormSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: const TextStyle(
-                fontSize: 17, fontWeight: FontWeight.w600,
+                fontSize: 15.5, fontWeight: FontWeight.w600,
                 color: Palette.forest,
               )),
               if (subtitle != null) ...[
