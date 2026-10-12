@@ -8,10 +8,88 @@ class DemoStore extends ChangeNotifier {
   final List<Patient> _patients = [...DemoData.patients];
   final List<Visit> _visits = [...DemoData.visits];
   final List<LabExam> _exams = [...DemoData.exams];
+  final List<FollowUpPlan> _followUps = [...DemoData.followUps];
 
   List<Patient> get patients => List.unmodifiable(_patients);
   List<Visit> get visits => List.unmodifiable(_visits);
   List<LabExam> get exams => List.unmodifiable(_exams);
+  List<FollowUpPlan> get followUps => List.unmodifiable(_followUps);
+
+  List<FollowUpPlan> followUpsFor(String patientId) =>
+      _followUps.where((plan) => plan.patientId == patientId).toList()
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+
+  List<FollowUpPlan> get plannedFollowUps =>
+      _followUps.where((plan) => plan.isPlanned).toList()
+        ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+
+  List<FollowUpPlan> get pastFollowUps =>
+      _followUps.where((plan) => !plan.isPlanned).toList()
+        ..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
+
+  /// Patients dont le suivi est signalé, sans prochain rendez-vous daté.
+  List<Patient> get followUpsWithoutDate => _patients.where((patient) =>
+    patient.followUp &&
+    !_followUps.any((plan) =>
+        plan.patientId == patient.id && plan.isPlanned)).toList();
+
+  void scheduleFollowUp({
+    required String patientId,
+    required DateTime scheduledAt,
+    required String reason,
+    String notes = '',
+  }) {
+    final patient = patientById(patientId);
+    if (patient == null) throw StateError('Dossier patient introuvable.');
+    if (reason.trim().isEmpty) throw ArgumentError('Motif obligatoire.');
+    if (scheduledAt.isBefore(DateTime.now().subtract(const Duration(days: 3650)))) {
+      throw ArgumentError('Date de suivi trop ancienne.');
+    }
+    _followUps.add(FollowUpPlan(
+      id: 'FUP-${DateTime.now().microsecondsSinceEpoch}',
+      patientId: patientId,
+      scheduledAt: scheduledAt,
+      reason: reason.trim(),
+      notes: notes.trim(),
+    ));
+    setFollowUp(patientId, toReview: true);
+  }
+
+  void rescheduleFollowUp({
+    required String followUpId,
+    required DateTime scheduledAt,
+    required String reason,
+    String notes = '',
+  }) {
+    final index = _followUps.indexWhere((plan) => plan.id == followUpId);
+    if (index < 0) throw StateError('Suivi introuvable.');
+    if (!_followUps[index].isPlanned) {
+      throw StateError('Un suivi terminé ne peut pas être modifié.');
+    }
+    if (reason.trim().isEmpty) throw ArgumentError('Motif obligatoire.');
+    _followUps[index] = _followUps[index].copyWith(
+      scheduledAt: scheduledAt, reason: reason.trim(), notes: notes.trim());
+    notifyListeners();
+  }
+
+  void closeFollowUp(String followUpId, {required bool completed}) {
+    final index = _followUps.indexWhere((plan) => plan.id == followUpId);
+    if (index < 0) throw StateError('Suivi introuvable.');
+    final plan = _followUps[index];
+    if (!plan.isPlanned) throw StateError('Ce suivi est déjà clôturé.');
+    _followUps[index] = plan.copyWith(
+      status: completed ? FollowUpStatus.completed : FollowUpStatus.cancelled,
+      completedAt: completed ? DateTime.now() : null,
+    );
+    final hasOtherPlan = _followUps.any(
+      (candidate) => candidate.patientId == plan.patientId && candidate.isPlanned);
+    if (!hasOtherPlan) {
+      setFollowUp(plan.patientId, toReview: false);
+    } else {
+      notifyListeners();
+    }
+  }
+
 
   List<Visit> visitsFor(String patientId) =>
       _visits.where((visit) => visit.patientId == patientId).toList()
