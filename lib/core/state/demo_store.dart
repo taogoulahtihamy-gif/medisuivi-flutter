@@ -9,6 +9,7 @@ class DemoStore extends ChangeNotifier {
   final List<Visit> _visits = [...DemoData.visits];
   final List<LabExam> _exams = [...DemoData.exams];
   final List<FollowUpPlan> _followUps = [...DemoData.followUps];
+  int _followUpSequence = 0;
 
   List<Patient> get patients => List.unmodifiable(_patients);
   List<Visit> get visits => List.unmodifiable(_visits);
@@ -46,7 +47,7 @@ class DemoStore extends ChangeNotifier {
       throw ArgumentError('Date de suivi trop ancienne.');
     }
     _followUps.add(FollowUpPlan(
-      id: 'FUP-${DateTime.now().microsecondsSinceEpoch}',
+      id: 'FUP-${DateTime.now().microsecondsSinceEpoch}-${++_followUpSequence}',
       patientId: patientId,
       scheduledAt: scheduledAt,
       reason: reason.trim(),
