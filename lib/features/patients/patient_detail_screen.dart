@@ -4,6 +4,8 @@ import '../../core/models/medical_models.dart';
 import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../consultations/new_consultation_screen.dart';
+import '../exams/exam_editor_screen.dart';
+import 'patient_medical_info_screen.dart';
 
 class PatientDetailScreen extends StatelessWidget {
   const PatientDetailScreen({super.key, required this.patientId});
@@ -17,8 +19,9 @@ class PatientDetailScreen extends StatelessWidget {
     final visits = store.visitsFor(patient.id);
     final exams = store.examsFor(patient.id);
     final last = visits.isEmpty ? null : visits.first;
+    final pending = exams.where((e) => e.status == ExamStatus.pending).length;
     return Scaffold(
-      appBar: AppBar(title: const Text('Dossier patient')),
+      appBar: AppBar(title: const Text('Dossier médical')),
       body: SafeArea(child: ListView(children: [ScreenWidth(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
           EntranceReveal(child: Container(
@@ -53,14 +56,34 @@ class PatientDetailScreen extends StatelessWidget {
             ]),
           )),
           const SizedBox(height: 18),
-          const DemoNotice(compact: true),
-          const SizedBox(height: 17),
-          SizedBox(width: double.infinity, child: ElevatedButton.icon(
-            onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
-              builder: (_) => NewConsultationScreen(patient: patient))),
-            icon: const Icon(Icons.add_rounded), label: const Text('Nouvelle consultation démo'))),
+          Row(children: [
+            Expanded(child: SizedBox(height: 48, child: ElevatedButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
+                builder: (_) => NewConsultationScreen(patient: patient))),
+              icon: const Icon(Icons.add_rounded, size: 19),
+              label: const Text('Nouvelle consultation',
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+            ))),
+            const SizedBox(width: 9),
+            SizedBox(height: 48, width: 49, child: IconButton.outlined(
+              tooltip: 'Prescrire un bilan',
+              icon: const Icon(Icons.biotech_outlined),
+              onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
+                builder: (_) => ExamEditorScreen(patientId: patientId))),
+            )),
+          ]),
           const SizedBox(height: 26),
-          const SectionHeading(title: 'Informations générales'),
+          Row(children: [
+            Expanded(child: _CountCard(count: visits.length, label: 'Consultations')),
+            const SizedBox(width: 9),
+            Expanded(child: _CountCard(count: exams.length, label: 'Bilans')),
+            const SizedBox(width: 9),
+            Expanded(child: _CountCard(count: pending, label: 'En attente')),
+          ]),
+          const SizedBox(height: 26),
+          SectionHeading(title: 'Informations médicales', trailing: 'Modifier',
+            onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+              builder: (_) => PatientMedicalInfoScreen(patient: patient)))),
           const SizedBox(height: 11),
           SurfaceCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
@@ -68,6 +91,8 @@ class PatientDetailScreen extends StatelessWidget {
                 'F' => 'Féminin', 'M' => 'Masculin', _ => 'Non précisé' })),
               Expanded(child: _Fact(label: 'Téléphone', value: patient.phone)),
             ]),
+            const Divider(height: 28),
+            _Fact(label: 'Antécédents médicaux', value: patient.medicalHistory),
             const Divider(height: 28),
             _Fact(label: 'Allergies connues', value: patient.allergies),
           ])),
@@ -90,7 +115,10 @@ class PatientDetailScreen extends StatelessWidget {
             ]),
           ])),
           const SizedBox(height: 25),
-          SectionHeading(title: 'Historique des consultations', trailing: '${visits.length} visite(s)'),
+          SectionHeading(title: 'Historique des consultations',
+            trailing: 'Ajouter', onTap: () => Navigator.push(context,
+              MaterialPageRoute<void>(builder: (_) =>
+                NewConsultationScreen(patient: patient)))),
           const SizedBox(height: 10),
           if (visits.isEmpty) const SurfaceCard(child: Text('Aucune consultation.'))
           else SurfaceCard(child: Column(children: [
@@ -100,12 +128,18 @@ class PatientDetailScreen extends StatelessWidget {
             ],
           ])),
           const SizedBox(height: 25),
-          SectionHeading(title: 'Bilans et examens', trailing: '${exams.length} bilan(s)'),
+          SectionHeading(title: 'Bilans et examens',
+            trailing: 'Prescrire', onTap: () => Navigator.push(context,
+              MaterialPageRoute<void>(builder: (_) =>
+                ExamEditorScreen(patientId: patientId)))),
           const SizedBox(height: 10),
           if (exams.isEmpty) const SurfaceCard(child: Text('Aucun examen prescrit.'))
           else SurfaceCard(child: Column(children: [
             for (var i = 0; i < exams.length; i++) ...[
-              _ExamLine(exam: exams[i]),
+              _ExamLine(exam: exams[i],
+                onResult: () => Navigator.push(context,
+                  MaterialPageRoute<void>(builder: (_) =>
+                    ExamEditorScreen(patientId: patientId, exam: exams[i])))),
               if (i < exams.length - 1) const Divider(height: 22),
             ],
           ])),
