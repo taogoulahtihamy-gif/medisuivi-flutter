@@ -37,7 +37,7 @@ class ExamDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('EXAMEN MÉDICAL',
+                  const Text('EXAMEN MÉDICAL',
                     style: const TextStyle(
                       color: Palette.forest,
                       letterSpacing: .55,
