@@ -14,7 +14,7 @@ void main() {
     final store = PersistentStore(database);
     await tester.pumpWidget(PersistentScope(
       store: store,
-      child: const MaterialApp(home: PatientsScreen()),
+      child: const MaterialApp(home: Scaffold(body: PatientsScreen())),
     ));
     await tester.pumpAndSettle();
     expect(find.text('Mes patients'), findsOneWidget);
