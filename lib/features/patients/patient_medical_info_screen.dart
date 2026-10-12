@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
@@ -13,6 +14,7 @@ class PatientMedicalInfoScreen extends StatefulWidget {
 }
 
 class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
+  bool _saving = false;
   late final TextEditingController phone;
   late final TextEditingController allergies;
   late final TextEditingController history;
@@ -38,17 +40,28 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
     super.dispose();
   }
 
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
-    context.store.updatePatientInfo(
-      patientId: widget.patient.id,
-      phone: phone.text,
-      allergies: allergies.text,
-      medicalHistory: history.text,
-    );
-    Navigator.of(context).pop();
+  Future<void> _save() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      await context.store.updatePatientInfo(
+        patientId: widget.patient.id,
+        phone: phone.text,
+        allergies: allergies.text,
+        medicalHistory: history.text,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enregistrement impossible. Réessayez.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
-
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Informations médicales')),
@@ -101,13 +114,13 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
               ),
               const SizedBox(height: 21),
               ElevatedButton.icon(
-                onPressed: _save,
+                onPressed: _saving ? null : _save,
                 icon: const Icon(Icons.check_rounded),
                 label: const Text('Enregistrer les informations'),
               ),
               const SizedBox(height: 13),
               Text(
-                'Enregistrement temporaire. Ces données ne sont pas conservées après fermeture.',
+                kIsWeb ? 'Version Web : données fictives temporaires.' : 'Données enregistrées localement ; synchronisation indisponible.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Palette.of(context).muted, fontSize: 12.5),
               ),
