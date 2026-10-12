@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
@@ -13,6 +14,7 @@ class NewConsultationScreen extends StatefulWidget {
 }
 
 class _NewConsultationScreenState extends State<NewConsultationScreen> {
+  bool _saving = false;
   final form = GlobalKey<FormState>();
   final reason = TextEditingController();
   final temp = TextEditingController();
@@ -63,25 +65,32 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
           Expanded(child: right),
         ]));
 
-  void save() {
-    if (!(form.currentState?.validate() ?? false)) return;
-    context.store.addVisit(
-      patientId: widget.patient.id,
-      reason: reason.text,
-      temperature: number(temp.text),
-      systolic: int.tryParse(systolic.text),
-      diastolic: int.tryParse(diastolic.text),
-      pulse: int.tryParse(pulse.text),
-      spo2: int.tryParse(spo2.text),
-      notes: notes.text,
-    );
-    final messenger = ScaffoldMessenger.of(context);
-    Navigator.pop(context);
-    messenger.showSnackBar(const SnackBar(
-      content: Text('Consultation ajoutée pour cette session.'),
-    ));
+  Future<void> save() async {
+    if (_saving || !(form.currentState?.validate() ?? false)) return;
+    setState(() => _saving = true);
+    try {
+      await context.store.addVisit(
+        patientId: widget.patient.id,
+        reason: reason.text,
+        temperature: number(temp.text),
+        systolic: int.tryParse(systolic.text),
+        diastolic: int.tryParse(diastolic.text),
+        pulse: int.tryParse(pulse.text),
+        spo2: int.tryParse(spo2.text),
+        notes: notes.text,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enregistrement impossible. Réessayez.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
-
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Nouvelle consultation')),
@@ -158,13 +167,13 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
             ),
             const SizedBox(height: 21),
             ElevatedButton.icon(
-              onPressed: save,
+              onPressed: _saving ? null : save,
               icon: const Icon(Icons.check_rounded),
               label: const Text('Enregistrer la consultation'),
             ),
             const SizedBox(height: 12),
             Text(
-              'Aucune donnée n’est envoyée à un serveur ou conservée après fermeture.',
+              kIsWeb ? 'Version Web : données fictives temporaires.' : 'Enregistrement local hors connexion ; aucun envoi au serveur.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13, color: Palette.of(context).laserMuted),
