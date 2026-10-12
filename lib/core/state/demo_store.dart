@@ -8,6 +8,7 @@ class DemoStore extends ChangeNotifier {
   final List<Patient> _patients = [...DemoData.patients];
   final List<Visit> _visits = [...DemoData.visits];
   final List<LabExam> _exams = [...DemoData.exams];
+  int _examSequence = 0;
   final List<FollowUpPlan> _followUps = [...DemoData.followUps];
   int _followUpSequence = 0;
 
@@ -142,23 +143,43 @@ class DemoStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addExam({required String patientId, required String title}) {
+  LabExam? examById(String examId) {
+    for (final exam in _exams) {
+      if (exam.id == examId) return exam;
+    }
+    return null;
+  }
+
+  /// Retourne l'identifiant stable afin d'ouvrir immédiatement le bilan créé.
+  String addExam({required String patientId, required String title}) {
     if (patientById(patientId) == null) {
       throw StateError('Dossier patient introuvable.');
     }
+    if (title.trim().length < 3) {
+      throw ArgumentError('Nom d’examen obligatoire.');
+    }
+    final id = 'EXM-${DateTime.now().microsecondsSinceEpoch}-${++_examSequence}';
     _exams.insert(0, LabExam(
-      id: 'EXM-${DateTime.now().microsecondsSinceEpoch}',
+      id: id,
       patientId: patientId,
       title: title.trim(),
       date: DateTime.now(),
       status: ExamStatus.pending,
     ));
     notifyListeners();
+    return id;
   }
 
+  /// Un résultat confirmé n'est pas silencieusement écrasé.
   void recordExamResult({required String examId, required String result}) {
     final index = _exams.indexWhere((exam) => exam.id == examId);
     if (index < 0) throw StateError('Examen introuvable.');
+    if (_exams[index].status == ExamStatus.complete) {
+      throw StateError('Ce bilan possède déjà un résultat.');
+    }
+    if (result.trim().isEmpty) {
+      throw ArgumentError('Le résultat est obligatoire.');
+    }
     final exam = _exams[index];
     _exams[index] = LabExam(
       id: exam.id,
@@ -167,6 +188,7 @@ class DemoStore extends ChangeNotifier {
       date: exam.date,
       status: ExamStatus.complete,
       result: result.trim(),
+      resultRecordedAt: DateTime.now(),
     );
     notifyListeners();
   }
