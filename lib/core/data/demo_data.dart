@@ -22,4 +22,29 @@ abstract final class DemoData {
     LabExam(id: 'EXM-002', patientId: 'PAT-00241', title: 'Glycémie', date: DateTime(2026, 10, 10), status: ExamStatus.pending),
     LabExam(id: 'EXM-003', patientId: 'PAT-00239', title: 'Analyse biologique', date: DateTime(2026, 10, 8), status: ExamStatus.pending),
   ];
+  static final followUps = <FollowUpPlan>[
+    FollowUpPlan(
+      id: 'FUP-001',
+      patientId: 'PAT-00241',
+      scheduledAt: DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day - 2, 10),
+      reason: 'Contrôle après consultation',
+      notes: 'Confirmer la présence du résultat prescrit.',
+    ),
+    FollowUpPlan(
+      id: 'FUP-002',
+      patientId: 'PAT-00239',
+      scheduledAt: DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day, 14, 30),
+      reason: 'Visite de contrôle',
+    ),
+    FollowUpPlan(
+      id: 'FUP-003',
+      patientId: 'PAT-00241',
+      scheduledAt: DateTime(
+        DateTime.now().year, DateTime.now().month, DateTime.now().day + 3, 9),
+      reason: 'Réévaluation des constantes',
+    ),
+  ];
+
 }
