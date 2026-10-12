@@ -45,7 +45,7 @@ class ExamDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700)),
                   const SizedBox(height: 10),
                   Text(exam.title, style: const TextStyle(
-                    color: Palette.ink, fontSize: 26, height: 1.2,
+                    color: Palette.ink, fontSize: 22, height: 1.25,
                     fontWeight: FontWeight.w700, letterSpacing: -.55)),
                   const SizedBox(height: 17),
                   Container(
