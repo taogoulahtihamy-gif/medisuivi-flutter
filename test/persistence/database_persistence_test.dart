@@ -374,7 +374,7 @@ void main() {
         emissions.add(patients);
       });
       
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 400));
       
       await db.patientDao.createPatient(
         name: 'Stream Test',
@@ -383,7 +383,7 @@ void main() {
         phone: '0101010101',
       );
       
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 400));
       
       await sub.cancel();
       await db.close();
