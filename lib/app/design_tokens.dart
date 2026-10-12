@@ -3,6 +3,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Palette de couleurs sémantiques — Nocturne Clinique
 abstract final class ClinicalColors {
@@ -308,7 +309,10 @@ abstract final class ClinicalShadow {
   ];
 }
 
-/// Tokens d'animations
+/// Résolveur de polices Google Fonts — utilisé pour le rendu runtime
+final GoogleFonts googleFonts = GoogleFonts();
+
+// Tokens d'animations
 abstract final class ClinicalMotion {
   static const Duration instant = Duration(milliseconds: 0);
   static const Duration micro = Duration(milliseconds: 120);
@@ -322,6 +326,103 @@ abstract final class ClinicalMotion {
 
   static const Duration staggerBase = Duration(milliseconds: 40);
   static const Duration staggerMax = Duration(milliseconds: 400);
+}
+
+// Google Fonts — rendu runtime (fractionné au démarrage)
+// Ces styles ne sont PAS const car GoogleFonts résout les polices à l'exécution.
+// Elles sont disponible via ClinicalTypographyGoogleFonts.xxx si besoin.
+class ClinicalTypographyGoogleFonts {
+  // Display — Fraunces
+  static TextStyle display = GoogleFonts.fraunces(
+    fontSize: 40,
+    fontWeight: FontWeight.w700,
+    height: 1.05,
+    letterSpacing: -1.2,
+  );
+  static TextStyle headlineLarge = GoogleFonts.fraunces(
+    fontSize: 28,
+    fontWeight: FontWeight.w600,
+    height: 1.15,
+    letterSpacing: -0.6,
+  );
+  static TextStyle headlineMedium = GoogleFonts.fraunces(
+    fontSize: 22,
+    fontWeight: FontWeight.w500,
+    height: 1.2,
+    letterSpacing: -0.3,
+  );
+  static TextStyle headlineSmall = GoogleFonts.fraunces(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    height: 1.25,
+    letterSpacing: -0.15,
+  );
+
+  // UI — DM Sans
+  static TextStyle titleLarge = GoogleFonts.dmSans(
+    fontSize: 16,
+    fontWeight: FontWeight.w500,
+    height: 1.35,
+    letterSpacing: 0,
+  );
+  static TextStyle titleMedium = GoogleFonts.dmSans(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    height: 1.4,
+    letterSpacing: 0.1,
+  );
+  static TextStyle bodyLarge = GoogleFonts.dmSans(
+    fontSize: 15.5,
+    fontWeight: FontWeight.w400,
+    height: 1.6,
+    letterSpacing: 0,
+  );
+  static TextStyle bodyMedium = GoogleFonts.dmSans(
+    fontSize: 14,
+    fontWeight: FontWeight.w400,
+    height: 1.55,
+    letterSpacing: 0,
+  );
+  static TextStyle bodySmall = GoogleFonts.dmSans(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    height: 1.5,
+    letterSpacing: 0.15,
+  );
+
+  // Mono — JetBrains Mono
+  static TextStyle monoLarge = GoogleFonts.jetBrainsMono(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    height: 1.2,
+    letterSpacing: 0,
+  );
+  static TextStyle monoMedium = GoogleFonts.jetBrainsMono(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+    height: 1.3,
+    letterSpacing: 0,
+  );
+  static TextStyle monoSmall = GoogleFonts.jetBrainsMono(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    height: 1.35,
+    letterSpacing: 0,
+  );
+
+  // Étiquettes — DM Sans
+  static TextStyle labelLarge = GoogleFonts.dmSans(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    height: 1.3,
+    letterSpacing: 0.1,
+  );
+  static TextStyle labelMedium = GoogleFonts.dmSans(
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    height: 1.35,
+    letterSpacing: 0.15,
+  );
 }
 
 /// Densités de carte
