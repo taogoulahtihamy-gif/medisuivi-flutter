@@ -10,11 +10,11 @@ import 'package:medisuivi/features/consultations/new_consultation_screen.dart';
 
 void main() {
   test('Palette clinique et polices lisibles', () {
-    expect(Palette.canvas, const Color(0xFFF5F5F2));
-    expect(Palette.forest, const Color(0xFF164B40));
-    expect(Palette.ink, const Color(0xFF1B2421));
+    expect(Palette.canvas, const Color(0xFF62ECA7));
+    expect(Palette.forest, const Color(0xFF124936));
+    expect(Palette.ink, const Color(0xFF10372B));
     expect(MediTheme.light().brightness, Brightness.light);
-    expect(MediTheme.light().textTheme.bodyMedium!.fontSize, 14);
+    expect(MediTheme.light().textTheme.bodyMedium!.fontSize, 13.5);
   });
 
   test('Initiales patient fictif', () {
