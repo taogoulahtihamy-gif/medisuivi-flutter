@@ -1,6 +1,7 @@
 /// DAO pour la table FollowUps
 library;
 
+import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../database.dart';
@@ -20,16 +21,30 @@ class FollowUpDao extends DatabaseAccessor<AppDatabase> with _$FollowUpDaoMixin 
   }) async {
     final id = generateId();
     final now = DateTime.now().toUtc();
-    await into(followUps).insert(FollowUpsCompanion(
-      id: Value(id),
-      patientId: Value(patientId),
-      scheduledAt: Value(scheduledAt.toUtc()),
-      reason: Value(reason),
-      notes: Value(notes),
-      status: const Value(0), // planned
-      createdAt: Value(now),
-      updatedAt: Value(now),
-    ));
+    await attachedDatabase.transaction(() async {
+      await into(followUps).insert(FollowUpsCompanion(
+        id: Value(id),
+        patientId: Value(patientId),
+        scheduledAt: Value(scheduledAt.toUtc()),
+        reason: Value(reason),
+        notes: Value(notes),
+        status: const Value(0), // planned
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'followup',
+        entityId: id,
+        operationType: 'create',
+        payload: jsonEncode({
+          'id': id, 'patientId': patientId,
+          'scheduledAt': scheduledAt.toUtc().toIso8601String(),
+          'reason': reason, 'notes': notes, 'status': 0,
+        }),
+        baseRevision: 0,
+      );
+    });
   }
 
   /// Récupère les suivis planifiés (futurs)
@@ -92,29 +107,35 @@ class FollowUpDao extends DatabaseAccessor<AppDatabase> with _$FollowUpDaoMixin 
     String notes = '',
   }) async {
     final now = DateTime.now().toUtc();
-    await (update(followUps)..where((f) => f.id.equals(followUpId))).write(
-      FollowUpsCompanion(
-        scheduledAt: Value(scheduledAt.toUtc()),
-        reason: Value(reason),
-        notes: Value(notes),
-        updatedAt: Value(now),
-      ),
-    );
-  }
-
-  /// Clôture un suivi (completed ou cancelled)
-  Future<void> closeFollowUp({
-    required String followUpId,
-    required bool completed,
-  }) async {
-    final now = DateTime.now().toUtc();
-    await (update(followUps)..where((f) => f.id.equals(followUpId))).write(
-      FollowUpsCompanion(
-        status: Value(completed ? 1 : 2), // completed : cancelled
-        completedAt: completed ? Value(now) : const Value.absent(),
-        updatedAt: Value(now),
-      ),
-    );
+    await attachedDatabase.transaction(() async {
+      final existing = await (select(followUps)
+        ..where((f) => f.id.equals(followUpId))).getSingleOrNull();
+      if (existing == null) throw StateError('Suivi introuvable.');
+      if (existing.status != 0) throw StateError('Un suivi terminé ne peut pas être modifié.');
+      await attachedDatabase.transaction(() async {
+      final existing = await (select(followUps)
+        ..where((f) => f.id.equals(followUpId))).getSingleOrNull();
+      if (existing == null) throw StateError('Suivi introuvable.');
+      if (existing.status != 0) throw StateError('Ce suivi est déjà clôturé.');
+      await (update(followUps)..where((f) => f.id.equals(followUpId))).write(
+        FollowUpsCompanion(
+          status: Value(completed ? 1 : 2),
+          completedAt: completed ? Value(now) : const Value.absent(),
+          updatedAt: Value(now),
+        ),
+      );
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'followup',
+        entityId: followUpId,
+        operationType: 'update',
+        payload: jsonEncode({
+          'id': followUpId, 'status': completed ? 1 : 2,
+          'completedAt': completed ? now.toIso8601String() : null,
+        }),
+        baseRevision: 0,
+      );
+    });
   }
 
   /// Supprime un suivi
