@@ -11,8 +11,9 @@ class SettingsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start, children: [
         PageTitle(title: 'Mon espace', subtitle: 'État et paramètres de l’application'),
         SizedBox(height: 21),
-        DemoNotice(),
-        SizedBox(height: 22),
+        _Item(Icons.info_outline_rounded, 'Stockage actuel',
+          'Les informations sont temporaires et disparaissent après fermeture. Ne pas saisir de données médicales réelles.'),
+        SizedBox(height: 10),
         _Item(Icons.lock_outline_rounded, 'Protection des dossiers',
           'À réaliser en V1 : stockage chiffré, authentification et verrouillage.'),
         SizedBox(height: 10),
@@ -22,7 +23,7 @@ class SettingsScreen extends StatelessWidget {
         _Item(Icons.devices_rounded, 'iOS et Android',
           'Interface adaptative Flutter avec navigation propre à chaque plateforme.'),
         SizedBox(height: 23),
-        Text('MediSuivi · Prototype 0.1.0',
+        Text('MediSuivi · Version de développement',
           style: TextStyle(color: Palette.muted, fontSize: 12, fontWeight: FontWeight.w600)),
       ]))])),
   );
