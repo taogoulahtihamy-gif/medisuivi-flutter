@@ -94,3 +94,57 @@ class LabExam {
 }
 
 enum ExamStatus { pending, complete }
+
+enum FollowUpStatus { planned, completed, cancelled }
+
+/// Rendez-vous de suivi rattaché au dossier patient.
+/// Dates locales pour l'affichage dans ce prototype ; stockage UTC à prévoir.
+class FollowUpPlan {
+  const FollowUpPlan({
+    required this.id,
+    required this.patientId,
+    required this.scheduledAt,
+    required this.reason,
+    this.notes = '',
+    this.status = FollowUpStatus.planned,
+    this.completedAt,
+  });
+
+  final String id;
+  final String patientId;
+  final DateTime scheduledAt;
+  final String reason;
+  final String notes;
+  final FollowUpStatus status;
+  final DateTime? completedAt;
+
+  bool get isPlanned => status == FollowUpStatus.planned;
+
+  bool isOverdue(DateTime now) =>
+      isPlanned && scheduledAt.isBefore(DateTime(now.year, now.month, now.day));
+
+  bool isToday(DateTime now) =>
+      isPlanned &&
+      scheduledAt.year == now.year &&
+      scheduledAt.month == now.month &&
+      scheduledAt.day == now.day;
+
+  bool isUpcoming(DateTime now) =>
+      isPlanned && scheduledAt.isAfter(DateTime(now.year, now.month, now.day + 1));
+
+  FollowUpPlan copyWith({
+    DateTime? scheduledAt,
+    String? reason,
+    String? notes,
+    FollowUpStatus? status,
+    DateTime? completedAt,
+  }) => FollowUpPlan(
+    id: id,
+    patientId: patientId,
+    scheduledAt: scheduledAt ?? this.scheduledAt,
+    reason: reason ?? this.reason,
+    notes: notes ?? this.notes,
+    status: status ?? this.status,
+    completedAt: completedAt ?? this.completedAt,
+  );
+}
