@@ -143,9 +143,49 @@ class PatientDetailScreen extends StatelessWidget {
               if (i < exams.length - 1) const Divider(height: 22),
             ],
           ])),
+          const SizedBox(height: 26),
+          const SectionHeading(title: 'Suivi du patient'),
+          const SizedBox(height: 11),
+          SurfaceCard(child: Row(children: [
+            const SoftIcon(icon: Icons.event_repeat_rounded),
+            const SizedBox(width: 11),
+            const Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Patient à revoir', style: TextStyle(
+                  fontSize: 15, fontWeight: FontWeight.w600)),
+                SizedBox(height: 5),
+                Text('Ajouter ce dossier à la liste de suivi.',
+                  style: TextStyle(color: Palette.muted, fontSize: 12.5)),
+              ],
+            )),
+            Switch.adaptive(value: patient.followUp,
+              onChanged: (value) => store.setFollowUp(
+                patientId, toReview: value)),
+          ])),
         ]))])),
     );
   }
+}
+
+class _CountCard extends StatelessWidget {
+  const _CountCard({required this.count, required this.label});
+  final int count;
+  final String label;
+  @override
+  Widget build(BuildContext context) => Container(
+    constraints: const BoxConstraints(minHeight: 83),
+    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+    decoration: BoxDecoration(color: Palette.tealSoft,
+      borderRadius: BorderRadius.circular(15)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('$count', style: const TextStyle(
+        fontSize: 23, fontWeight: FontWeight.w700, color: Palette.ink)),
+      const SizedBox(height: 5),
+      Text(label, maxLines: 2, style: const TextStyle(
+        fontSize: 12.5, height: 1.2, color: Palette.muted)),
+    ]),
+  );
 }
 
 class _Fact extends StatelessWidget {
@@ -194,8 +234,9 @@ class _VisitLine extends StatelessWidget {
 }
 
 class _ExamLine extends StatelessWidget {
-  const _ExamLine({required this.exam});
+  const _ExamLine({required this.exam, required this.onResult});
   final LabExam exam;
+  final VoidCallback onResult;
   @override
   Widget build(BuildContext context) {
     final ready = exam.status == ExamStatus.complete;
@@ -212,6 +253,14 @@ class _ExamLine extends StatelessWidget {
         if (ready && exam.result != null) ...[
           const SizedBox(height: 6),
           Text(exam.result!, style: const TextStyle(fontSize: 13, color: Palette.muted)),
+        ],
+        if (!ready) ...[
+          const SizedBox(height: 9),
+          OutlinedButton.icon(
+            onPressed: onResult,
+            icon: const Icon(Icons.edit_note_rounded, size: 18),
+            label: const Text('Saisir le résultat'),
+          ),
         ],
       ])),
     ]);
