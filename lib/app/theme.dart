@@ -4,23 +4,23 @@ import 'package:flutter/material.dart';
 /// Palette clinique : vert utilisé comme accent, neutres pour la lecture.
 /// Les anciens tokens sont conservés pour la compatibilité des écrans V0.
 abstract final class Palette {
-  static const canvas = Color(0xFFF7F9F8);
+  static const canvas = Color(0xFFF5F5F2);
   static const white = Color(0xFFFFFFFF);
-  static const ink = Color(0xFF21352F);
-  static const muted = Color(0xFF51665C);
-  static const border = Color(0xFFD7E3DA);
-  static const forest = Color(0xFF16624F);
+  static const ink = Color(0xFF1B2421);
+  static const muted = Color(0xFF59635F);
+  static const border = Color(0xFFE2E4DE);
+  static const forest = Color(0xFF164B40);
   static const teal = forest;
-  static const tealDark = Color(0xFF10513F);
-  static const tealSoft = Color(0xFFEDF6F0);
+  static const tealDark = Color(0xFF123D34);
+  static const tealSoft = Color(0xFFE8EFEB);
   static const mintFog = tealSoft;
-  static const navy = Color(0xFF193F34);
+  static const navy = Color(0xFF164B40);
   static const charcoal = ink;
-  static const charcoalSoft = Color(0xFF304D42);
+  static const charcoalSoft = Color(0xFF34433D);
   static const canvasEditorial = canvas;
   static const aqua = tealSoft;
-  static const blueSoft = Color(0xFFF1F5F3);
-  static const lavenderSoft = Color(0xFFF1F5F3);
+  static const blueSoft = Color(0xFFF4F5F2);
+  static const lavenderSoft = Color(0xFFF4F5F2);
   static const amber = Color(0xFF805F37);
   static const amberSoft = Color(0xFFF7F4ED);
   static const danger = Color(0xFF9C4247);
