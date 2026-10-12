@@ -151,6 +151,7 @@ class ExamDetailScreen extends StatelessWidget {
                             builder: (_) => ExamEditorScreen(
                               patientId: exam.patientId,
                               exam: exam,
+                              openDetailOnSave: false,
                             ))),
                         icon: const Icon(Icons.edit_note_rounded),
                         label: const Text('Saisir le résultat'),
