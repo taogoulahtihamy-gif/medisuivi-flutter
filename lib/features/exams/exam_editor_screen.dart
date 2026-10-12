@@ -3,12 +3,15 @@ import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
+import 'exam_detail_screen.dart';
 
 /// Saisie d'une prescription ou d'un résultat, sans interprétation automatique.
 class ExamEditorScreen extends StatefulWidget {
-  const ExamEditorScreen({super.key, required this.patientId, this.exam});
+  const ExamEditorScreen({super.key, required this.patientId, this.exam,
+    this.openDetailOnSave = true});
   final String patientId;
   final LabExam? exam;
+  final bool openDetailOnSave;
 
   @override
   State<ExamEditorScreen> createState() => _ExamEditorScreenState();
@@ -40,12 +43,21 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
   void _save() {
     if (!form.currentState!.validate()) return;
     final store = DemoScope.of(context);
+    late final String examId;
     if (isResult) {
-      store.recordExamResult(examId: widget.exam!.id, result: result.text);
+      examId = widget.exam!.id;
+      store.recordExamResult(examId: examId, result: result.text);
     } else {
-      store.addExam(patientId: widget.patientId, title: title.text);
+      examId = store.addExam(
+        patientId: widget.patientId, title: title.text);
     }
-    Navigator.of(context).pop();
+    if (!mounted) return;
+    if (widget.openDetailOnSave) {
+      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
+        builder: (_) => ExamDetailScreen(examId: examId)));
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -114,7 +126,7 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
               const SizedBox(height: 12),
               const Text(
                 'Saisie temporaire : ces informations ne sont pas conservées après fermeture.',
-                style: TextStyle(color: Palette.muted, fontSize: 12.5),
+                style: TextStyle(color: Palette.muted, fontSize: 13.5, height: 1.4),
                 textAlign: TextAlign.center,
               ),
             ],
