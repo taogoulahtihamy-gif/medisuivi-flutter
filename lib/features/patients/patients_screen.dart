@@ -48,7 +48,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
               ),
             ]),
             const SizedBox(height: 8),
-            Text('${all.length} dossiers de démonstration',
+            Text('${all.length} dossiers enregistrés',
               style: const TextStyle(color: Palette.muted, fontSize: 14)),
             const SizedBox(height: 23),
             TextField(
@@ -103,7 +103,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
               const SizedBox(height: 9),
             ],
             const SizedBox(height: 10),
-            const DemoNotice(compact: true),
+
           ]),
         ),
       ],
