@@ -37,7 +37,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
               fontWeight: FontWeight.w700, color: Palette.forest)),
             const SizedBox(height: 8),
             const Text('Bilans médicaux', style: TextStyle(
-              fontSize: 27, letterSpacing: -.6,
+              fontSize: 23, letterSpacing: -.7,
               fontWeight: FontWeight.w700, color: Palette.ink)),
             const SizedBox(height: 7),
             const Text('Demandes et résultats par patient.',
@@ -59,7 +59,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                       color: Palette.muted, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 10),
                     Text('$pending', style: const TextStyle(
-                      fontSize: 39, height: 1,
+                      fontSize: 34, height: 1,
                       letterSpacing: -1.7, fontWeight: FontWeight.w700,
                       color: Palette.ink)),
                     const SizedBox(height: 5),
