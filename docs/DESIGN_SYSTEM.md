@@ -1,4 +1,4 @@
-# MediSuivi | Identité clinique sobre (V0.4)
+# MediSuivi | Identité clinique premium (V0.6)
 
 Référence ergonomique : application métier premium, réutilisation de nos principes
 du projet « Analyse du projet sérieux » : composants compacts, navigation mobile
@@ -6,18 +6,18 @@ flottante, lisibilité élevée, hiérarchie des actions, animations discrètes.
 
 ## Palette mesurée, non monochrome
 
-- Vert clinique (action) : `#16624F`
-- Vert sombre (surface forte ponctuelle) : `#193F34`
-- Vert doux (état sélectionné) : `#EDF6F0`
+- Vert profond (action) : `#164B40`
+- Vert de surface forte : `#164B40`
+- Vert doux (état sélectionné) : `#E8EFEB`
 - Blanc : `#FFFFFF`
-- Toile : `#F7F9F8`
-- Texte principal : `#21352F`
-- Texte secondaire : `#687A73`
-- Séparation : `#E2EAE5`
+- Toile gris pierre : `#F5F5F2`
+- Texte principal anthracite : `#1B2421`
+- Texte secondaire : `#59635F`
+- Séparation : `#E2E4DE`
 - États nécessitant une distinction clinique : **libellés + icônes**.
   Les alertes ne reposent jamais uniquement sur la couleur.
 
-**Règle :** 80 % surfaces neutres, vert utilisé comme point d’attention.
+**Règle :** majorité de surfaces neutres (pierre et blanc pur) ; vert profond uniquement pour les actions, la navigation active et le bloc photographique de l'accueil.
 Les composants métiers ne doivent jamais devenir entièrement verts par défaut.
 
 ## Typographie
@@ -34,14 +34,14 @@ SF Pro sur iOS, Roboto sur Android. Pas de police téléchargée au lancement.
 
 ## Écrans
 
-- Accueil : sommaire clinique bref, actions immédiates, deux accès de suivi,
+- Accueil : sommaire clinique bref, photo embarquée d'une professionnelle de santé noire, actions immédiates, deux accès de suivi,
   puis dossiers récents. **Pas un tableau de bord administratif.**
 - Patients : recherche visible, filtres discrets, dossiers en surfaces neutres.
 - Dossier : identité lisible, historique des visites, constantes avec unités.
 - Bilans : statut textuel clair, séparation résultats disponibles/en attente.
 - Suivi : liste actionnable sans indicateurs décoratifs.
 - Formulaires : sections `ClinicalFormSection`, validations et unités.
-- Barre flottante : fond blanc, sélection vert pâle, libellés lisibles.
+- Barre flottante : fond blanc, sélection vert discret, libellés lisibles.
 
 Animation : transitions des onglets 240 ms, apparition du résumé,
 Hero de l’avatar fictif ; respecter `MediaQuery.disableAnimationsOf`.
