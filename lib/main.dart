@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'app/medisuivi_app.dart';
-import 'app/theme.dart';
+import 'app/theme_v2.dart';
 import 'core/persistence/database_initializer.dart';
 import 'core/persistence/persistence_types.dart';
 import 'core/state/demo_store.dart';
@@ -91,7 +91,9 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
       return MaterialApp(
         title: 'MediSuivi',
         debugShowCheckedModeBanner: false,
-        theme: MediTheme.light(),
+        theme: ClinicalTheme.light(),
+        darkTheme: ClinicalTheme.dark(),
+        themeMode: ThemeMode.system,
         home: const _LoadingScreen(),
       );
     }
@@ -101,7 +103,9 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
       return MaterialApp(
         title: 'MediSuivi',
         debugShowCheckedModeBanner: false,
-        theme: MediTheme.light(),
+        theme: ClinicalTheme.light(),
+        darkTheme: ClinicalTheme.dark(),
+        themeMode: ThemeMode.system,
         home: _ErrorScreen(
           message: _errorMessage ?? 'Erreur inconnue',
           onRetry: _initializeApp,
@@ -117,7 +121,9 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         child: MaterialApp(
           title: 'MediSuivi',
           debugShowCheckedModeBanner: false,
-          theme: MediTheme.light(),
+          theme: ClinicalTheme.light(),
+        darkTheme: ClinicalTheme.dark(),
+        themeMode: ThemeMode.system,
           home: const MainShell(),
         ),
       );
@@ -129,7 +135,9 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
       child: MaterialApp(
         title: 'MediSuivi',
         debugShowCheckedModeBanner: false,
-        theme: MediTheme.light(),
+        theme: ClinicalTheme.light(),
+        darkTheme: ClinicalTheme.dark(),
+        themeMode: ThemeMode.system,
         home: const MainShell(),
       ),
     );

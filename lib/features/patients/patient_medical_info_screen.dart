@@ -106,10 +106,10 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
                 label: const Text('Enregistrer les informations'),
               ),
               const SizedBox(height: 13),
-              const Text(
+              Text(
                 'Enregistrement temporaire. Ces données ne sont pas conservées après fermeture.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Palette.muted, fontSize: 12.5),
+                style: TextStyle(color: Palette.of(context).muted, fontSize: 12.5),
               ),
             ],
           ),

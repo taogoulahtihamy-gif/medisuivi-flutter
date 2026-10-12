@@ -1,72 +1,132 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-/// Palette clinique vert menthe : #62ECA7 est le fond, surfaces apaisées pour le contenu.
-/// Les anciens tokens sont conservés pour la compatibilité des écrans V0.
+import 'design_tokens.dart';
+
+/// Palette Nocturne Clinique — accès statique (valeurs claires,
+/// pour les contextes `const`) et résolution par contexte.
+///
+/// Usage constant : `Palette.muted` (toujours clair).
+/// Usage recommandé : `Palette.of(context).muted` (s'adapte au mode).
 abstract final class Palette {
-  static const canvas = Color(0xFF62ECA7);
-  static const white = Color(0xFFFFFFFF);
-  static const ink = Color(0xFF10372B);
-  static const muted = Color(0xFF365F4E);
-  static const border = Color(0xFFA0DABA);
-  static const forest = Color(0xFF124936);
-  static const teal = forest;
-  static const tealDark = Color(0xFF0A3429);
-  static const tealSoft = Color(0xFFC9F3DA);
-  static const mintFog = tealSoft;
-  static const navy = Color(0xFF103E32);
-  static const charcoal = ink;
-  static const charcoalSoft = Color(0xFF255442);
-  static const canvasEditorial = canvas;
-  static const aqua = tealSoft;
-  static const blueSoft = Color(0xFFE0F9EA);
-  static const lavenderSoft = Color(0xFFEAFBF1);
-  static const amber = Color(0xFF805F37);
-  static const amberSoft = Color(0xFFF7F4ED);
-  static const danger = Color(0xFF9C4247);
+  Palette._();
 
-  // Surfaces opalescentes et légèrement teintées : aucun panneau blanc pur.
-  static const surface = Color(0xFFEAFFF2);
-  static const raisedSurface = Color(0xFFF5FFF9);
+  // ===== ACCÈS PAR CONTEXTE (recommandé) =====
+  static PaletteData of(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
+    return brightness == Brightness.dark ? PaletteData.dark() : PaletteData.light();
+  }
 
-  // Alias transitoires (historique) : ne pas utiliser pour les nouveaux écrans.
-  static const night = navy;
-  static const laser = forest;
-  static const laserMuted = muted;
-  static const laserBorder = border;
-  static const laserVeil = tealSoft;
+  // ===== CONSTANTES CLAIRES (pour const, compatibilité) =====
+  static const Color canvas = ClinicalColors.lightBackground;
+  static const Color white = ClinicalColors.lightSurfaceElevated;
+  static const Color ink = ClinicalColors.lightInk;
+  static const Color muted = ClinicalColors.lightInkMuted;
+  static const Color border = ClinicalColors.lightBorder;
+  static const Color forest = ClinicalColors.lightBrandPrimary;
+  static const Color teal = ClinicalColors.lightBrandPrimary;
+  static const Color tealDark = ClinicalColors.lightInk;
+  static const Color tealSoft = ClinicalColors.lightBrandPrimarySoft;
+  static const Color navy = ClinicalColors.lightInk;
+  static const Color charcoal = ClinicalColors.lightInk;
+  static const Color charcoalSoft = ClinicalColors.lightInkMuted;
+  static const Color canvasEditorial = ClinicalColors.lightBackground;
+  static const Color aqua = ClinicalColors.lightBrandPrimarySoft;
+  static const Color blueSoft = ClinicalColors.lightAccentAmberSoft;
+  static const Color lavenderSoft = ClinicalColors.lightBrandPrimarySoft;
+  static const Color amber = ClinicalColors.lightAccentAmber;
+  static const Color amberSoft = ClinicalColors.lightAccentAmberSoft;
+  static const Color danger = ClinicalColors.lightCritical;
+  static const Color surface = ClinicalColors.lightSurface;
+  static const Color raisedSurface = ClinicalColors.lightSurfaceElevated;
+  static const Color night = ClinicalColors.lightInk;
+  static const Color laser = ClinicalColors.lightBrandPrimary;
+  static const Color laserMuted = ClinicalColors.lightInkMuted;
+  static const Color laserBorder = ClinicalColors.lightBorder;
+  static const Color laserVeil = ClinicalColors.lightBrandPrimarySoft;
 }
 
+/// Données de palette pour un mode donné (clair ou sombre).
+/// Conserve les noms historiques pour compatibilité des écrans.
+class PaletteData {
+  PaletteData._(this._isDark);
+
+  final bool _isDark;
+
+  factory PaletteData.light() => PaletteData._(false);
+  factory PaletteData.dark() => PaletteData._(true);
+
+  bool get isDark => _isDark;
+
+  Color get canvas => _isDark ? ClinicalColors.darkBackground : ClinicalColors.lightBackground;
+  Color get white => _isDark ? ClinicalColors.darkSurfaceElevated : ClinicalColors.lightSurfaceElevated;
+  Color get ink => _isDark ? ClinicalColors.darkInk : ClinicalColors.lightInk;
+  Color get muted => _isDark ? ClinicalColors.darkInkMuted : ClinicalColors.lightInkMuted;
+  Color get border => _isDark ? ClinicalColors.darkBorder : ClinicalColors.lightBorder;
+  Color get forest => _isDark ? ClinicalColors.darkBrandPrimary : ClinicalColors.lightBrandPrimary;
+  Color get teal => forest;
+  Color get tealDark => ink;
+  Color get tealSoft => _isDark ? ClinicalColors.darkBrandPrimarySoft : ClinicalColors.lightBrandPrimarySoft;
+  Color get navy => ink;
+  Color get charcoal => ink;
+  Color get charcoalSoft => muted;
+  Color get canvasEditorial => canvas;
+  Color get aqua => tealSoft;
+  Color get blueSoft => _isDark ? ClinicalColors.darkAccentAmberSoft : ClinicalColors.lightAccentAmberSoft;
+  Color get lavenderSoft => tealSoft;
+  Color get amber => _isDark ? ClinicalColors.darkAccentAmber : ClinicalColors.lightAccentAmber;
+  Color get amberSoft => _isDark ? ClinicalColors.darkAccentAmberSoft : ClinicalColors.lightAccentAmberSoft;
+  Color get danger => _isDark ? ClinicalColors.darkCritical : ClinicalColors.lightCritical;
+  Color get surface => _isDark ? ClinicalColors.darkSurface : ClinicalColors.lightSurface;
+  Color get raisedSurface => _isDark ? ClinicalColors.darkSurfaceElevated : ClinicalColors.lightSurfaceElevated;
+  Color get night => ink;
+  Color get laser => forest;
+  Color get laserMuted => muted;
+  Color get laserBorder => border;
+  Color get laserVeil => tealSoft;
+}
+
+/// Thème Nocturne Clinique — modes clair et sombre.
+/// Utilise la palette résolue pour garantir la cohérence
+/// entre les composants historiques et les nouveaux.
 abstract final class MediTheme {
-  static ThemeData light() {
-    const scheme = ColorScheme(
-      brightness: Brightness.light,
-      primary: Palette.forest,
-      onPrimary: Palette.white,
-      primaryContainer: Palette.tealSoft,
-      onPrimaryContainer: Palette.ink,
-      secondary: Palette.navy,
-      onSecondary: Palette.white,
-      secondaryContainer: Palette.tealSoft,
-      onSecondaryContainer: Palette.ink,
-      tertiary: Palette.forest,
-      onTertiary: Palette.white,
-      error: Palette.danger,
-      onError: Palette.white,
-      surface: Palette.surface,
-      onSurface: Palette.ink,
-      onSurfaceVariant: Palette.muted,
-      outline: Palette.border,
-      shadow: Palette.ink,
-      inverseSurface: Palette.ink,
-      onInverseSurface: Palette.white,
+  static ThemeData light() => _build(PaletteData.light());
+  static ThemeData dark() => _build(PaletteData.dark());
+
+  static ThemeData _build(PaletteData p) {
+    final scheme = ColorScheme(
+      brightness: p.isDark ? Brightness.dark : Brightness.light,
+      primary: p.forest,
+      onPrimary: p.white,
+      primaryContainer: p.tealSoft,
+      onPrimaryContainer: p.ink,
+      secondary: p.navy,
+      onSecondary: p.white,
+      secondaryContainer: p.tealSoft,
+      onSecondaryContainer: p.ink,
+      tertiary: p.forest,
+      onTertiary: p.white,
+      error: p.danger,
+      onError: p.white,
+      errorContainer: p.amberSoft,
+      onErrorContainer: p.ink,
+      surface: p.surface,
+      onSurface: p.ink,
+      surfaceVariant: p.tealSoft,
+      onSurfaceVariant: p.muted,
+      outline: p.border,
+      outlineVariant: p.border,
+      shadow: p.ink,
+      inverseSurface: p.ink,
+      onInverseSurface: p.white,
     );
+
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      brightness: Brightness.light,
+      brightness: p.isDark ? Brightness.dark : Brightness.light,
     );
-    // Polices système : SF Pro sur iOS, Roboto sur Android.
+
     final text = const TextTheme(
       headlineLarge: TextStyle(fontSize: 27, height: 1.13,
         fontWeight: FontWeight.w700, letterSpacing: -0.8),
@@ -82,56 +142,56 @@ abstract final class MediTheme {
       bodySmall: TextStyle(fontSize: 13, height: 1.42),
       labelLarge: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
       labelMedium: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
-    ).apply(bodyColor: Palette.ink, displayColor: Palette.ink);
+    ).apply(bodyColor: p.ink, displayColor: p.ink);
 
     return base.copyWith(
-      scaffoldBackgroundColor: Palette.canvas,
+      scaffoldBackgroundColor: p.canvas,
       colorScheme: scheme,
       textTheme: text,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Palette.canvas,
-        foregroundColor: Palette.ink,
+      appBarTheme: AppBarTheme(
+        backgroundColor: p.canvas,
+        foregroundColor: p.ink,
         centerTitle: false,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: TextStyle(color: Palette.ink,
+        titleTextStyle: TextStyle(color: p.ink,
           fontSize: 19, fontWeight: FontWeight.w700),
       ),
       cardTheme: CardThemeData(
-        color: Palette.surface,
+        color: p.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(19),
-          side: const BorderSide(color: Palette.border),
+          side: BorderSide(color: p.border),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Palette.raisedSurface,
+        fillColor: p.raisedSurface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16, vertical: 16),
-        hintStyle: const TextStyle(color: Palette.muted, fontSize: 13),
-        labelStyle: const TextStyle(color: Palette.muted, fontSize: 13),
-        prefixIconColor: Palette.muted,
+        hintStyle: TextStyle(color: p.muted, fontSize: 13),
+        labelStyle: TextStyle(color: p.muted, fontSize: 13),
+        prefixIconColor: p.muted,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Palette.border),
+          borderSide: BorderSide(color: p.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Palette.border),
+          borderSide: BorderSide(color: p.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Palette.forest, width: 1.5),
+          borderSide: BorderSide(color: p.forest, width: 1.5),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Palette.forest,
-          foregroundColor: Palette.white,
+          backgroundColor: p.forest,
+          foregroundColor: p.white,
           elevation: 0,
           minimumSize: const Size(0, 50),
           shape: RoundedRectangleBorder(
@@ -142,8 +202,8 @@ abstract final class MediTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: Palette.forest,
-          foregroundColor: Palette.white,
+          backgroundColor: p.forest,
+          foregroundColor: p.white,
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15)),
@@ -151,8 +211,8 @@ abstract final class MediTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: Palette.forest,
-          side: const BorderSide(color: Palette.border),
+          foregroundColor: p.forest,
+          side: BorderSide(color: p.border),
           minimumSize: const Size(0, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15)),
@@ -160,37 +220,37 @@ abstract final class MediTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: Palette.forest,
+          foregroundColor: p.forest,
           textStyle: const TextStyle(fontWeight: FontWeight.w600)),
       ),
-      iconTheme: const IconThemeData(color: Palette.ink),
-      dividerColor: Palette.border,
+      iconTheme: IconThemeData(color: p.ink),
+      dividerColor: p.border,
       chipTheme: ChipThemeData(
-        backgroundColor: Palette.surface,
-        selectedColor: Palette.tealSoft,
-        side: const BorderSide(color: Palette.border),
+        backgroundColor: p.surface,
+        selectedColor: p.tealSoft,
+        side: BorderSide(color: p.border),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12)),
-        labelStyle: const TextStyle(color: Palette.ink,
+        labelStyle: TextStyle(color: p.ink,
           fontSize: 13, fontWeight: FontWeight.w600),
-        checkmarkColor: Palette.forest,
+        checkmarkColor: p.forest,
         showCheckmark: false,
       ),
-      snackBarTheme: const SnackBarThemeData(
-        backgroundColor: Palette.navy,
-        contentTextStyle: TextStyle(color: Palette.white),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: p.navy,
+        contentTextStyle: TextStyle(color: p.white),
       ),
-      textSelectionTheme: const TextSelectionThemeData(
-        cursorColor: Palette.forest,
-        selectionColor: Palette.tealSoft,
-        selectionHandleColor: Palette.forest,
+      textSelectionTheme: TextSelectionThemeData(
+        cursorColor: p.forest,
+        selectionColor: p.tealSoft,
+        selectionHandleColor: p.forest,
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: Palette.surface,
-        modalBackgroundColor: Palette.surface,
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: p.surface,
+        modalBackgroundColor: p.surface,
       ),
-      cupertinoOverrideTheme: const CupertinoThemeData(
-        primaryColor: Palette.forest),
+      cupertinoOverrideTheme: CupertinoThemeData(
+        primaryColor: p.forest),
     );
   }
 }

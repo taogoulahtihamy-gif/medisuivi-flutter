@@ -37,22 +37,22 @@ class ExamDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('EXAMEN MÉDICAL',
+                  Text('EXAMEN MÉDICAL',
                     style: TextStyle(
-                      color: Palette.forest,
+                      color: Palette.of(context).forest,
                       letterSpacing: .55,
                       fontSize: 13,
                       fontWeight: FontWeight.w700)),
                   const SizedBox(height: 10),
-                  Text(exam.title, style: const TextStyle(
-                    color: Palette.ink, fontSize: 22, height: 1.25,
+                  Text(exam.title, style: TextStyle(
+                    color: Palette.of(context).ink, fontSize: 22, height: 1.25,
                     fontWeight: FontWeight.w700, letterSpacing: -.55)),
                   const SizedBox(height: 17),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 13, vertical: 12),
                     decoration: BoxDecoration(
-                      color: completed ? Palette.tealSoft : Palette.blueSoft,
+                      color: completed ? Palette.of(context).tealSoft : Palette.of(context).blueSoft,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(children: [
@@ -60,12 +60,12 @@ class ExamDetailScreen extends StatelessWidget {
                         completed
                           ? Icons.check_circle_outline_rounded
                           : Icons.hourglass_top_rounded,
-                        color: Palette.forest, size: 21),
+                        color: Palette.of(context).forest, size: 21),
                       const SizedBox(width: 10),
                       Expanded(child: Text(
                         completed ? 'Résultat disponible' : 'Résultat en attente',
-                        style: const TextStyle(
-                          fontSize: 15.5, color: Palette.ink,
+                        style: TextStyle(
+                          fontSize: 15.5, color: Palette.of(context).ink,
                           fontWeight: FontWeight.w600))),
                     ]),
                   ),
@@ -108,38 +108,38 @@ class ExamDetailScreen extends StatelessWidget {
                     child: completed
                       ? Column(crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(children: [
+                            Row(children: [
                               Icon(Icons.description_outlined,
-                                color: Palette.forest, size: 21),
+                                color: Palette.of(context).forest, size: 21),
                               SizedBox(width: 9),
                               Expanded(child: Text('Résultat enregistré',
                                 style: TextStyle(
-                                  fontSize: 16, color: Palette.ink,
+                                  fontSize: 16, color: Palette.of(context).ink,
                                   fontWeight: FontWeight.w700))),
                             ]),
                             const Divider(height: 29),
                             SelectableText(
                               exam.result?.trim().isNotEmpty == true
                                 ? exam.result! : 'Aucun texte de résultat.',
-                              style: const TextStyle(
-                                color: Palette.ink,
+                              style: TextStyle(
+                                color: Palette.of(context).ink,
                                 fontSize: 16, height: 1.6)),
                           ])
-                      : const Column(
+                      : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Icon(Icons.pending_actions_outlined,
-                              size: 25, color: Palette.forest),
+                              size: 25, color: Palette.of(context).forest),
                             SizedBox(height: 10),
                             Text('Aucun résultat enregistré pour le moment.',
                               style: TextStyle(
                                 fontSize: 15, height: 1.5,
-                                color: Palette.ink)),
+                                color: Palette.of(context).ink)),
                             SizedBox(height: 7),
                             Text('Le compte rendu apparaîtra ici après sa saisie.',
                               style: TextStyle(
                                 fontSize: 14, height: 1.5,
-                                color: Palette.muted)),
+                                color: Palette.of(context).muted)),
                           ]),
                   ),
                   if (!completed) ...[
@@ -158,12 +158,12 @@ class ExamDetailScreen extends StatelessWidget {
                       )),
                   ],
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Données temporaires : aucune sauvegarde durable '
                     'n’est encore configurée.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Palette.muted, fontSize: 13, height: 1.4),
+                      color: Palette.of(context).muted, fontSize: 13, height: 1.4),
                   ),
                 ],
               ),
@@ -183,12 +183,12 @@ class _DetailField extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(
-        fontSize: 13.5, height: 1.35, color: Palette.muted)),
+      Text(label, style: TextStyle(
+        fontSize: 13.5, height: 1.35, color: Palette.of(context).muted)),
       const SizedBox(height: 6),
-      Text(value, style: const TextStyle(
+      Text(value, style: TextStyle(
         fontSize: 16, height: 1.4,
-        fontWeight: FontWeight.w600, color: Palette.ink)),
+        fontWeight: FontWeight.w600, color: Palette.of(context).ink)),
     ],
   );
 }

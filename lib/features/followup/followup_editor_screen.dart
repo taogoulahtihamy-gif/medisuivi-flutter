@@ -198,11 +198,11 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
                     ? 'Programmer le suivi' : 'Enregistrer la modification'),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Les suivis restent temporaires et ne déclenchent pas '
                   'de notification automatique.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Palette.muted, fontSize: 12.5),
+                  style: TextStyle(color: Palette.of(context).muted, fontSize: 12.5),
                 ),
               ],
             ),

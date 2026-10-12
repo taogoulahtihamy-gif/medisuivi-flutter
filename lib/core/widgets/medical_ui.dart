@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
-import '../models/medical_models.dart';
+import '../../core/models/medical_models.dart';
 
 String shortDate(DateTime d) {
   const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
+
+/// Résout la palette Nocturne Clinique depuis le contexte.
+PaletteData _p(BuildContext context) => Palette.of(context);
 
 class ScreenWidth extends StatelessWidget {
   const ScreenWidth({super.key, required this.child, this.padding = const EdgeInsets.fromLTRB(20, 22, 20, 36)});
@@ -24,20 +27,23 @@ class SurfaceCard extends StatelessWidget {
   final VoidCallback? onTap;
   final EdgeInsets padding;
   @override
-  Widget build(BuildContext context) => Material(
-    color: Palette.surface,
-    elevation: 0,
-    shadowColor: Palette.night,
-    shape: RoundedRectangleBorder(
-      side: const BorderSide(color: Palette.border),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: InkWell(
-      borderRadius: BorderRadius.circular(19),
-      onTap: onTap,
-      child: Padding(padding: padding, child: child),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return Material(
+      color: p.surface,
+      elevation: 0,
+      shadowColor: p.night,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: p.border),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(19),
+        onTap: onTap,
+        child: Padding(padding: padding, child: child),
+      ),
+    );
+  }
 }
 
 class SectionHeading extends StatelessWidget {
@@ -46,10 +52,13 @@ class SectionHeading extends StatelessWidget {
   final String? trailing;
   final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context) => Row(children: [
-    Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.35))),
-    if (trailing != null) TextButton(onPressed: onTap, child: Text(trailing!)),
-  ]);
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return Row(children: [
+      Expanded(child: Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.35, color: p.ink))),
+      if (trailing != null) TextButton(onPressed: onTap, child: Text(trailing!)),
+    ]);
+  }
 }
 
 class PatientAvatar extends StatelessWidget {
@@ -59,10 +68,11 @@ class PatientAvatar extends StatelessWidget {
   final bool hero;
   @override
   Widget build(BuildContext context) {
+    final p = _p(context);
     final box = Container(
       width: size, height: size, alignment: Alignment.center,
-      decoration: BoxDecoration(color: Palette.tealSoft, borderRadius: BorderRadius.circular(size * 0.42)),
-      child: Text(patient.initials, style: TextStyle(color: Palette.tealDark, fontWeight: FontWeight.w700, fontSize: size * .30)),
+      decoration: BoxDecoration(color: p.tealSoft, borderRadius: BorderRadius.circular(size * 0.42)),
+      child: Text(patient.initials, style: TextStyle(color: p.tealDark, fontWeight: FontWeight.w700, fontSize: size * .30)),
     );
     return hero ? Hero(tag: 'patient-${patient.id}', child: box) : box;
   }
@@ -74,25 +84,28 @@ class PatientRow extends StatelessWidget {
   final VoidCallback onTap;
   final String? subtitle;
   @override
-  Widget build(BuildContext context) => SurfaceCard(
-    onTap: onTap,
-    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-    child: Row(children: [
-      PatientAvatar(patient: patient, hero: true),
-      const SizedBox(width: 14),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(patient.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 4),
-        Text(subtitle ?? '${patient.id} · ${patient.age} ans',
-          maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 14, color: Palette.muted)),
-      ])),
-      if (patient.followUp) const Icon(Icons.event_repeat_rounded, size: 19, color: Palette.teal),
-      const SizedBox(width: 4),
-      const Icon(Icons.chevron_right_rounded, color: Palette.muted),
-    ]),
-  );
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return SurfaceCard(
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+      child: Row(children: [
+        PatientAvatar(patient: patient, hero: true),
+        const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(patient.name, maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: p.ink)),
+          const SizedBox(height: 4),
+          Text(subtitle ?? '${patient.id} · ${patient.age} ans',
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 14, color: p.muted)),
+        ])),
+        if (patient.followUp) Icon(Icons.event_repeat_rounded, size: 19, color: p.teal),
+        const SizedBox(width: 4),
+        Icon(Icons.chevron_right_rounded, color: p.muted),
+      ]),
+    );
+  }
 }
 
 class PageTitle extends StatelessWidget {
@@ -101,27 +114,36 @@ class PageTitle extends StatelessWidget {
   final String subtitle;
   final Widget? action;
   @override
-  Widget build(BuildContext context) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontSize: 23, height: 1.18, letterSpacing: -0.75, fontWeight: FontWeight.w700)),
-      const SizedBox(height: 7),
-      Text(subtitle, style: const TextStyle(fontSize: 14, color: Palette.muted)),
-    ])),
-    if (action != null) action!,
-  ]);
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title, style: TextStyle(fontSize: 23, height: 1.18, letterSpacing: -0.75, fontWeight: FontWeight.w700, color: p.ink)),
+        const SizedBox(height: 7),
+        Text(subtitle, style: TextStyle(fontSize: 14, color: p.muted)),
+      ])),
+      if (action != null) action!,
+    ]);
+  }
 }
 
 class SoftIcon extends StatelessWidget {
-  const SoftIcon({super.key, required this.icon, this.color = Palette.teal, this.background = Palette.tealSoft});
+  const SoftIcon({super.key, required this.icon, this.color, this.background});
   final IconData icon;
-  final Color color;
-  final Color background;
+  final Color? color;
+  final Color? background;
   @override
-  Widget build(BuildContext context) => Container(
-    width: 44, height: 44,
-    decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(14)),
-    child: Icon(icon, color: color, size: 21),
-  );
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return Container(
+      width: 44, height: 44,
+      decoration: BoxDecoration(
+        color: background ?? p.tealSoft,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(icon, color: color ?? p.teal, size: 21),
+    );
+  }
 }
 
 class EmptyResults extends StatelessWidget {
@@ -130,19 +152,21 @@ class EmptyResults extends StatelessWidget {
   final String detail;
   final IconData icon;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 18),
-    child: Column(children: [
-      Icon(icon, color: Palette.muted, size: 44),
-      const SizedBox(height: 14),
-      Text(title, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-      const SizedBox(height: 8),
-      Text(detail, textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14, color: Palette.muted)),
-    ]),
-  );
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 18),
+      child: Column(children: [
+        Icon(icon, color: p.muted, size: 44),
+        const SizedBox(height: 14),
+        Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: p.ink)),
+        const SizedBox(height: 8),
+        Text(detail, textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 14, color: p.muted)),
+      ]),
+    );
+  }
 }
-
 
 /// One gentle entrance; disabled when the user requests reduced motion.
 class EntranceReveal extends StatelessWidget {
@@ -183,45 +207,48 @@ class ClinicalFormSection extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(17),
-    decoration: BoxDecoration(
-      color: Palette.surface,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Palette.border),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(children: [
-          Container(
-            width: 40, height: 40,
-            decoration: BoxDecoration(
-              color: Palette.tealSoft,
-              borderRadius: BorderRadius.circular(13),
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(17),
+      decoration: BoxDecoration(
+        color: p.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: p.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: p.tealSoft,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Icon(icon, size: 21, color: p.forest),
             ),
-            child: Icon(icon, size: 21, color: Palette.forest),
-          ),
-          const SizedBox(width: 11),
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(
-                fontSize: 15.5, fontWeight: FontWeight.w600,
-                color: Palette.forest,
-              )),
-              if (subtitle != null) ...[
-                const SizedBox(height: 3),
-                Text(subtitle!, style: const TextStyle(
-                  fontSize: 13.5, height: 1.4, color: Palette.muted)),
+            const SizedBox(width: 11),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(
+                  fontSize: 15.5, fontWeight: FontWeight.w600,
+                  color: p.forest,
+                )),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 3),
+                  Text(subtitle!, style: TextStyle(
+                    fontSize: 13.5, height: 1.4, color: p.muted)),
+                ],
               ],
-            ],
-          )),
-        ]),
-        const SizedBox(height: 19),
-        child,
-      ],
-    ),
-  );
+            )),
+          ]),
+          const SizedBox(height: 19),
+          child,
+        ],
+      ),
+    );
+  }
 }

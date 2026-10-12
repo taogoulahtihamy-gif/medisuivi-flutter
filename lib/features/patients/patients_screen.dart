@@ -33,23 +33,23 @@ class _PatientsScreenState extends State<PatientsScreen> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const SizedBox(height: 2),
             Row(children: [
-              const Expanded(child: Text('Mes patients', style: TextStyle(
+              Expanded(child: Text('Mes patients', style: TextStyle(
                 fontSize: 23, letterSpacing: -.65,
-                fontWeight: FontWeight.w700, color: Palette.ink))),
+                fontWeight: FontWeight.w700, color: Palette.of(context).ink))),
               IconButton.filled(
                 tooltip: 'Nouveau patient',
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
                   builder: (_) => const NewPatientScreen())),
                 style: IconButton.styleFrom(
-                  backgroundColor: Palette.forest,
-                  foregroundColor: Palette.white,
+                  backgroundColor: Palette.of(context).forest,
+                  foregroundColor: Palette.of(context).white,
                   minimumSize: const Size(48, 48)),
                 icon: const Icon(Icons.add_rounded),
               ),
             ]),
             const SizedBox(height: 8),
             Text('${all.length} dossiers enregistrés',
-              style: const TextStyle(color: Palette.muted, fontSize: 14)),
+              style: TextStyle(color: Palette.of(context).muted, fontSize: 14)),
             const SizedBox(height: 23),
             TextField(
               onChanged: (text) => setState(() => query = text),
@@ -76,8 +76,8 @@ class _PatientsScreenState extends State<PatientsScreen> {
                     fontSize: 18, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 5),
                   Text('${filtered.length} résultats',
-                    style: const TextStyle(
-                      color: Palette.muted, fontSize: 14)),
+                    style: TextStyle(
+                      color: Palette.of(context).muted, fontSize: 14)),
                 ],
               )),
               SvgPicture.asset(
@@ -119,7 +119,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: selected ? Palette.tealSoft : Palette.surface,
+    color: selected ? Palette.of(context).tealSoft : Palette.of(context).surface,
     borderRadius: BorderRadius.circular(14),
     child: InkWell(
       onTap: onTap,
@@ -128,7 +128,7 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
         child: Text(label, style: TextStyle(
           fontSize: 14, fontWeight: FontWeight.w600,
-          color: selected ? Palette.forest : Palette.muted)),
+          color: selected ? Palette.of(context).forest : Palette.of(context).muted)),
       ),
     ),
   );

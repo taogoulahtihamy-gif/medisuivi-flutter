@@ -32,39 +32,39 @@ class _ExamsScreenState extends State<ExamsScreen> {
         ScreenWidth(
           padding: const EdgeInsets.fromLTRB(20, 23, 20, 104),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('EXAMENS', style: TextStyle(
+            Text('EXAMENS', style: TextStyle(
               fontSize: 12, letterSpacing: .5,
-              fontWeight: FontWeight.w700, color: Palette.forest)),
+              fontWeight: FontWeight.w700, color: Palette.of(context).forest)),
             const SizedBox(height: 8),
-            const Text('Bilans médicaux', style: TextStyle(
+            Text('Bilans médicaux', style: TextStyle(
               fontSize: 23, letterSpacing: -.7,
-              fontWeight: FontWeight.w700, color: Palette.ink)),
+              fontWeight: FontWeight.w700, color: Palette.of(context).ink)),
             const SizedBox(height: 7),
-            const Text('Demandes et résultats par patient.',
-              style: TextStyle(fontSize: 14, color: Palette.muted)),
+            Text('Demandes et résultats par patient.',
+              style: TextStyle(fontSize: 14, color: Palette.of(context).muted)),
             const SizedBox(height: 22),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Palette.surface,
+                color: Palette.of(context).surface,
                 borderRadius: BorderRadius.circular(21),
-                border: Border.all(color: Palette.border),
+                border: Border.all(color: Palette.of(context).border),
               ),
               child: Row(children: [
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('EN ATTENTE DE RÉSULTAT', style: TextStyle(
+                    Text('EN ATTENTE DE RÉSULTAT', style: TextStyle(
                       fontSize: 12, letterSpacing: .5,
-                      color: Palette.muted, fontWeight: FontWeight.w600)),
+                      color: Palette.of(context).muted, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 10),
-                    Text('$pending', style: const TextStyle(
+                    Text('$pending', style: TextStyle(
                       fontSize: 34, height: 1,
                       letterSpacing: -1.7, fontWeight: FontWeight.w700,
-                      color: Palette.ink)),
+                      color: Palette.of(context).ink)),
                     const SizedBox(height: 5),
-                    const Text('examens à suivre', style: TextStyle(
-                      fontSize: 14, color: Palette.ink)),
+                    Text('examens à suivre', style: TextStyle(
+                      fontSize: 14, color: Palette.of(context).ink)),
                   ],
                 )),
                 SvgPicture.asset(
@@ -92,7 +92,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
               const Expanded(child: Text('Dossiers', style: TextStyle(
                 fontSize: 18, fontWeight: FontWeight.w700))),
               Text('${exams.length} examens',
-                style: const TextStyle(fontSize: 14, height: 1.4, color: Palette.muted)),
+                style: TextStyle(fontSize: 14, height: 1.4, color: Palette.of(context).muted)),
             ]),
             const SizedBox(height: 13),
             if (exams.isEmpty)
@@ -111,9 +111,9 @@ class _ExamsScreenState extends State<ExamsScreen> {
                     icon: exam.status == ExamStatus.complete
                       ? Icons.description_outlined : Icons.science_outlined,
                     color: exam.status == ExamStatus.complete
-                      ? Palette.forest : Palette.forest,
+                      ? Palette.of(context).forest : Palette.of(context).forest,
                     background: exam.status == ExamStatus.complete
-                      ? Palette.tealSoft : Palette.blueSoft),
+                      ? Palette.of(context).tealSoft : Palette.of(context).blueSoft),
                   const SizedBox(width: 13),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,19 +122,19 @@ class _ExamsScreenState extends State<ExamsScreen> {
                         fontSize: 16, height: 1.25, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 5),
                       Text(store.patientById(exam.patientId)?.name ??
-                        'Patient', style: const TextStyle(
-                          fontSize: 13, color: Palette.muted)),
+                        'Patient', style: TextStyle(
+                          fontSize: 13, color: Palette.of(context).muted)),
                       const SizedBox(height: 7),
                       Text(exam.status == ExamStatus.complete
                         ? 'Résultat disponible' : 'En attente de résultat',
                         style: TextStyle(fontSize: 14, height: 1.3,
                           fontWeight: FontWeight.w600,
                           color: exam.status == ExamStatus.complete
-                            ? Palette.forest : Palette.ink)),
+                            ? Palette.of(context).forest : Palette.of(context).ink)),
                     ],
                   )),
-                  const Icon(Icons.chevron_right_rounded,
-                    color: Palette.forest, size: 24),
+                  Icon(Icons.chevron_right_rounded,
+                    color: Palette.of(context).forest, size: 24),
                 ]),
               ),
               const SizedBox(height: 10),

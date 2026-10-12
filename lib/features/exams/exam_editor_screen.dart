@@ -124,9 +124,9 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
                   : 'Ajouter la prescription'),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Saisie temporaire : ces informations ne sont pas conservées après fermeture.',
-                style: TextStyle(color: Palette.muted, fontSize: 13.5, height: 1.4),
+                style: TextStyle(color: Palette.of(context).muted, fontSize: 13.5, height: 1.4),
                 textAlign: TextAlign.center,
               ),
             ],

@@ -7,7 +7,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Paramètres')),
-    body: SafeArea(child: ListView(children: [const ScreenWidth(child: Column(
+    body: SafeArea(child: ListView(children: [ScreenWidth(child: Column(
       crossAxisAlignment: CrossAxisAlignment.start, children: [
         PageTitle(title: 'Mon espace', subtitle: 'État et paramètres de l’application'),
         SizedBox(height: 21),
@@ -24,7 +24,7 @@ class SettingsScreen extends StatelessWidget {
           'Interface adaptative Flutter avec navigation propre à chaque plateforme.'),
         SizedBox(height: 23),
         Text('MediSuivi · Version de développement',
-          style: TextStyle(color: Palette.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+          style: TextStyle(color: Palette.of(context).muted, fontSize: 12, fontWeight: FontWeight.w600)),
       ]))])),
   );
 }
@@ -42,7 +42,7 @@ class _Item extends StatelessWidget {
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
         const SizedBox(height: 6),
-        Text(subtitle, style: const TextStyle(fontSize: 12, color: Palette.muted, height: 1.4)),
+        Text(subtitle, style: TextStyle(fontSize: 12, color: Palette.of(context).muted, height: 1.4)),
       ])),
     ],
   ));

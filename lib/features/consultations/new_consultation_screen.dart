@@ -92,9 +92,9 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('CONSULTATION CLINIQUE',
+            Text('CONSULTATION CLINIQUE',
               style: TextStyle(
-                color: Palette.laserMuted,
+                color: Palette.of(context).laserMuted,
                 letterSpacing: 1.2,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -163,11 +163,11 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               label: const Text('Enregistrer la consultation'),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Aucune donnée n’est envoyée à un serveur ou conservée après fermeture.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 13, color: Palette.laserMuted),
+                fontSize: 13, color: Palette.of(context).laserMuted),
             ),
           ],
         ),

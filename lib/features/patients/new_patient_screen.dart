@@ -52,10 +52,10 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('DOSSIER PATIENT', style: TextStyle(
+                Text('DOSSIER PATIENT', style: TextStyle(
                   fontSize: 12,
                   letterSpacing: 1.3,
-                  color: Palette.laserMuted,
+                  color: Palette.of(context).laserMuted,
                   fontWeight: FontWeight.w700,
                 )),
                 const SizedBox(height: 8),
@@ -143,10 +143,10 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                   label: const Text('Ajouter le patient'),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Les saisies en V0 ne sont pas sauvegardées après la fermeture.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 13, color: Palette.laserMuted),
+                  style: TextStyle(fontSize: 13, color: Palette.of(context).laserMuted),
                 ),
               ],
             ),

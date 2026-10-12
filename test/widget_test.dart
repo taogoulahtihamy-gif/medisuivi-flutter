@@ -12,10 +12,11 @@ import 'package:medisuivi/features/consultations/new_consultation_screen.dart';
 
 void main() {
   test('Palette clinique et polices lisibles', () {
-    expect(Palette.canvas, const Color(0xFF62ECA7));
-    expect(Palette.forest, const Color(0xFF124936));
-    expect(Palette.ink, const Color(0xFF10372B));
+    expect(Palette.canvas, const Color(0xFFF2EFEA));
+    expect(Palette.forest, const Color(0xFF2D3A35));
+    expect(Palette.ink, const Color(0xFF1C1A18));
     expect(MediTheme.light().brightness, Brightness.light);
+    expect(MediTheme.dark().brightness, Brightness.dark);
     expect(MediTheme.light().textTheme.bodyMedium!.fontSize, 13.5);
   });
 
@@ -41,7 +42,7 @@ void main() {
     await tester.pumpWidget(const MediSuiviApp());
     expect(find.text('MediSuivi'), findsOneWidget);
     expect(find.textContaining('Démonstration'), findsNothing);
-    expect(find.text('Suivi des patients'), findsOneWidget);
+    expect(find.text('Vos dossiers'), findsOneWidget);
     expect(find.text('À consulter'), findsOneWidget);
   });
 
@@ -65,7 +66,7 @@ void main() {
     await tester.pumpWidget(const MediSuiviApp());
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.text('Suivi des patients'), findsOneWidget);
+    expect(find.text('Vos dossiers'), findsOneWidget);
   });
 
   testWidgets('Illustrations médicales distinctes et embarquées', (tester) async {

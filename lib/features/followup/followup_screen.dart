@@ -69,15 +69,15 @@ class _FollowupScreenState extends State<FollowupScreen> {
         children: [
           const SizedBox(height: 24),
           Row(children: [
-            Expanded(child: Text(title, style: const TextStyle(
-              fontSize: 18, color: Palette.ink, fontWeight: FontWeight.w700))),
-            Text('${plans.length}', style: const TextStyle(
-              fontSize: 14, color: Palette.muted)),
+            Expanded(child: Text(title, style: TextStyle(
+              fontSize: 18, color: Palette.of(context).ink, fontWeight: FontWeight.w700))),
+            Text('${plans.length}', style: TextStyle(
+              fontSize: 14, color: Palette.of(context).muted)),
           ]),
           if (subtitle != null) ...[
             const SizedBox(height: 5),
-            Text(subtitle, style: const TextStyle(
-              fontSize: 14, color: Palette.muted)),
+            Text(subtitle, style: TextStyle(
+              fontSize: 14, color: Palette.of(context).muted)),
           ],
           const SizedBox(height: 11),
           for (final plan in plans) ...[
@@ -106,19 +106,19 @@ class _FollowupScreenState extends State<FollowupScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Expanded(child: Column(
+                Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('CONTINUITÉ DES SOINS', style: TextStyle(
                       fontSize: 13, letterSpacing: .5,
-                      color: Palette.forest, fontWeight: FontWeight.w700)),
+                      color: Palette.of(context).forest, fontWeight: FontWeight.w700)),
                     SizedBox(height: 9),
                     Text('Suivi médical', style: TextStyle(
                       fontSize: 23, letterSpacing: -.7,
-                      color: Palette.ink, fontWeight: FontWeight.w700)),
+                      color: Palette.of(context).ink, fontWeight: FontWeight.w700)),
                     SizedBox(height: 6),
                     Text('Rendez-vous et prochaines visites.',
-                      style: TextStyle(fontSize: 14, color: Palette.muted)),
+                      style: TextStyle(fontSize: 14, color: Palette.of(context).muted)),
                   ],
                 )),
                 const SizedBox(width: 8),
@@ -132,26 +132,26 @@ class _FollowupScreenState extends State<FollowupScreen> {
               Container(
                 padding: const EdgeInsets.all(17),
                 decoration: BoxDecoration(
-                  color: Palette.surface,
-                  border: Border.all(color: Palette.border),
+                  color: Palette.of(context).surface,
+                  border: Border.all(color: Palette.of(context).border),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(children: [
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('SUIVIS À TRAITER', style: TextStyle(
-                        fontSize: 13.5, color: Palette.muted,
+                      Text('SUIVIS À TRAITER', style: TextStyle(
+                        fontSize: 13.5, color: Palette.of(context).muted,
                         fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
                       Text('${overdue.length + today.length}',
-                        style: const TextStyle(
-                          fontSize: 34, color: Palette.ink,
+                        style: TextStyle(
+                          fontSize: 34, color: Palette.of(context).ink,
                           fontWeight: FontWeight.w700, height: 1)),
                       const SizedBox(height: 7),
                       Text('${overdue.length} en retard · ${today.length} aujourd’hui',
-                        style: const TextStyle(
-                          fontSize: 14, color: Palette.muted)),
+                        style: TextStyle(
+                          fontSize: 14, color: Palette.of(context).muted)),
                     ],
                   )),
                   SvgPicture.asset(
@@ -186,8 +186,8 @@ class _FollowupScreenState extends State<FollowupScreen> {
                 const SizedBox(height: 24),
                 const SectionHeading(title: 'À programmer'),
                 const SizedBox(height: 7),
-                const Text('Suivis signalés sans date précise.',
-                  style: TextStyle(fontSize: 13, color: Palette.muted)),
+                Text('Suivis signalés sans date précise.',
+                  style: TextStyle(fontSize: 13, color: Palette.of(context).muted)),
                 const SizedBox(height: 11),
                 for (final patient in noDate) ...[
                   SurfaceCard(
@@ -202,8 +202,8 @@ class _FollowupScreenState extends State<FollowupScreen> {
                       IconButton(
                         tooltip: 'Choisir une date',
                         onPressed: () => openEditor(patientId: patient.id),
-                        icon: const Icon(Icons.event_available_outlined,
-                          color: Palette.forest),
+                        icon: Icon(Icons.event_available_outlined,
+                          color: Palette.of(context).forest),
                       ),
                     ]),
                   ),
@@ -222,8 +222,8 @@ class _FollowupScreenState extends State<FollowupScreen> {
               ),
               if (showHistory) ...[
                 if (history.isEmpty)
-                  const Text('Aucun suivi clôturé.',
-                    style: TextStyle(color: Palette.muted, fontSize: 14, height: 1.4)),
+                  Text('Aucun suivi clôturé.',
+                    style: TextStyle(color: Palette.of(context).muted, fontSize: 14, height: 1.4)),
                 group('Suivis terminés ou annulés', history),
               ],
             ],
@@ -242,14 +242,14 @@ class _InfoStrip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
     decoration: BoxDecoration(
-      color: Palette.tealSoft,
+      color: Palette.of(context).tealSoft,
       borderRadius: BorderRadius.circular(14),
     ),
     child: Row(children: [
-      Icon(icon, size: 20, color: Palette.forest),
+      Icon(icon, size: 20, color: Palette.of(context).forest),
       const SizedBox(width: 10),
-      Expanded(child: Text(text, style: const TextStyle(
-        fontSize: 14, color: Palette.ink, height: 1.3))),
+      Expanded(child: Text(text, style: TextStyle(
+        fontSize: 14, color: Palette.of(context).ink, height: 1.3))),
     ]),
   );
 }
@@ -284,12 +284,12 @@ class _FollowUpCard extends StatelessWidget {
       FollowUpStatus.cancelled => 'Annulé',
     };
     return Material(
-      color: Palette.surface,
+      color: Palette.of(context).surface,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.fromLTRB(15, 15, 12, 15),
         decoration: BoxDecoration(
-          border: Border.all(color: Palette.border),
+          border: Border.all(color: Palette.of(context).border),
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
@@ -312,8 +312,8 @@ class _FollowUpCard extends StatelessWidget {
                         fontSize: 16, height: 1.3, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     Text('$dateLabel · $timeLabel',
-                      style: const TextStyle(
-                        fontSize: 13, color: Palette.muted)),
+                      style: TextStyle(
+                        fontSize: 13, color: Palette.of(context).muted)),
                   ],
                 )),
                 if (!isHistory)
@@ -333,24 +333,24 @@ class _FollowUpCard extends StatelessWidget {
                         child: Text('Annuler le rendez-vous')),
                     ],
                   )
-                else const Icon(Icons.check_circle_outline_rounded,
-                  color: Palette.muted, size: 20),
+                else Icon(Icons.check_circle_outline_rounded,
+                  color: Palette.of(context).muted, size: 20),
               ]),
             ),
             const SizedBox(height: 11),
-            Text(plan.reason, style: const TextStyle(
-              color: Palette.ink, fontSize: 15.5, height: 1.4,
+            Text(plan.reason, style: TextStyle(
+              color: Palette.of(context).ink, fontSize: 15.5, height: 1.4,
               fontWeight: FontWeight.w600)),
             if (plan.notes.isNotEmpty) ...[
               const SizedBox(height: 5),
               Text(plan.notes, maxLines: 4,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Palette.muted, fontSize: 13)),
+                style: TextStyle(color: Palette.of(context).muted, fontSize: 13)),
             ],
             if (isHistory) ...[
               const SizedBox(height: 7),
-              Text(statusLabel, style: const TextStyle(
-                color: Palette.forest, fontSize: 13,
+              Text(statusLabel, style: TextStyle(
+                color: Palette.of(context).forest, fontSize: 13,
                 fontWeight: FontWeight.w600)),
             ],
           ],

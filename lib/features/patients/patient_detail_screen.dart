@@ -35,8 +35,8 @@ class PatientDetailScreen extends StatelessWidget {
           EntranceReveal(child: Container(
             padding: const EdgeInsets.all(19),
             decoration: BoxDecoration(
-              color: Palette.surface,
-              border: Border.all(color: Palette.border),
+              color: Palette.of(context).surface,
+              border: Border.all(color: Palette.of(context).border),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Row(children: [
@@ -46,17 +46,17 @@ class PatientDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(patient.name,
-                    style: const TextStyle(fontSize: 19,
-                      color: Palette.ink, fontWeight: FontWeight.w700,
+                    style: TextStyle(fontSize: 19,
+                      color: Palette.of(context).ink, fontWeight: FontWeight.w700,
                       letterSpacing: -.6)),
                   const SizedBox(height: 6),
                   Text('${patient.id} · ${patient.age} ans',
-                    style: const TextStyle(
-                      color: Palette.muted, fontSize: 13.5)),
+                    style: TextStyle(
+                      color: Palette.of(context).muted, fontSize: 13.5)),
                   if (patient.followUp) ...[
                     const SizedBox(height: 8),
-                    const Text('Visite de suivi à prévoir',
-                      style: TextStyle(color: Palette.muted,
+                    Text('Visite de suivi à prévoir',
+                      style: TextStyle(color: Palette.of(context).muted,
                         fontSize: 12.5, fontWeight: FontWeight.w600)),
                   ],
                 ],
@@ -108,9 +108,9 @@ class PatientDetailScreen extends StatelessWidget {
           const SectionHeading(title: 'Dernières constantes'),
           const SizedBox(height: 11),
           if (last == null)
-            const SurfaceCard(child: Text('Aucune mesure enregistrée.', style: TextStyle(color: Palette.muted)))
+            SurfaceCard(child: Text('Aucune mesure enregistrée.', style: TextStyle(color: Palette.of(context).muted)))
           else SurfaceCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(shortDate(last.date), style: const TextStyle(color: Palette.muted, fontSize: 12)),
+            Text(shortDate(last.date), style: TextStyle(color: Palette.of(context).muted, fontSize: 12)),
             const SizedBox(height: 13),
             Row(children: [
               Expanded(child: _Vital(label: 'Température', value: last.temperature == null ? '—' : '${last.temperature!.toStringAsFixed(1)} °C', icon: Icons.thermostat_rounded)),
@@ -165,14 +165,14 @@ class PatientDetailScreen extends StatelessWidget {
             Row(children: [
               const SoftIcon(icon: Icons.event_repeat_rounded),
               const SizedBox(width: 11),
-              const Expanded(child: Column(
+              Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Patient à revoir', style: TextStyle(
                     fontSize: 15, fontWeight: FontWeight.w600)),
                   SizedBox(height: 5),
                   Text('Signaler un besoin de suivi.',
-                    style: TextStyle(color: Palette.muted, fontSize: 12.5)),
+                    style: TextStyle(color: Palette.of(context).muted, fontSize: 12.5)),
                 ],
               )),
               Switch.adaptive(value: patient.followUp,
@@ -183,8 +183,8 @@ class PatientDetailScreen extends StatelessWidget {
               const Divider(height: 23),
               for (final plan in planned) ...[
                 Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  const Icon(Icons.event_available_outlined,
-                    color: Palette.forest, size: 19),
+                  Icon(Icons.event_available_outlined,
+                    color: Palette.of(context).forest, size: 19),
                   const SizedBox(width: 9),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,14 +195,14 @@ class PatientDetailScreen extends StatelessWidget {
                       Text('${shortDate(plan.scheduledAt)} · '
                         '${plan.scheduledAt.hour.toString().padLeft(2, '0')}:'
                         '${plan.scheduledAt.minute.toString().padLeft(2, '0')}',
-                        style: const TextStyle(
-                          color: Palette.muted, fontSize: 13)),
+                        style: TextStyle(
+                          color: Palette.of(context).muted, fontSize: 13)),
                     ],
                   )),
                   IconButton(
                     tooltip: 'Modifier le rendez-vous',
-                    icon: const Icon(Icons.edit_calendar_outlined,
-                      color: Palette.forest),
+                    icon: Icon(Icons.edit_calendar_outlined,
+                      color: Palette.of(context).forest),
                     onPressed: () => Navigator.push(context,
                       MaterialPageRoute<void>(builder: (_) =>
                         FollowUpEditorScreen(plan: plan))),
@@ -225,14 +225,14 @@ class _CountCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     constraints: const BoxConstraints(minHeight: 83),
     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-    decoration: BoxDecoration(color: Palette.tealSoft,
+    decoration: BoxDecoration(color: Palette.of(context).tealSoft,
       borderRadius: BorderRadius.circular(15)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('$count', style: const TextStyle(
-        fontSize: 23, fontWeight: FontWeight.w700, color: Palette.ink)),
+      Text('$count', style: TextStyle(
+        fontSize: 23, fontWeight: FontWeight.w700, color: Palette.of(context).ink)),
       const SizedBox(height: 5),
-      Text(label, maxLines: 2, style: const TextStyle(
-        fontSize: 12.5, height: 1.2, color: Palette.muted)),
+      Text(label, maxLines: 2, style: TextStyle(
+        fontSize: 12.5, height: 1.2, color: Palette.of(context).muted)),
     ]),
   );
 }
@@ -243,7 +243,7 @@ class _Fact extends StatelessWidget {
   final String value;
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(label, style: const TextStyle(fontSize: 14, color: Palette.muted)),
+    Text(label, style: TextStyle(fontSize: 14, color: Palette.of(context).muted)),
     const SizedBox(height: 7),
     Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
   ]);
@@ -256,8 +256,8 @@ class _Vital extends StatelessWidget {
   final String value;
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Row(children: [Icon(icon, size: 16, color: Palette.teal), const SizedBox(width: 6),
-      Flexible(child: Text(label, style: const TextStyle(fontSize: 13, color: Palette.muted)))]),
+    Row(children: [Icon(icon, size: 16, color: Palette.of(context).teal), const SizedBox(width: 6),
+      Flexible(child: Text(label, style: TextStyle(fontSize: 13, color: Palette.of(context).muted)))]),
     const SizedBox(height: 7),
     Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
   ]);
@@ -273,10 +273,10 @@ class _VisitLine extends StatelessWidget {
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(visit.reason, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
       const SizedBox(height: 5),
-      Text(shortDate(visit.date), style: const TextStyle(fontSize: 13, color: Palette.muted)),
+      Text(shortDate(visit.date), style: TextStyle(fontSize: 13, color: Palette.of(context).muted)),
       if (visit.notes.isNotEmpty) ...[
         const SizedBox(height: 7),
-        Text(visit.notes, style: const TextStyle(fontSize: 13, color: Palette.muted)),
+        Text(visit.notes, style: TextStyle(fontSize: 13, color: Palette.of(context).muted)),
       ],
     ])),
   ]);
@@ -307,26 +307,26 @@ class _ExamLine extends StatelessWidget {
             SoftIcon(
               icon: ready
                 ? Icons.description_outlined : Icons.biotech_outlined,
-              color: Palette.forest,
-              background: ready ? Palette.tealSoft : Palette.blueSoft,
+              color: Palette.of(context).forest,
+              background: ready ? Palette.of(context).tealSoft : Palette.of(context).blueSoft,
             ),
             const SizedBox(width: 12),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(exam.title, style: const TextStyle(
+                Text(exam.title, style: TextStyle(
                   fontSize: 16, height: 1.35,
-                  fontWeight: FontWeight.w600, color: Palette.ink)),
+                  fontWeight: FontWeight.w600, color: Palette.of(context).ink)),
                 const SizedBox(height: 6),
-                Text(shortDate(exam.date), style: const TextStyle(
-                  fontSize: 13.5, color: Palette.muted)),
+                Text(shortDate(exam.date), style: TextStyle(
+                  fontSize: 13.5, color: Palette.of(context).muted)),
                 const SizedBox(height: 7),
                 Text(
                   ready ? 'Résultat disponible' : 'Résultat en attente',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14, height: 1.35,
                     fontWeight: FontWeight.w600,
-                    color: Palette.forest),
+                    color: Palette.of(context).forest),
                 ),
                 if (ready && exam.result?.trim().isNotEmpty == true) ...[
                   const SizedBox(height: 8),
@@ -334,9 +334,9 @@ class _ExamLine extends StatelessWidget {
                     exam.result!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14, height: 1.45,
-                      color: Palette.ink),
+                      color: Palette.of(context).ink),
                   ),
                 ],
                 const SizedBox(height: 9),
@@ -350,8 +350,8 @@ class _ExamLine extends StatelessWidget {
                 ),
               ],
             )),
-            const Icon(Icons.chevron_right_rounded,
-              color: Palette.forest, size: 22),
+            Icon(Icons.chevron_right_rounded,
+              color: Palette.of(context).forest, size: 22),
           ],
         ),
       ),
