@@ -9,6 +9,7 @@ class Patient {
     required this.phone,
     required this.createdAt,
     this.allergies = 'Non renseignées',
+    this.medicalHistory = 'Non renseignés',
     this.followUp = false,
   });
 
@@ -19,7 +20,28 @@ class Patient {
   final String phone;
   final DateTime createdAt;
   final String allergies;
+  final String medicalHistory;
   final bool followUp;
+
+  Patient copyWith({
+    String? name,
+    int? age,
+    String? sex,
+    String? phone,
+    String? allergies,
+    String? medicalHistory,
+    bool? followUp,
+  }) => Patient(
+    id: id,
+    name: name ?? this.name,
+    age: age ?? this.age,
+    sex: sex ?? this.sex,
+    phone: phone ?? this.phone,
+    createdAt: createdAt,
+    allergies: allergies ?? this.allergies,
+    medicalHistory: medicalHistory ?? this.medicalHistory,
+    followUp: followUp ?? this.followUp,
+  );
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
