@@ -1,9 +1,12 @@
+import 'dart:convert';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
 import 'package:medisuivi/app/theme.dart';
+import 'package:medisuivi/core/assets/clinical_hero_photo.dart';
 import 'package:medisuivi/core/models/medical_models.dart';
 import 'package:medisuivi/features/patients/new_patient_screen.dart';
 import 'package:medisuivi/features/consultations/new_consultation_screen.dart';
@@ -15,6 +18,19 @@ void main() {
     expect(Palette.ink, const Color(0xFF10372B));
     expect(MediTheme.light().brightness, Brightness.light);
     expect(MediTheme.light().textTheme.bodyMedium!.fontSize, 13.5);
+  });
+
+  testWidgets('Photo panoramique embarquée, lisible hors connexion', (tester) async {
+    final bytes = base64Decode(clinicalHeroPhotoWebpBase64);
+    expect(bytes.length, greaterThan(2500));
+    expect(String.fromCharCodes(bytes.take(4)), 'RIFF');
+    expect(String.fromCharCodes(bytes.skip(8).take(4)), 'WEBP');
+    final codec = await ui.instantiateImageCodec(bytes);
+    final frame = await codec.getNextFrame();
+    expect(frame.image.width, greaterThanOrEqualTo(290));
+    expect(frame.image.height, greaterThanOrEqualTo(210));
+    frame.image.dispose();
+    codec.dispose();
   });
 
   test('Initiales patient fictif', () {
