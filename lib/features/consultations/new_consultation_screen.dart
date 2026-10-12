@@ -78,7 +78,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
     final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
     messenger.showSnackBar(const SnackBar(
-      content: Text('Consultation fictive enregistrée temporairement.'),
+      content: Text('Consultation ajoutée pour cette session.'),
     ));
   }
 
@@ -102,8 +102,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
             const SizedBox(height: 9),
             PageTitle(title: 'Consultation', subtitle: widget.patient.name),
             const SizedBox(height: 18),
-            const DemoNotice(),
-            const SizedBox(height: 17),
+
             ClinicalFormSection(
               title: 'Informations de visite',
               icon: Icons.description_outlined,
@@ -132,7 +131,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
                     maxLines: 5,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: const InputDecoration(
-                      hintText: 'Notes fictives de consultation'),
+                      hintText: 'Notes de consultation'),
                   ),
                 ],
               ),
@@ -161,7 +160,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
             ElevatedButton.icon(
               onPressed: save,
               icon: const Icon(Icons.check_rounded),
-              label: const Text('Enregistrer la visite démo'),
+              label: const Text('Enregistrer la consultation'),
             ),
             const SizedBox(height: 12),
             const Text(
