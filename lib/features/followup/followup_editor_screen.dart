@@ -146,22 +146,37 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
                   title: 'Date et heure',
                   icon: Icons.event_available_outlined,
                   subtitle: 'Le suivi apparaîtra dans les échéances.',
-                  child: Row(children: [
-                    Expanded(child: OutlinedButton.icon(
+                  child: LayoutBuilder(builder: (context, constraints) {
+                    Widget dateButton() => OutlinedButton.icon(
                       onPressed: chooseDate,
                       icon: const Icon(Icons.calendar_today_outlined, size: 18),
                       label: Text(formatDate(scheduledAt),
                         overflow: TextOverflow.ellipsis),
-                    )),
-                    const SizedBox(width: 10),
-                    Expanded(child: OutlinedButton.icon(
+                    );
+                    Widget timeButton() => OutlinedButton.icon(
                       onPressed: chooseTime,
                       icon: const Icon(Icons.schedule_outlined, size: 18),
                       label: Text(TimeOfDay.fromDateTime(scheduledAt)
                         .format(context), overflow: TextOverflow.ellipsis),
-                    )),
-                  ]),
-                ),
+                    );
+                    // Des boutons pleine largeur préservent les dates même
+                    // à 320 px et avec un texte agrandi par l'utilisateur.
+                    if (constraints.maxWidth < 340) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          dateButton(),
+                          const SizedBox(height: 8),
+                          timeButton(),
+                        ],
+                      );
+                    }
+                    return Row(children: [
+                      Expanded(child: dateButton()),
+                      const SizedBox(width: 10),
+                      Expanded(child: timeButton()),
+                    ]);
+                  }),                ),
                 const SizedBox(height: 14),
                 ClinicalFormSection(
                   title: 'Motif du suivi',
