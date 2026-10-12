@@ -306,8 +306,13 @@ void main() {
       // Vérifier qu'aucune donnée sensible n'est en clair
       expect(content, isNot(contains('Patient Secret')));
       expect(content, isNot(contains('confidentielle')));
-      expect(content, isNot(contains('VIH')));
-      expect(content, isNot(contains('ARV')));
+      // Ne pas chercher des mots de 3 lettres dans du ciphertext :
+      // ils peuvent apparaître par hasard dans des octets aléatoires.
+      // Vérifier plutôt l'absence des valeurs longues réellement insérées.
+      expect(content, isNot(contains('Antécédents: VIH, Traitement: ARV')));
+      expect(content, isNot(contains('Traitement: ARV')));
+      // Une base SQLite non chiffrée commence par cet en-tête canonique.
+      expect(bytes.take(16).toList(), isNot(equals('SQLite format 3\\u0000'.codeUnits)));
       expect(content, isNot(contains('0555123456')));
       
       // Le fichier doit contenir du binaire (chiffré)
