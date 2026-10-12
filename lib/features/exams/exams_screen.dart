@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 import 'exam_detail_screen.dart';
 
@@ -19,7 +19,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = DemoScope.of(context);
+    final store = context.store;
     final pending = store.exams.where((e) =>
       e.status == ExamStatus.pending).length;
     final exams = store.exams.where((e) =>
