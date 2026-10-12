@@ -250,16 +250,18 @@ class _NavItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(19),
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(selected ? selectedIcon : icon,
-                    size: 22,
+                    size: 21,
                     color: selected ? palette.forest : palette.muted),
-                  const SizedBox(height: 4),
-                  Text(label, style: TextStyle(
-                    fontSize: 12,
+                  const SizedBox(height: 2),
+                  Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                    fontSize: 11, height: 1.0,
                     fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: selected ? Palette.white : Palette.muted,
+                    color: selected ? palette.forest : palette.muted,
                   )),
                 ],
               ),
