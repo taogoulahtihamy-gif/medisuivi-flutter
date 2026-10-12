@@ -83,6 +83,7 @@ class LabExam {
     required this.date,
     required this.status,
     this.result,
+    this.resultRecordedAt,
   });
 
   final String id;
@@ -91,6 +92,8 @@ class LabExam {
   final DateTime date;
   final ExamStatus status;
   final String? result;
+  /// Date de saisie du compte rendu, si connue.
+  final DateTime? resultRecordedAt;
 }
 
 enum ExamStatus { pending, complete }
