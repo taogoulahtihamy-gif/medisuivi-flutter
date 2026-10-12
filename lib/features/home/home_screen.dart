@@ -216,8 +216,8 @@ class _Summary extends StatelessWidget {
                 colors: [
                   Palette.navy,
                   Palette.navy,
-                  Color(0x86193F34),
-                  Color(0x0C193F34),
+                  Color(0x8F164B40),
+                  Color(0x10164B40),
                 ],
               ),
             ),
@@ -232,9 +232,9 @@ class _Summary extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 stops: [0, .48, .78, 1],
                 colors: [
-                  Color(0x00193F34),
-                  Color(0x00193F34),
-                  Color(0x7D193F34),
+                  Color(0x00164B40),
+                  Color(0x00164B40),
+                  Color(0x73164B40),
                   Palette.navy,
                 ],
               ),
