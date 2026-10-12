@@ -52,23 +52,6 @@ class SectionHeading extends StatelessWidget {
   ]);
 }
 
-class DemoNotice extends StatelessWidget {
-  const DemoNotice({super.key, this.compact = false});
-  final bool compact;
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-    decoration: BoxDecoration(color: Palette.blueSoft, borderRadius: BorderRadius.circular(10)),
-    child: Row(children: [
-      const Icon(Icons.info_outline_rounded, color: Palette.muted, size: 17),
-      const SizedBox(width: 9),
-      Expanded(child: Text(compact ? 'Démonstration · données fictives' :
-        'Prototype de démonstration · ne pas saisir de données médicales réelles.',
-        style: const TextStyle(fontSize: 12.5, color: Palette.muted, fontWeight: FontWeight.w500))),
-    ]),
-  );
-}
-
 class PatientAvatar extends StatelessWidget {
   const PatientAvatar({super.key, required this.patient, this.size = 44, this.hero = false});
   final Patient patient;
