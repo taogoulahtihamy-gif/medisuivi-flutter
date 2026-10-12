@@ -81,7 +81,7 @@ class FollowupScreen extends StatelessWidget {
               const SizedBox(height: 9),
             ],
             const SizedBox(height: 17),
-            const DemoNotice(compact: true),
+
           ]),
         ),
       ],
