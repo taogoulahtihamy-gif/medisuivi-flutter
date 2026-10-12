@@ -29,7 +29,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
       physics: const BouncingScrollPhysics(),
       children: [
         ScreenWidth(
-          padding: const EdgeInsets.fromLTRB(21, 27, 21, 42),
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 104),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const SizedBox(height: 2),
             Row(children: [
@@ -77,7 +77,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
                   const SizedBox(height: 5),
                   Text('${filtered.length} résultats',
                     style: const TextStyle(
-                      color: Palette.muted, fontSize: 13)),
+                      color: Palette.muted, fontSize: 14)),
                 ],
               )),
               SvgPicture.asset(
@@ -127,7 +127,7 @@ class _FilterChip extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
         child: Text(label, style: TextStyle(
-          fontSize: 13, fontWeight: FontWeight.w600,
+          fontSize: 14, fontWeight: FontWeight.w600,
           color: selected ? Palette.forest : Palette.muted)),
       ),
     ),
