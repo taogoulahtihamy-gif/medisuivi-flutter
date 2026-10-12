@@ -35,7 +35,7 @@ class PatientDetailScreen extends StatelessWidget {
           EntranceReveal(child: Container(
             padding: const EdgeInsets.all(19),
             decoration: BoxDecoration(
-              color: Palette.white,
+              color: Palette.surface,
               border: Border.all(color: Palette.border),
               borderRadius: BorderRadius.circular(24),
             ),
@@ -46,7 +46,7 @@ class PatientDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(patient.name,
-                    style: const TextStyle(fontSize: 21,
+                    style: const TextStyle(fontSize: 19,
                       color: Palette.ink, fontWeight: FontWeight.w700,
                       letterSpacing: -.6)),
                   const SizedBox(height: 6),
