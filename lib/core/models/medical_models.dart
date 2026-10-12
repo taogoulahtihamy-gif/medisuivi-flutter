@@ -130,7 +130,7 @@ class FollowUpPlan {
       scheduledAt.day == now.day;
 
   bool isUpcoming(DateTime now) =>
-      isPlanned && scheduledAt.isAfter(DateTime(now.year, now.month, now.day + 1));
+      isPlanned && !scheduledAt.isBefore(DateTime(now.year, now.month, now.day + 1));
 
   FollowUpPlan copyWith({
     DateTime? scheduledAt,
