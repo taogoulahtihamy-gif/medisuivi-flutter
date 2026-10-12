@@ -64,4 +64,41 @@ void main() {
     expect(find.text('Bilans'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('Sidebar premium: desktop se réduit et se déploie',
+      (tester) async {
+    await configureScreen(tester, 1100);
+    await tester.pumpWidget(const MediSuiviApp(themeMode: ThemeMode.dark));
+    await tester.pumpAndSettle();
+    expect(tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+      isTrue);
+    await tester.tap(find.byTooltip('Réduire la sidebar'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+      isFalse);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.byTooltip('Étendre la sidebar'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+      isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Sidebar premium: tablette compacte et navigation fonctionnelle',
+      (tester) async {
+    await configureScreen(tester, 600);
+    await tester.pumpWidget(const MediSuiviApp(themeMode: ThemeMode.light));
+    await tester.pumpAndSettle();
+    expect(tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+      isFalse);
+    await tester.tap(find.byTooltip('Étendre la sidebar'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+      isTrue);
+    await tester.tap(find.text('Bilans').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Bilans médicaux'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
