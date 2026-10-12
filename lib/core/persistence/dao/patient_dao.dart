@@ -1,6 +1,7 @@
 /// DAO pour la table Patients
 library;
 
+import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../database.dart';
@@ -20,15 +21,28 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
   }) async {
     final id = generateId();
     final now = DateTime.now().toUtc();
-    await into(patients).insert(PatientsCompanion(
-      id: Value(id),
-      name: Value(name),
-      age: Value(age),
-      sex: Value(sex),
-      phone: Value(phone),
-      createdAt: Value(now),
-      updatedAt: Value(now),
-    ));
+    await attachedDatabase.transaction(() async {
+      await into(patients).insert(PatientsCompanion(
+        id: Value(id),
+        name: Value(name),
+        age: Value(age),
+        sex: Value(sex),
+        phone: Value(phone),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'patient',
+        entityId: id,
+        operationType: 'create',
+        payload: jsonEncode({
+          'id': id, 'name': name, 'age': age, 'sex': sex, 'phone': phone,
+          'createdAt': now.toIso8601String(), 'updatedAt': now.toIso8601String(),
+        }),
+        baseRevision: 0,
+      );
+    });
   }
 
   /// Récupère un patient par ID
@@ -62,25 +76,55 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
     required String medicalHistory,
   }) async {
     final now = DateTime.now().toUtc();
-    await (update(patients)..where((p) => p.id.equals(patientId))).write(
-      PatientsCompanion(
-        phone: Value(phone),
-        allergies: Value(allergies),
-        medicalHistory: Value(medicalHistory),
-        updatedAt: Value(now),
-      ),
-    );
+    await attachedDatabase.transaction(() async {
+      final patient = await getPatientById(patientId);
+      if (patient == null) throw StateError('Dossier patient introuvable.');
+      await (update(patients)..where((p) => p.id.equals(patientId))).write(
+        PatientsCompanion(
+          phone: Value(phone),
+          allergies: Value(allergies),
+          medicalHistory: Value(medicalHistory),
+          updatedAt: Value(now),
+        ),
+      );
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'patient',
+        entityId: patientId,
+        operationType: 'update',
+        payload: jsonEncode({
+          'id': patientId, 'phone': phone, 'allergies': allergies,
+          'medicalHistory': medicalHistory, 'updatedAt': now.toIso8601String(),
+        }),
+        baseRevision: 0,
+      );
+    });
   }
 
   /// Active/désactive le drapeau de suivi
   Future<void> setFollowUp(String patientId, {required bool toReview}) async {
     final now = DateTime.now().toUtc();
-    await (update(patients)..where((p) => p.id.equals(patientId))).write(
-      PatientsCompanion(
-        followUp: Value(toReview),
-        updatedAt: Value(now),
-      ),
-    );
+    await attachedDatabase.transaction(() async {
+      final patient = await getPatientById(patientId);
+      if (patient == null) throw StateError('Dossier patient introuvable.');
+      await (update(patients)..where((p) => p.id.equals(patientId))).write(
+        PatientsCompanion(
+          followUp: Value(toReview),
+          updatedAt: Value(now),
+        ),
+      );
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'patient',
+        entityId: patientId,
+        operationType: 'update',
+        payload: jsonEncode({
+          'id': patientId, 'followUp': toReview,
+          'updatedAt': now.toIso8601String(),
+        }),
+        baseRevision: 0,
+      );
+    });
   }
 
   /// Supprime un patient (et ses données liées via triggers ou manuellement)
