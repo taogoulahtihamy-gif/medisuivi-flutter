@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
@@ -18,6 +19,7 @@ class ExamEditorScreen extends StatefulWidget {
 }
 
 class _ExamEditorScreenState extends State<ExamEditorScreen> {
+  bool _saving = false;
   final form = GlobalKey<FormState>();
   final title = TextEditingController();
   final result = TextEditingController();
@@ -40,26 +42,38 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
     super.dispose();
   }
 
-  void _save() {
-    if (!form.currentState!.validate()) return;
-    final store = context.store;
-    late final String examId;
-    if (isResult) {
-      examId = widget.exam!.id;
-      store.recordExamResult(examId: examId, result: result.text);
-    } else {
-      examId = store.addExam(
-        patientId: widget.patientId, title: title.text);
-    }
-    if (!mounted) return;
-    if (widget.openDetailOnSave) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
-        builder: (_) => ExamDetailScreen(examId: examId)));
-    } else {
-      Navigator.of(context).pop();
+  Future<void> _save() async {
+    if (_saving || !form.currentState!.validate()) return;
+    setState(() => _saving = true);
+    try {
+      final store = context.store;
+      late final String examId;
+      if (isResult) {
+        examId = widget.exam!.id;
+        await store.recordExamResult(examId: examId, result: result.text);
+      } else {
+        examId = await store.addExam(
+          patientId: widget.patientId, title: title.text,
+        );
+      }
+      if (!mounted) return;
+      if (widget.openDetailOnSave) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
+          builder: (_) => ExamDetailScreen(examId: examId),
+        ));
+      } else {
+        Navigator.of(context).pop();
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enregistrement du bilan impossible. Réessayez.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
-
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text(isResult ? 'Résultat du bilan' : 'Prescrire un bilan')),
@@ -118,14 +132,14 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
               ],
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: _save,
+                onPressed: _saving ? null : _save,
                 icon: const Icon(Icons.check_rounded),
                 label: Text(isResult ? 'Enregistrer le résultat'
                   : 'Ajouter la prescription'),
               ),
               const SizedBox(height: 12),
               Text(
-                'Saisie temporaire : ces informations ne sont pas conservées après fermeture.',
+                kIsWeb ? 'Version Web : saisie fictive temporaire.' : 'Bilan enregistré localement ; synchronisation distante indisponible.',
                 style: TextStyle(color: Palette.of(context).muted, fontSize: 13.5, height: 1.4),
                 textAlign: TextAlign.center,
               ),
