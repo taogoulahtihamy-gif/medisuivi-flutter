@@ -47,6 +47,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Prescription créée : sa fiche est accessible aussitôt',
+      (tester) async {
+    final before = store.exams.length;
+    await showScreen(tester, const ExamEditorScreen(
+      patientId: 'PAT-00240'));
+    await tester.enterText(find.byType(TextFormField).first,
+      'Bilan de contrôle');
+    await tester.ensureVisible(find.text('Ajouter la prescription'));
+    await tester.tap(find.text('Ajouter la prescription'));
+    await tester.pumpAndSettle();
+    expect(store.exams.length, before + 1);
+    expect(find.text('Détail du bilan'), findsOneWidget);
+    expect(find.text('Bilan de contrôle'), findsOneWidget);
+    expect(find.text('Résultat en attente'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Les bilans ouvrent le rapport et non le dossier patient',
       (tester) async {
     await showScreen(tester, const Scaffold(body: ExamsScreen()));
