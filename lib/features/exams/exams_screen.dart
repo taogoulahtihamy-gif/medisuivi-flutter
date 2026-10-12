@@ -46,7 +46,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Palette.white,
+                color: Palette.surface,
                 borderRadius: BorderRadius.circular(21),
                 border: Border.all(color: Palette.border),
               ),
