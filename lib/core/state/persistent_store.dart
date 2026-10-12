@@ -27,8 +27,6 @@ class PersistentStore extends ChangeNotifier {
   final List<LabExam> _exams = [];
   final List<FollowUpPlan> _followUps = [];
 
-  bool _initialized = false;
-
   PersistentStore(this._database) {
     _patientDao = _database.patientDao;
     _visitDao = _database.visitDao;
@@ -73,7 +71,6 @@ class PersistentStore extends ChangeNotifier {
       notifyListeners();
     });
 
-    _initialized = true;
     notifyListeners();
   }
 
