@@ -36,6 +36,24 @@ Un résultat d'examen déjà enregistré ne peut plus être écrasé silencieuse
 par la méthode de saisie initiale ; une fonction de rectification avec piste
 d'audit devra être définie séparément.
 
+## Raccordement des écrans au store actif
+
+Le code UI utilisait encore `DemoScope.of(context)` sur dix écrans, alors que
+le bootstrap mobile fournit `PersistentScope`. Les écrans Patients, détail
+du patient, consultations, examens, résultats et suivis utilisent désormais
+`context.store`. La dépendance est enregistrée via
+`dependOnInheritedWidgetOfExactType` pour que les modifications du store
+déclenchent le rafraîchissement des vues.
+
+Les formulaires attendent l'achèvement des écritures asynchrones et signalent
+un échec avant de permettre la navigation. Le prototype Web garde son store
+temporaire fictif. Un test d'intégration instancie l'écran Patients sous
+`PersistentScope` et vérifie son actualisation après une création.
+
+**Limite :** le typage du store partagé est encore dynamique ; une interface
+métier typée devra le remplacer lors d'une étape ultérieure pour réduire les
+risques d'erreurs à l'exécution.
+
 ## Tests de non-régression ajoutés
 
 1. Création patient → visite → bilan et résultat → suivi et clôture, puis
@@ -43,7 +61,8 @@ d'audit devra être définie séparément.
    file et les données patient sont toujours présentes.
 2. Injection d'une erreur SQLite sur `pending_operations` : la création du
    patient doit être **annulée** et aucun dossier partiel ne subsiste.
-3. Les tests existants couvrent le chiffrement, l'ouverture avec une mauvaise
+3. L'écran Patients réagit aux modifications de `PersistentScope` sous Flutter test.
+4. Les tests existants couvrent le chiffrement, l'ouverture avec une mauvaise
    clé, les flux réactifs et le CRUD local.
 
 ## Fonctionnalités non terminées
