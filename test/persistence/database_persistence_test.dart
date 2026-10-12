@@ -312,7 +312,7 @@ void main() {
       expect(content, isNot(contains('Antécédents: VIH, Traitement: ARV')));
       expect(content, isNot(contains('Traitement: ARV')));
       // Une base SQLite non chiffrée commence par cet en-tête canonique.
-      expect(bytes.take(16).toList(), isNot(equals('SQLite format 3\\u0000'.codeUnits)));
+      expect(bytes.take(15).toList(), isNot(equals('SQLite format 3'.codeUnits)));
       expect(content, isNot(contains('0555123456')));
       
       // Le fichier doit contenir du binaire (chiffré)
