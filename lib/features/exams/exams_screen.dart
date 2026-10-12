@@ -5,7 +5,7 @@ import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
-import '../patients/patient_detail_screen.dart';
+import 'exam_detail_screen.dart';
 
 class ExamsScreen extends StatefulWidget {
   const ExamsScreen({super.key});
@@ -23,13 +23,14 @@ class _ExamsScreenState extends State<ExamsScreen> {
     final pending = store.exams.where((e) =>
       e.status == ExamStatus.pending).length;
     final exams = store.exams.where((e) =>
-      !pendingOnly || e.status == ExamStatus.pending).toList();
+      !pendingOnly || e.status == ExamStatus.pending).toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
 
     return ListView(
       physics: const BouncingScrollPhysics(),
       children: [
         ScreenWidth(
-          padding: const EdgeInsets.fromLTRB(21, 27, 21, 40),
+          padding: const EdgeInsets.fromLTRB(20, 23, 20, 104),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('EXAMENS', style: TextStyle(
               fontSize: 12, letterSpacing: .5,
@@ -63,7 +64,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                       color: Palette.ink)),
                     const SizedBox(height: 5),
                     const Text('examens à suivre', style: TextStyle(
-                      fontSize: 12, color: Palette.ink)),
+                      fontSize: 14, color: Palette.ink)),
                   ],
                 )),
                 SvgPicture.asset(
@@ -91,7 +92,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
               const Expanded(child: Text('Dossiers', style: TextStyle(
                 fontSize: 18, fontWeight: FontWeight.w700))),
               Text('${exams.length} examens',
-                style: const TextStyle(fontSize: 13, color: Palette.muted)),
+                style: const TextStyle(fontSize: 14, height: 1.4, color: Palette.muted)),
             ]),
             const SizedBox(height: 13),
             if (exams.isEmpty)
@@ -101,16 +102,16 @@ class _ExamsScreenState extends State<ExamsScreen> {
                 icon: Icons.biotech_outlined)
             else for (final exam in exams) ...[
               SurfaceCard(
-                padding: const EdgeInsets.all(15),
+                padding: const EdgeInsets.fromLTRB(15, 17, 14, 17),
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
-                    builder: (_) => PatientDetailScreen(
-                      patientId: exam.patientId))),
+                    builder: (_) => ExamDetailScreen(examId: exam.id))),
                 child: Row(children: [
                   SoftIcon(
-                    icon: Icons.science_outlined,
+                    icon: exam.status == ExamStatus.complete
+                      ? Icons.description_outlined : Icons.science_outlined,
                     color: exam.status == ExamStatus.complete
-                      ? Palette.forest : Palette.laser,
+                      ? Palette.forest : Palette.forest,
                     background: exam.status == ExamStatus.complete
                       ? Palette.tealSoft : Palette.blueSoft),
                   const SizedBox(width: 13),
@@ -118,7 +119,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(exam.title, style: const TextStyle(
-                        fontSize: 13.5, fontWeight: FontWeight.w700)),
+                        fontSize: 16, height: 1.25, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 5),
                       Text(store.patientById(exam.patientId)?.name ??
                         'Patient', style: const TextStyle(
@@ -126,14 +127,14 @@ class _ExamsScreenState extends State<ExamsScreen> {
                       const SizedBox(height: 7),
                       Text(exam.status == ExamStatus.complete
                         ? 'Résultat disponible' : 'En attente de résultat',
-                        style: TextStyle(fontSize: 13,
-                          fontWeight: FontWeight.w700,
+                        style: TextStyle(fontSize: 14, height: 1.3,
+                          fontWeight: FontWeight.w600,
                           color: exam.status == ExamStatus.complete
-                            ? Palette.forest : Palette.laser)),
+                            ? Palette.forest : Palette.ink)),
                     ],
                   )),
                   const Icon(Icons.chevron_right_rounded,
-                    color: Palette.muted),
+                    color: Palette.forest, size: 24),
                 ]),
               ),
               const SizedBox(height: 10),
