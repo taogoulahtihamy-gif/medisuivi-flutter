@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../patients/patient_detail_screen.dart';
 import 'exam_editor_screen.dart';
@@ -16,7 +16,7 @@ class ExamDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Toujours lire la version actuelle depuis le store, pas l'ancienne
     // instance transmise avant la saisie du compte rendu.
-    final store = DemoScope.of(context);
+    final store = context.store;
     final exam = store.examById(examId);
     if (exam == null) {
       return Scaffold(
