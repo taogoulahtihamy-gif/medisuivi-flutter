@@ -139,7 +139,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
               const SizedBox(height: 10),
             ],
             const SizedBox(height: 11),
-            const DemoNotice(compact: true),
+
           ]),
         ),
       ],
