@@ -95,7 +95,7 @@ void main() {
     expect(find.text('Moussa Ndiaye'), findsNothing);
   });
 
-  testWidgets('Dossier et constantes médicales fictives', (tester) async {
+  testWidgets('Dossier patient et constantes médicales', (tester) async {
     await tester.pumpWidget(const MediSuiviApp());
     await tester.tap(find.text('Patients').last);
     await tester.pumpAndSettle();
@@ -105,6 +105,28 @@ void main() {
     expect(find.text('Dernières constantes'), findsOneWidget);
     expect(find.text('Informations médicales'), findsOneWidget);
   });
+  testWidgets('Dossier médical complet sur écran étroit', (tester) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MediSuiviApp());
+    await tester.tap(find.text('Patients').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Aminata Diallo').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dossier médical'), findsOneWidget);
+    expect(find.text('Informations médicales'), findsOneWidget);
+    expect(find.text('Antécédents médicaux'), findsOneWidget);
+    expect(find.text('Bilans et examens'), findsOneWidget);
+    expect(find.text('Suivi du patient'), findsOneWidget);
+    await tester.ensureVisible(find.text('Suivi du patient'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Formulaire patient sur mobile étroit', (tester) async {
     tester.view.physicalSize = const Size(320, 740);
     tester.view.devicePixelRatio = 1;
