@@ -33,11 +33,13 @@ void main() {
   testWidgets('Sauvegarder un résultat puis le consulter', (tester) async {
     await showScreen(tester, const ExamDetailScreen(examId: 'EXM-002'));
     await tester.ensureVisible(find.text('Saisir le résultat'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Saisir le résultat'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField).first,
       'Compte rendu de contrôle enregistré');
     await tester.ensureVisible(find.text('Enregistrer le résultat'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Enregistrer le résultat'));
     await tester.pumpAndSettle();
     expect(find.text('Détail du bilan'), findsOneWidget);
@@ -55,6 +57,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).first,
       'Bilan de contrôle');
     await tester.ensureVisible(find.text('Ajouter la prescription'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Ajouter la prescription'));
     await tester.pumpAndSettle();
     expect(store.exams.length, before + 1);
