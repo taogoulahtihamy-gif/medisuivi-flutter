@@ -44,7 +44,15 @@ class _FollowupScreenState extends State<FollowupScreen> {
       ),
     );
     if (!mounted || confirmed != true) return;
-    context.store.closeFollowUp(plan.id, completed: completed);
+    try {
+      await context.store.closeFollowUp(plan.id, completed: completed);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Impossible de clôturer le suivi. Réessayez.'),
+        ));
+      }
+    }
   }
 
   @override
