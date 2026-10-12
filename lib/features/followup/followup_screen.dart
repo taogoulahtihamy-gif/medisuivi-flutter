@@ -114,7 +114,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
                       color: Palette.forest, fontWeight: FontWeight.w700)),
                     SizedBox(height: 9),
                     Text('Suivi médical', style: TextStyle(
-                      fontSize: 27, letterSpacing: -.6,
+                      fontSize: 23, letterSpacing: -.7,
                       color: Palette.ink, fontWeight: FontWeight.w700)),
                     SizedBox(height: 6),
                     Text('Rendez-vous et prochaines visites.',
@@ -132,7 +132,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
               Container(
                 padding: const EdgeInsets.all(17),
                 decoration: BoxDecoration(
-                  color: Palette.white,
+                  color: Palette.surface,
                   border: Border.all(color: Palette.border),
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -146,7 +146,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
                       const SizedBox(height: 8),
                       Text('${overdue.length + today.length}',
                         style: const TextStyle(
-                          fontSize: 38, color: Palette.ink,
+                          fontSize: 34, color: Palette.ink,
                           fontWeight: FontWeight.w700, height: 1)),
                       const SizedBox(height: 7),
                       Text('${overdue.length} en retard · ${today.length} aujourd’hui',
@@ -284,7 +284,7 @@ class _FollowUpCard extends StatelessWidget {
       FollowUpStatus.cancelled => 'Annulé',
     };
     return Material(
-      color: Palette.white,
+      color: Palette.surface,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.fromLTRB(15, 15, 12, 15),
