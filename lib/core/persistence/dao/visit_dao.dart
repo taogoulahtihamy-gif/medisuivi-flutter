@@ -1,6 +1,7 @@
 /// DAO pour la table Visits
 library;
 
+import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../database.dart';
@@ -24,20 +25,35 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
   }) async {
     final id = generateId();
     final now = DateTime.now().toUtc();
-    await into(visits).insert(VisitsCompanion(
-      id: Value(id),
-      patientId: Value(patientId),
-      date: Value(now),
-      reason: Value(reason),
-      temperature: temperature != null ? Value(temperature) : const Value.absent(),
-      systolic: systolic != null ? Value(systolic) : const Value.absent(),
-      diastolic: diastolic != null ? Value(diastolic) : const Value.absent(),
-      pulse: pulse != null ? Value(pulse) : const Value.absent(),
-      spo2: spo2 != null ? Value(spo2) : const Value.absent(),
-      notes: Value(notes),
-      createdAt: Value(now),
-      updatedAt: Value(now),
-    ));
+    await attachedDatabase.transaction(() async {
+      await into(visits).insert(VisitsCompanion(
+        id: Value(id),
+        patientId: Value(patientId),
+        date: Value(now),
+        reason: Value(reason),
+        temperature: temperature != null ? Value(temperature) : const Value.absent(),
+        systolic: systolic != null ? Value(systolic) : const Value.absent(),
+        diastolic: diastolic != null ? Value(diastolic) : const Value.absent(),
+        pulse: pulse != null ? Value(pulse) : const Value.absent(),
+        spo2: spo2 != null ? Value(spo2) : const Value.absent(),
+        notes: Value(notes),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'visit',
+        entityId: id,
+        operationType: 'create',
+        payload: jsonEncode({
+          'id': id, 'patientId': patientId, 'reason': reason,
+          'temperature': temperature, 'systolic': systolic,
+          'diastolic': diastolic, 'pulse': pulse, 'spo2': spo2,
+          'notes': notes, 'date': now.toIso8601String(),
+        }),
+        baseRevision: 0,
+      );
+    });
   }
 
   /// Récupère toutes les visites d'un patient (les plus récentes d'abord)
