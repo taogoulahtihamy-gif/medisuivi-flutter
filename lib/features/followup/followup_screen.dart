@@ -1,90 +1,360 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../app/theme.dart';
+import '../../core/models/medical_models.dart';
 import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../patients/patient_detail_screen.dart';
+import 'followup_editor_screen.dart';
 
-class FollowupScreen extends StatelessWidget {
+class FollowupScreen extends StatefulWidget {
   const FollowupScreen({super.key});
+  @override
+  State<FollowupScreen> createState() => _FollowupScreenState();
+}
+
+class _FollowupScreenState extends State<FollowupScreen> {
+  bool showHistory = false;
+
+  void openEditor({String? patientId, FollowUpPlan? plan}) {
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => FollowUpEditorScreen(
+        patientId: patientId, plan: plan)));
+  }
+
+  Future<void> closePlan(FollowUpPlan plan, {required bool completed}) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(completed ? 'Terminer ce suivi ?' : 'Annuler ce suivi ?'),
+        content: Text(completed
+          ? 'Le rendez-vous sera classé dans l’historique des suivis.'
+          : 'La date sera annulée et conservée dans l’historique.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Retour'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(completed ? 'Terminer' : 'Annuler le suivi'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    DemoScope.of(context).closeFollowUp(plan.id, completed: completed);
+  }
 
   @override
   Widget build(BuildContext context) {
     final store = DemoScope.of(context);
-    final followups = store.patients.where((p) => p.followUp).toList();
+    final now = DateTime.now();
+    final overdue = store.plannedFollowUps
+      .where((plan) => plan.isOverdue(now)).toList();
+    final today = store.plannedFollowUps
+      .where((plan) => plan.isToday(now)).toList();
+    final upcoming = store.plannedFollowUps
+      .where((plan) => plan.isUpcoming(now)).toList();
+    final noDate = store.followUpsWithoutDate;
+    final history = store.pastFollowUps;
+
+    Widget group(String title, List<FollowUpPlan> plans, {
+      String? subtitle,
+    }) {
+      if (plans.isEmpty) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 24),
+          Row(children: [
+            Expanded(child: Text(title, style: const TextStyle(
+              fontSize: 18, color: Palette.ink, fontWeight: FontWeight.w700))),
+            Text('${plans.length}', style: const TextStyle(
+              fontSize: 14, color: Palette.muted)),
+          ]),
+          if (subtitle != null) ...[
+            const SizedBox(height: 5),
+            Text(subtitle, style: const TextStyle(
+              fontSize: 13, color: Palette.muted)),
+          ],
+          const SizedBox(height: 11),
+          for (final plan in plans) ...[
+            _FollowUpCard(
+              plan: plan,
+              patient: store.patientById(plan.patientId),
+              onOpenPatient: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) =>
+                  PatientDetailScreen(patientId: plan.patientId))),
+              onEdit: () => openEditor(plan: plan),
+              onComplete: () => closePlan(plan, completed: true),
+              onCancel: () => closePlan(plan, completed: false),
+            ),
+            const SizedBox(height: 10),
+          ],
+        ],
+      );
+    }
 
     return ListView(
       physics: const BouncingScrollPhysics(),
       children: [
         ScreenWidth(
-          padding: const EdgeInsets.fromLTRB(21, 27, 21, 42),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('CONTINUITÉ DES SOINS', style: TextStyle(
-              fontSize: 12, letterSpacing: .5,
-              color: Palette.forest, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
-            const Text('Suivi médical', style: TextStyle(
-              fontSize: 27, letterSpacing: -.6,
-              color: Palette.ink, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 7),
-            const Text('Retrouvez les patients à revoir.',
-              style: TextStyle(fontSize: 14, color: Palette.muted)),
-            const SizedBox(height: 23),
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
-              decoration: BoxDecoration(
-                color: Palette.white,
-                borderRadius: BorderRadius.circular(21),
-                border: Border.all(color: Palette.border),
+          padding: const EdgeInsets.fromLTRB(20, 23, 20, 42),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('CONTINUITÉ DES SOINS', style: TextStyle(
+                      fontSize: 12, letterSpacing: .5,
+                      color: Palette.forest, fontWeight: FontWeight.w700)),
+                    SizedBox(height: 9),
+                    Text('Suivi médical', style: TextStyle(
+                      fontSize: 27, letterSpacing: -.6,
+                      color: Palette.ink, fontWeight: FontWeight.w700)),
+                    SizedBox(height: 6),
+                    Text('Rendez-vous et prochaines visites.',
+                      style: TextStyle(fontSize: 14, color: Palette.muted)),
+                  ],
+                )),
+                const SizedBox(width: 8),
+                IconButton.filled(
+                  tooltip: 'Programmer un suivi',
+                  onPressed: () => openEditor(),
+                  icon: const Icon(Icons.add_rounded),
+                ),
+              ]),
+              const SizedBox(height: 22),
+              Container(
+                padding: const EdgeInsets.all(17),
+                decoration: BoxDecoration(
+                  color: Palette.white,
+                  border: Border.all(color: Palette.border),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(children: [
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('SUIVIS À TRAITER', style: TextStyle(
+                        fontSize: 12, color: Palette.muted,
+                        fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      Text('${overdue.length + today.length}',
+                        style: const TextStyle(
+                          fontSize: 38, color: Palette.ink,
+                          fontWeight: FontWeight.w700, height: 1)),
+                      const SizedBox(height: 7),
+                      Text('${overdue.length} en retard · ${today.length} aujourd’hui',
+                        style: const TextStyle(
+                          fontSize: 12.5, color: Palette.muted)),
+                    ],
+                  )),
+                  SvgPicture.asset(
+                    'assets/illustrations/care_calendar.svg',
+                    width: 100,
+                    height: 90,
+                    fit: BoxFit.contain,
+                    semanticsLabel: 'Illustration de calendrier de soins',
+                  ),
+                ]),
               ),
+              if (overdue.isNotEmpty) ...[
+                const SizedBox(height: 13),
+                _InfoStrip(
+                  icon: Icons.schedule_outlined,
+                  text: '${overdue.length} suivi(s) avec une date dépassée. '
+                    'Vérifiez les dossiers concernés.',
+                ),
+              ],
+              if (overdue.isEmpty && today.isEmpty &&
+                  upcoming.isEmpty && noDate.isEmpty) ...[
+                const SizedBox(height: 28),
+                const EmptyResults(
+                  title: 'Aucun suivi en attente',
+                  detail: 'Programmez une visite depuis un dossier patient.'),
+              ],
+              group('En retard', overdue,
+                subtitle: 'Échéances précédant aujourd’hui'),
+              group('Aujourd’hui', today),
+              group('À venir', upcoming),
+              if (noDate.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                const SectionHeading(title: 'À programmer'),
+                const SizedBox(height: 7),
+                const Text('Suivis signalés sans date précise.',
+                  style: TextStyle(fontSize: 13, color: Palette.muted)),
+                const SizedBox(height: 11),
+                for (final patient in noDate) ...[
+                  SurfaceCard(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 11),
+                    child: Row(children: [
+                      PatientAvatar(patient: patient, size: 41),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(patient.name, style:
+                        const TextStyle(fontSize: 14,
+                          fontWeight: FontWeight.w600))),
+                      IconButton(
+                        tooltip: 'Choisir une date',
+                        onPressed: () => openEditor(patientId: patient.id),
+                        icon: const Icon(Icons.event_available_outlined,
+                          color: Palette.forest),
+                      ),
+                    ]),
+                  ),
+                  const SizedBox(height: 9),
+                ],
+              ],
+              const SizedBox(height: 23),
+              TextButton.icon(
+                onPressed: () => setState(() => showHistory = !showHistory),
+                icon: Icon(showHistory
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.history_rounded),
+                label: Text(showHistory
+                  ? 'Masquer l’historique'
+                  : 'Historique des suivis (${history.length})'),
+              ),
+              if (showHistory) ...[
+                if (history.isEmpty)
+                  const Text('Aucun suivi clôturé.',
+                    style: TextStyle(color: Palette.muted, fontSize: 13)),
+                group('Suivis terminés ou annulés', history),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoStrip extends StatelessWidget {
+  const _InfoStrip({required this.icon, required this.text});
+  final IconData icon;
+  final String text;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
+    decoration: BoxDecoration(
+      color: Palette.tealSoft,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Row(children: [
+      Icon(icon, size: 20, color: Palette.forest),
+      const SizedBox(width: 10),
+      Expanded(child: Text(text, style: const TextStyle(
+        fontSize: 13, color: Palette.ink, height: 1.3))),
+    ]),
+  );
+}
+
+class _FollowUpCard extends StatelessWidget {
+  const _FollowUpCard({
+    required this.plan,
+    required this.patient,
+    required this.onOpenPatient,
+    required this.onEdit,
+    required this.onComplete,
+    required this.onCancel,
+  });
+  final FollowUpPlan plan;
+  final Patient? patient;
+  final VoidCallback onOpenPatient;
+  final VoidCallback onEdit;
+  final VoidCallback onComplete;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final date = plan.scheduledAt;
+    final dateLabel = '${date.day.toString().padLeft(2, '0')}/'
+      '${date.month.toString().padLeft(2, '0')}/${date.year}';
+    final timeLabel = '${date.hour.toString().padLeft(2, '0')}:'
+      '${date.minute.toString().padLeft(2, '0')}';
+    final isHistory = !plan.isPlanned;
+    final statusLabel = switch (plan.status) {
+      FollowUpStatus.planned => '',
+      FollowUpStatus.completed => 'Terminé',
+      FollowUpStatus.cancelled => 'Annulé',
+    };
+    return Material(
+      color: Palette.white,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(13, 12, 12, 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: Palette.border),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            InkWell(
+              onTap: onOpenPatient,
               child: Row(children: [
+                if (patient != null)
+                  PatientAvatar(patient: patient!, size: 41)
+                else const SoftIcon(icon: Icons.folder_outlined),
+                const SizedBox(width: 11),
                 Expanded(child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('DOSSIERS À REVOIR', style: TextStyle(
-                      fontSize: 12, color: Palette.muted,
-                      letterSpacing: 1.1, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 8),
-                    Text('${followups.length}', style: const TextStyle(
-                      fontSize: 39, height: 1,
-                      letterSpacing: -1, fontWeight: FontWeight.w700,
-                      color: Palette.ink)),
-                    const SizedBox(height: 7),
-                    const Text('Suivi signalé dans les dossiers',
-                      style: TextStyle(fontSize: 13, color: Palette.muted)),
+                    Text(patient?.name ?? 'Patient introuvable',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    Text('$dateLabel · $timeLabel',
+                      style: const TextStyle(
+                        fontSize: 13, color: Palette.muted)),
                   ],
                 )),
-                SvgPicture.asset(
-                  'assets/illustrations/care_calendar.svg',
-                  width: 112,
-                  height: 91,
-                  fit: BoxFit.contain,
-                  semanticsLabel: 'Illustration de calendrier de soins',
-                ),
+                if (!isHistory)
+                  PopupMenuButton<String>(
+                    tooltip: 'Actions du suivi',
+                    onSelected: (action) {
+                      if (action == 'edit') onEdit();
+                      if (action == 'done') onComplete();
+                      if (action == 'cancel') onCancel();
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'edit',
+                        child: Text('Modifier la date')),
+                      PopupMenuItem(value: 'done',
+                        child: Text('Marquer terminé')),
+                      PopupMenuItem(value: 'cancel',
+                        child: Text('Annuler le rendez-vous')),
+                    ],
+                  )
+                else const Icon(Icons.check_circle_outline_rounded,
+                  color: Palette.muted, size: 20),
               ]),
             ),
-            const SizedBox(height: 28),
-            const SectionHeading(title: 'Patients à suivre'),
-            const SizedBox(height: 12),
-            if (followups.isEmpty)
-              const EmptyResults(
-                title: 'Aucun suivi',
-                detail: 'Les dossiers à revoir apparaîtront ici.')
-            else for (final p in followups) ...[
-              PatientRow(
-                patient: p,
-                subtitle: 'Dernière consultation : ${store.visitsFor(p.id).isEmpty ? 'non renseignée' : shortDate(store.visitsFor(p.id).first.date)}',
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => PatientDetailScreen(patientId: p.id))),
-              ),
-              const SizedBox(height: 9),
+            const SizedBox(height: 11),
+            Text(plan.reason, style: const TextStyle(
+              color: Palette.ink, fontSize: 14, fontWeight: FontWeight.w600)),
+            if (plan.notes.isNotEmpty) ...[
+              const SizedBox(height: 5),
+              Text(plan.notes, maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Palette.muted, fontSize: 13)),
             ],
-            const SizedBox(height: 17),
-
-          ]),
+            if (isHistory) ...[
+              const SizedBox(height: 7),
+              Text(statusLabel, style: const TextStyle(
+                color: Palette.forest, fontSize: 13,
+                fontWeight: FontWeight.w600)),
+            ],
+          ],
         ),
-      ],
+      ),
     );
   }
 }
