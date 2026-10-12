@@ -47,14 +47,14 @@ class HomeScreen extends StatelessWidget {
               const Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text('MediSuivi', style: TextStyle(
-                    fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: -.35)),
+                    fontSize: 17.5, fontWeight: FontWeight.w700, letterSpacing: -.4)),
                   SizedBox(height: 2),
                   Text('Espace clinique personnel', style: TextStyle(
                     fontSize: 13.5, color: Palette.muted)),
                 ])),
               IconButton(
                 tooltip: 'Paramètres',
-                style: IconButton.styleFrom(backgroundColor: Palette.white,
+                style: IconButton.styleFrom(backgroundColor: Palette.surface,
                   side: const BorderSide(color: Palette.border)),
                 icon: const Icon(Icons.tune_rounded),
                 onPressed: () => Navigator.of(context).push(
@@ -67,7 +67,7 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 14, color: Palette.muted)),
             const SizedBox(height: 6),
             const Text('Suivi des patients', style: TextStyle(
-              fontSize: 27, letterSpacing: -.6,
+              fontSize: 23, height: 1.22, letterSpacing: -.7,
               fontWeight: FontWeight.w700, height: 1.18)),
             const SizedBox(height: 6),
             const Text('Vos dossiers et vos prochaines actions.',
@@ -94,7 +94,7 @@ class HomeScreen extends StatelessWidget {
                 trailing: 'Calendrier', onTap: onFollowup),
               const SizedBox(height: 10),
               Material(
-                color: Palette.white,
+                color: Palette.surface,
                 borderRadius: BorderRadius.circular(17),
                 child: InkWell(
                   onTap: onFollowup,
@@ -147,7 +147,7 @@ class HomeScreen extends StatelessWidget {
                 detail: 'Ajoutez votre premier dossier.')
             else Container(
               decoration: BoxDecoration(
-                color: Palette.white,
+                color: Palette.surface,
                 borderRadius: BorderRadius.circular(19),
                 border: Border.all(color: Palette.border)),
               child: Column(children: [
@@ -272,7 +272,7 @@ class _Summary extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('$total', style: const TextStyle(
-                          color: Palette.white, fontSize: 43,
+                          color: Palette.white, fontSize: 39,
                           height: 1, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 8),
                         const Text('patients enregistrés',
@@ -351,7 +351,7 @@ class _QuickStat extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => Material(
-    color: Palette.white,
+    color: Palette.surface,
     borderRadius: BorderRadius.circular(19),
     child: InkWell(
       onTap: onTap,
@@ -370,7 +370,7 @@ class _QuickStat extends StatelessWidget {
           ]),
           const SizedBox(height: 17),
           Text('$number', style: const TextStyle(
-            fontSize: 27, fontWeight: FontWeight.w700, height: 1)),
+            fontSize: 24, fontWeight: FontWeight.w700, height: 1)),
           const SizedBox(height: 7),
           Text(label, maxLines: 2, style: const TextStyle(
             color: Palette.ink, fontSize: 13, fontWeight: FontWeight.w500)),
