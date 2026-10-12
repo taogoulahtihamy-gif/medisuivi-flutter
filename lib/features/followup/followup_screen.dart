@@ -51,14 +51,15 @@ class _FollowupScreenState extends State<FollowupScreen> {
   Widget build(BuildContext context) {
     final store = context.store;
     final now = DateTime.now();
-    final overdue = store.plannedFollowUps
+    final planned = List<FollowUpPlan>.from(store.plannedFollowUps);
+    final overdue = planned
       .where((plan) => plan.isOverdue(now)).toList();
-    final today = store.plannedFollowUps
+    final today = planned
       .where((plan) => plan.isToday(now)).toList();
-    final upcoming = store.plannedFollowUps
+    final upcoming = planned
       .where((plan) => plan.isUpcoming(now)).toList();
-    final noDate = store.followUpsWithoutDate;
-    final history = store.pastFollowUps;
+    final List<Patient> noDate = List<Patient>.from(store.followUpsWithoutDate);
+    final List<FollowUpPlan> history = List<FollowUpPlan>.from(store.pastFollowUps);
 
     Widget group(String title, List<FollowUpPlan> plans, {
       String? subtitle,
