@@ -20,3 +20,5 @@ jobs:
         run: flutter analyze --no-fatal-infos
       - name: Flutter tests
         run: flutter test --reporter expanded
+      - name: Production Web build
+        run: flutter build web --release
