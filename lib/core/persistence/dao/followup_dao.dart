@@ -99,7 +99,7 @@ class FollowUpDao extends DatabaseAccessor<AppDatabase> with _$FollowUpDaoMixin 
         .watch();
   }
 
-  /// Reporte un suivi
+  /// Reporte un suivi non clôturé et inscrit son opération durable.
   Future<void> rescheduleFollowUp({
     required String followUpId,
     required DateTime scheduledAt,
@@ -111,8 +111,39 @@ class FollowUpDao extends DatabaseAccessor<AppDatabase> with _$FollowUpDaoMixin 
       final existing = await (select(followUps)
         ..where((f) => f.id.equals(followUpId))).getSingleOrNull();
       if (existing == null) throw StateError('Suivi introuvable.');
-      if (existing.status != 0) throw StateError('Un suivi terminé ne peut pas être modifié.');
-      await attachedDatabase.transaction(() async {
+      if (existing.status != 0) {
+        throw StateError('Un suivi terminé ne peut pas être modifié.');
+      }
+      await (update(followUps)..where((f) => f.id.equals(followUpId))).write(
+        FollowUpsCompanion(
+          scheduledAt: Value(scheduledAt.toUtc()),
+          reason: Value(reason),
+          notes: Value(notes),
+          updatedAt: Value(now),
+        ),
+      );
+      await attachedDatabase.pendingOperationsDao.addOperation(
+        operationId: generateId(),
+        entityType: 'followup',
+        entityId: followUpId,
+        operationType: 'update',
+        payload: jsonEncode({
+          'id': followUpId,
+          'scheduledAt': scheduledAt.toUtc().toIso8601String(),
+          'reason': reason, 'notes': notes,
+        }),
+        baseRevision: 0,
+      );
+    });
+  }
+
+  /// Clôture un suivi et conserve la trace de la modification.
+  Future<void> closeFollowUp({
+    required String followUpId,
+    required bool completed,
+  }) async {
+    final now = DateTime.now().toUtc();
+    await attachedDatabase.transaction(() async {
       final existing = await (select(followUps)
         ..where((f) => f.id.equals(followUpId))).getSingleOrNull();
       if (existing == null) throw StateError('Suivi introuvable.');
