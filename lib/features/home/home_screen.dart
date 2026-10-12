@@ -23,6 +23,10 @@ class HomeScreen extends StatelessWidget {
     final patients = store.patients;
     final toReview = patients.where((p) => p.followUp).length;
     final pending = store.exams.where((e) => e.status == ExamStatus.pending).length;
+    final today = DateTime.now();
+    final coming = store.plannedFollowUps
+      .where((plan) => !plan.isOverdue(today)).toList();
+    final nextVisit = coming.isEmpty ? null : coming.first;
     void addPatient() => Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => const NewPatientScreen()));
 
@@ -84,6 +88,55 @@ class HomeScreen extends StatelessWidget {
                 number: pending, label: 'Bilans en attente',
                 icon: Icons.biotech_outlined, onTap: onExams)),
             ]),
+            if (nextVisit != null) ...[
+              const SizedBox(height: 23),
+              SectionHeading(title: 'Prochaine visite',
+                trailing: 'Calendrier', onTap: onFollowup),
+              const SizedBox(height: 10),
+              Material(
+                color: Palette.white,
+                borderRadius: BorderRadius.circular(17),
+                child: InkWell(
+                  onTap: onFollowup,
+                  borderRadius: BorderRadius.circular(17),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15, vertical: 13),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Palette.border),
+                      borderRadius: BorderRadius.circular(17),
+                    ),
+                    child: Row(children: [
+                      const SoftIcon(icon: Icons.event_available_outlined),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(store.patientById(nextVisit.patientId)?.name ??
+                            'Patient inconnu',
+                            style: const TextStyle(
+                              fontSize: 14.5, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 4),
+                          Text(nextVisit.reason,
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13, color: Palette.muted)),
+                          const SizedBox(height: 4),
+                          Text('${shortDate(nextVisit.scheduledAt)} · '
+                            '${nextVisit.scheduledAt.hour.toString().padLeft(2, '0')}:'
+                            '${nextVisit.scheduledAt.minute.toString().padLeft(2, '0')}',
+                            style: const TextStyle(
+                              fontSize: 12.5, color: Palette.forest,
+                              fontWeight: FontWeight.w600)),
+                        ],
+                      )),
+                      const Icon(Icons.chevron_right_rounded,
+                        color: Palette.muted),
+                    ]),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 27),
             SectionHeading(title: 'Dossiers récents',
               trailing: 'Voir tout', onTap: onPatients),
