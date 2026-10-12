@@ -35,7 +35,7 @@ class HomeScreen extends StatelessWidget {
       physics: const BouncingScrollPhysics(),
       children: [
         ScreenWidth(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 44),
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 105),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Container(width: 43, height: 43,
@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
                     fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: -.35)),
                   SizedBox(height: 2),
                   Text('Espace clinique personnel', style: TextStyle(
-                    fontSize: 12.5, color: Palette.muted)),
+                    fontSize: 13.5, color: Palette.muted)),
                 ])),
               IconButton(
                 tooltip: 'Paramètres',
@@ -64,7 +64,7 @@ class HomeScreen extends StatelessWidget {
             ]),
             const SizedBox(height: 25),
             Text(shortDate(DateTime.now()),
-              style: const TextStyle(fontSize: 13, color: Palette.muted)),
+              style: const TextStyle(fontSize: 14, color: Palette.muted)),
             const SizedBox(height: 6),
             const Text('Suivi des patients', style: TextStyle(
               fontSize: 27, letterSpacing: -.6,
@@ -120,7 +120,7 @@ class HomeScreen extends StatelessWidget {
                           Text(nextVisit.reason,
                             maxLines: 1, overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 13, color: Palette.muted)),
+                              fontSize: 14, color: Palette.muted)),
                           const SizedBox(height: 4),
                           Text('${shortDate(nextVisit.scheduledAt)} · '
                             '${nextVisit.scheduledAt.hour.toString().padLeft(2, '0')}:'
@@ -401,7 +401,7 @@ class _RecentPatient extends StatelessWidget {
             const SizedBox(height: 4),
             Text('${patient.id} · ${patient.age} ans',
               style: const TextStyle(
-                fontSize: 12.5, color: Palette.muted)),
+                fontSize: 13.5, color: Palette.muted)),
           ])),
         if (patient.followUp) const Icon(
           Icons.event_repeat_rounded, size: 18, color: Palette.forest),
