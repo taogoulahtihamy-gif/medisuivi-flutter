@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/theme.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 import 'new_patient_screen.dart';
 import 'patient_detail_screen.dart';
@@ -18,7 +18,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final all = DemoScope.of(context).patients;
+    final all = context.store.patients;
     final term = query.toLowerCase().trim();
     final filtered = all.where((p) =>
       (!followUpOnly || p.followUp) &&
