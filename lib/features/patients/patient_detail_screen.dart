@@ -5,6 +5,7 @@ import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../consultations/new_consultation_screen.dart';
 import '../exams/exam_editor_screen.dart';
+import '../followup/followup_editor_screen.dart';
 import 'patient_medical_info_screen.dart';
 
 class PatientDetailScreen extends StatelessWidget {
@@ -20,6 +21,8 @@ class PatientDetailScreen extends StatelessWidget {
     final exams = store.examsFor(patient.id);
     final last = visits.isEmpty ? null : visits.first;
     final pending = exams.where((e) => e.status == ExamStatus.pending).length;
+    final planned = store.followUpsFor(patient.id)
+      .where((plan) => plan.isPlanned).toList();
     return Scaffold(
       appBar: AppBar(title: const Text('Dossier médical')),
       body: SafeArea(child: ListView(children: [ScreenWidth(child: Column(
@@ -144,24 +147,60 @@ class PatientDetailScreen extends StatelessWidget {
             ],
           ])),
           const SizedBox(height: 26),
-          const SectionHeading(title: 'Suivi du patient'),
+          SectionHeading(title: 'Suivi du patient', trailing: 'Programmer',
+            onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+              builder: (_) => FollowUpEditorScreen(patientId: patientId)))),
           const SizedBox(height: 11),
-          SurfaceCard(child: Row(children: [
-            const SoftIcon(icon: Icons.event_repeat_rounded),
-            const SizedBox(width: 11),
-            const Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Patient à revoir', style: TextStyle(
-                  fontSize: 15, fontWeight: FontWeight.w600)),
-                SizedBox(height: 5),
-                Text('Ajouter ce dossier à la liste de suivi.',
-                  style: TextStyle(color: Palette.muted, fontSize: 12.5)),
+          SurfaceCard(child: Column(children: [
+            Row(children: [
+              const SoftIcon(icon: Icons.event_repeat_rounded),
+              const SizedBox(width: 11),
+              const Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Patient à revoir', style: TextStyle(
+                    fontSize: 15, fontWeight: FontWeight.w600)),
+                  SizedBox(height: 5),
+                  Text('Signaler un besoin de suivi.',
+                    style: TextStyle(color: Palette.muted, fontSize: 12.5)),
+                ],
+              )),
+              Switch.adaptive(value: patient.followUp,
+                onChanged: (value) => store.setFollowUp(
+                  patientId, toReview: value)),
+            ]),
+            if (planned.isNotEmpty) ...[
+              const Divider(height: 23),
+              for (final plan in planned) ...[
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  const Icon(Icons.event_available_outlined,
+                    color: Palette.forest, size: 19),
+                  const SizedBox(width: 9),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(plan.reason, style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 4),
+                      Text('${shortDate(plan.scheduledAt)} · '
+                        '${plan.scheduledAt.hour.toString().padLeft(2, '0')}:'
+                        '${plan.scheduledAt.minute.toString().padLeft(2, '0')}',
+                        style: const TextStyle(
+                          color: Palette.muted, fontSize: 13)),
+                    ],
+                  )),
+                  IconButton(
+                    tooltip: 'Modifier le rendez-vous',
+                    icon: const Icon(Icons.edit_calendar_outlined,
+                      color: Palette.forest),
+                    onPressed: () => Navigator.push(context,
+                      MaterialPageRoute<void>(builder: (_) =>
+                        FollowUpEditorScreen(plan: plan))),
+                  ),
+                ]),
+                const SizedBox(height: 8),
               ],
-            )),
-            Switch.adaptive(value: patient.followUp,
-              onChanged: (value) => store.setFollowUp(
-                patientId, toReview: value)),
+            ],
           ])),
         ]))])),
     );
