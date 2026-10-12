@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
@@ -11,6 +12,7 @@ class NewPatientScreen extends StatefulWidget {
 }
 
 class _NewPatientScreenState extends State<NewPatientScreen> {
+  bool _saving = false;
   final form = GlobalKey<FormState>();
   final name = TextEditingController();
   final age = TextEditingController();
@@ -25,21 +27,28 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
     super.dispose();
   }
 
-  void save() {
-    if (!(form.currentState?.validate() ?? false)) return;
-    context.store.addPatient(
-      name: name.text,
-      age: int.parse(age.text.trim()),
-      sex: sex,
-      phone: phone.text,
-    );
-    final messenger = ScaffoldMessenger.of(context);
-    Navigator.pop(context);
-    messenger.showSnackBar(const SnackBar(
-      content: Text('Patient ajouté pour cette session.'),
-    ));
+  Future<void> save() async {
+    if (_saving || !(form.currentState?.validate() ?? false)) return;
+    setState(() => _saving = true);
+    try {
+      await context.store.addPatient(
+        name: name.text,
+        age: int.parse(age.text.trim()),
+        sex: sex,
+        phone: phone.text,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Enregistrement impossible. Réessayez.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
-
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Nouveau patient')),
@@ -138,13 +147,13 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                 ),
                 const SizedBox(height: 22),
                 ElevatedButton.icon(
-                  onPressed: save,
+                  onPressed: _saving ? null : save,
                   icon: const Icon(Icons.check_rounded),
                   label: const Text('Ajouter le patient'),
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Les saisies en V0 ne sont pas sauvegardées après la fermeture.',
+                  kIsWeb ? 'Version Web : données fictives temporaires.' : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: Palette.of(context).laserMuted),
                 ),
