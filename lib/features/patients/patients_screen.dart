@@ -34,7 +34,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
             const SizedBox(height: 2),
             Row(children: [
               const Expanded(child: Text('Mes patients', style: TextStyle(
-                fontSize: 27, letterSpacing: -.6,
+                fontSize: 23, letterSpacing: -.65,
                 fontWeight: FontWeight.w700, color: Palette.ink))),
               IconButton.filled(
                 tooltip: 'Nouveau patient',
@@ -119,7 +119,7 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: selected ? Palette.tealSoft : Palette.white,
+    color: selected ? Palette.tealSoft : Palette.surface,
     borderRadius: BorderRadius.circular(14),
     child: InkWell(
       onTap: onTap,
