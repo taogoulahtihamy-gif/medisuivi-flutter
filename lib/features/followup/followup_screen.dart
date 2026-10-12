@@ -77,7 +77,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
           if (subtitle != null) ...[
             const SizedBox(height: 5),
             Text(subtitle, style: const TextStyle(
-              fontSize: 13, color: Palette.muted)),
+              fontSize: 14, color: Palette.muted)),
           ],
           const SizedBox(height: 11),
           for (final plan in plans) ...[
@@ -101,7 +101,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
       physics: const BouncingScrollPhysics(),
       children: [
         ScreenWidth(
-          padding: const EdgeInsets.fromLTRB(20, 23, 20, 42),
+          padding: const EdgeInsets.fromLTRB(20, 23, 20, 105),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -110,7 +110,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('CONTINUITÉ DES SOINS', style: TextStyle(
-                      fontSize: 12, letterSpacing: .5,
+                      fontSize: 13, letterSpacing: .5,
                       color: Palette.forest, fontWeight: FontWeight.w700)),
                     SizedBox(height: 9),
                     Text('Suivi médical', style: TextStyle(
@@ -141,7 +141,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('SUIVIS À TRAITER', style: TextStyle(
-                        fontSize: 12, color: Palette.muted,
+                        fontSize: 13.5, color: Palette.muted,
                         fontWeight: FontWeight.w700)),
                       const SizedBox(height: 8),
                       Text('${overdue.length + today.length}',
@@ -151,7 +151,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
                       const SizedBox(height: 7),
                       Text('${overdue.length} en retard · ${today.length} aujourd’hui',
                         style: const TextStyle(
-                          fontSize: 12.5, color: Palette.muted)),
+                          fontSize: 14, color: Palette.muted)),
                     ],
                   )),
                   SvgPicture.asset(
@@ -223,7 +223,7 @@ class _FollowupScreenState extends State<FollowupScreen> {
               if (showHistory) ...[
                 if (history.isEmpty)
                   const Text('Aucun suivi clôturé.',
-                    style: TextStyle(color: Palette.muted, fontSize: 13)),
+                    style: TextStyle(color: Palette.muted, fontSize: 14, height: 1.4)),
                 group('Suivis terminés ou annulés', history),
               ],
             ],
@@ -249,7 +249,7 @@ class _InfoStrip extends StatelessWidget {
       Icon(icon, size: 20, color: Palette.forest),
       const SizedBox(width: 10),
       Expanded(child: Text(text, style: const TextStyle(
-        fontSize: 13, color: Palette.ink, height: 1.3))),
+        fontSize: 14, color: Palette.ink, height: 1.3))),
     ]),
   );
 }
@@ -287,7 +287,7 @@ class _FollowUpCard extends StatelessWidget {
       color: Palette.white,
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(13, 12, 12, 12),
+        padding: const EdgeInsets.fromLTRB(15, 15, 12, 15),
         decoration: BoxDecoration(
           border: Border.all(color: Palette.border),
           borderRadius: BorderRadius.circular(18),
@@ -309,7 +309,7 @@ class _FollowUpCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                        fontSize: 16, height: 1.3, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     Text('$dateLabel · $timeLabel',
                       style: const TextStyle(
@@ -339,10 +339,11 @@ class _FollowUpCard extends StatelessWidget {
             ),
             const SizedBox(height: 11),
             Text(plan.reason, style: const TextStyle(
-              color: Palette.ink, fontSize: 14, fontWeight: FontWeight.w600)),
+              color: Palette.ink, fontSize: 15.5, height: 1.4,
+              fontWeight: FontWeight.w600)),
             if (plan.notes.isNotEmpty) ...[
               const SizedBox(height: 5),
-              Text(plan.notes, maxLines: 3,
+              Text(plan.notes, maxLines: 4,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Palette.muted, fontSize: 13)),
             ],
