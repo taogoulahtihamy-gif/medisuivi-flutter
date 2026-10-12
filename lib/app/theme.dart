@@ -7,8 +7,8 @@ abstract final class Palette {
   static const canvas = Color(0xFFF7F9F8);
   static const white = Color(0xFFFFFFFF);
   static const ink = Color(0xFF21352F);
-  static const muted = Color(0xFF687A73);
-  static const border = Color(0xFFE2EAE5);
+  static const muted = Color(0xFF51665C);
+  static const border = Color(0xFFD7E3DA);
   static const forest = Color(0xFF16624F);
   static const teal = forest;
   static const tealDark = Color(0xFF10513F);
@@ -75,9 +75,9 @@ abstract final class MediTheme {
       bodyLarge: TextStyle(fontSize: 16, height: 1.45,
         fontWeight: FontWeight.w400),
       bodyMedium: TextStyle(fontSize: 14, height: 1.4),
-      bodySmall: TextStyle(fontSize: 13, height: 1.38),
+      bodySmall: TextStyle(fontSize: 14, height: 1.42),
       labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-      labelMedium: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+      labelMedium: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
     ).apply(bodyColor: Palette.ink, displayColor: Palette.ink);
 
     return base.copyWith(
