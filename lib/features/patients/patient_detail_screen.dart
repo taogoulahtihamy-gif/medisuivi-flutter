@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../consultations/new_consultation_screen.dart';
 import '../exams/exam_editor_screen.dart';
@@ -15,7 +15,7 @@ class PatientDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = DemoScope.of(context);
+    final store = context.store;
     final patient = store.patientById(patientId);
     if (patient == null) return const Scaffold(body: Center(child: Text('Dossier introuvable.')));
     final visits = store.visitsFor(patient.id);
