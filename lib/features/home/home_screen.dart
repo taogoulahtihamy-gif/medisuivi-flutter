@@ -67,8 +67,8 @@ class HomeScreen extends StatelessWidget {
               style: const TextStyle(fontSize: 14, color: Palette.muted)),
             const SizedBox(height: 6),
             const Text('Suivi des patients', style: TextStyle(
-              fontSize: 23, height: 1.22, letterSpacing: -.7,
-              fontWeight: FontWeight.w700, height: 1.18)),
+              fontSize: 23, height: 1.18, letterSpacing: -.7,
+              fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
             const Text('Vos dossiers et vos prochaines actions.',
               style: TextStyle(fontSize: 14, color: Palette.muted)),
