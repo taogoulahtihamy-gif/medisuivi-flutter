@@ -23,10 +23,10 @@ void main() {
     expect(patient.initials, 'AD');
   });
 
-  testWidgets('Accueil et avertissement de démonstration', (tester) async {
+  testWidgets('Accueil professionnel sans bandeau répétitif', (tester) async {
     await tester.pumpWidget(const MediSuiviApp());
     expect(find.text('MediSuivi'), findsOneWidget);
-    expect(find.textContaining('Démonstration'), findsWidgets);
+    expect(find.textContaining('Démonstration'), findsNothing);
     expect(find.text('Suivi des patients'), findsOneWidget);
     expect(find.text('À consulter'), findsOneWidget);
   });
@@ -101,8 +101,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Aminata Diallo').first);
     await tester.pumpAndSettle();
-    expect(find.text('Dossier patient'), findsOneWidget);
+    expect(find.text('Dossier médical'), findsOneWidget);
     expect(find.text('Dernières constantes'), findsOneWidget);
+    expect(find.text('Informations médicales'), findsOneWidget);
   });
   testWidgets('Formulaire patient sur mobile étroit', (tester) async {
     tester.view.physicalSize = const Size(320, 740);
