@@ -400,6 +400,78 @@ void main() {
       _cleanupDb(dbPath);
     });
 
+    test('11. Les changements métiers alimentent une outbox durable', () async {
+      final dbPath = _generateDbPath('outbox_restart');
+      _cleanupDb(dbPath);
+      final database = await _openTestDatabase(validKey, dbPath);
+
+      await database.patientDao.createPatient(
+        name: 'Patiente fictive', age: 35, sex: 'F', phone: '0101010101',
+      );
+      final patient = (await database.patientDao.getAllPatients()).single;
+
+      await database.patientDao.updatePatientInfo(
+        patientId: patient.id, phone: '0202020202',
+        allergies: 'Aucune', medicalHistory: 'Aucun',
+      );
+      await database.visitDao.createVisit(
+        patientId: patient.id, reason: 'Contrôle fictif',
+      );
+      final exam = await database.examDao.createExam(
+        patientId: patient.id, title: 'Bilan fictif',
+      );
+      await database.examDao.recordExamResult(
+        examId: exam, result: 'Résultat fictif',
+      );
+      await database.followUpDao.scheduleFollowUp(
+        patientId: patient.id,
+        scheduledAt: DateTime.now().add(const Duration(days: 2)),
+        reason: 'Suivi fictif',
+      );
+      final followup = (await database.followUpDao.getFollowUpsForPatient(patient.id)).single;
+      await database.followUpDao.closeFollowUp(
+        followUpId: followup.id, completed: true,
+      );
+      final pending = await database.pendingOperationsDao.getPendingOperations();
+      expect(pending.length, 7);
+      expect(pending.map((x) => x.operationId).toSet().length, 7);
+      expect(pending.map((x) => x.entityType),
+        containsAll(['patient', 'visit', 'exam', 'followup']));
+      expect(pending.every((x) => x.baseRevision == 0), isTrue);
+      await database.close();
+
+      final reopened = await _openTestDatabase(validKey, dbPath);
+      expect((await reopened.pendingOperationsDao.getPendingOperations()).length, 7,
+        reason: 'La file doit survivre à un redémarrage hors connexion');
+      expect((await reopened.patientDao.getAllPatients()).single.name,
+        'Patiente fictive');
+      await reopened.close();
+      _cleanupDb(dbPath);
+    });
+
+    test('12. Échec outbox annule la création du dossier patient', () async {
+      final dbPath = _generateDbPath('outbox_rollback');
+      _cleanupDb(dbPath);
+      final database = await _openTestDatabase(validKey, dbPath);
+      // Simule une écriture outbox refusée par SQLite.
+      await database.customStatement('''
+        CREATE TRIGGER reject_pending_outbox
+        BEFORE INSERT ON pending_operations
+        BEGIN SELECT RAISE(ABORT, 'outbox unavailable'); END;
+      ''');
+
+      await expectLater(
+        database.patientDao.createPatient(
+          name: 'Jamais enregistrée', age: 29, sex: 'F', phone: '0101010101',
+        ),
+        throwsA(isA<Exception>()),
+      );
+      expect(await database.patientDao.getAllPatients(), isEmpty,
+        reason: 'Aucun dossier partiel si la transaction outbox échoue');
+      await database.close();
+      _cleanupDb(dbPath);
+    });
+
     test('10. Clé dérivée format hex 64 caractères', () async {
       final key = await encryptionService.getSqlCipherKey();
       
