@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 
 /// Informations complémentaires de la fiche. Données de session uniquement.
@@ -40,7 +40,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    DemoScope.of(context).updatePatientInfo(
+    context.store.updatePatientInfo(
       patientId: widget.patient.id,
       phone: phone.text,
       allergies: allergies.text,
