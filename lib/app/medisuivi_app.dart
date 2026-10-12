@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/state/demo_store.dart';
+import '../core/widgets/clinical_sidebar.dart';
+import '../features/settings/settings_screen.dart';
 import '../features/exams/exams_screen.dart';
 import '../features/followup/followup_screen.dart';
 import '../features/home/home_screen.dart';
@@ -50,6 +52,12 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   int selected = 0;
+  bool? _expandedOverride;
+
+  void _toggleSidebar() {
+    final isDesktop = MediaQuery.sizeOf(context).width >= ClinicalBreakpoints.tablet;
+    setState(() => _expandedOverride = !(_expandedOverride ?? isDesktop));
+  }
 
   void _select(int index) {
     if (index != selected) {
@@ -76,7 +84,7 @@ class _MainShellState extends State<MainShell> {
     final palette = Palette.of(context);
     final width = MediaQuery.sizeOf(context).width;
     final showRail = width >= ClinicalBreakpoints.mobile;
-    final expandedRail = width >= ClinicalBreakpoints.tablet;
+    final expandedRail = _expandedOverride ?? width >= ClinicalBreakpoints.tablet;
 
     final content = SafeArea(
       bottom: false,
@@ -105,52 +113,17 @@ class _MainShellState extends State<MainShell> {
       body: showRail
           ? SafeArea(
               child: Row(children: [
-                NavigationRail(
+                ClinicalSidebar(
                   selectedIndex: selected,
-                  onDestinationSelected: _select,
-                  extended: expandedRail,
-                  minWidth: 76,
-                  minExtendedWidth: 252,
-                  backgroundColor: palette.surface,
-                  indicatorColor: palette.tealSoft,
-                  selectedIconTheme: IconThemeData(color: palette.forest, size: 24),
-                  unselectedIconTheme: IconThemeData(color: palette.muted, size: 24),
-                  selectedLabelTextStyle: TextStyle(
-                    color: palette.ink, fontSize: 13, fontWeight: FontWeight.w700),
-                  unselectedLabelTextStyle: TextStyle(
-                    color: palette.muted, fontSize: 13),
-                  labelType: expandedRail
-                      ? NavigationRailLabelType.none
-                      : NavigationRailLabelType.all,
-                  leading: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 22),
-                    child: Icon(Icons.medical_services_outlined,
-                      color: palette.forest, size: 28),
+                  expanded: expandedRail,
+                  onSelected: _select,
+                  onToggle: _toggleSidebar,
+                  onSettings: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SettingsScreen(),
+                    ),
                   ),
-                  destinations: [
-                    NavigationRailDestination(
-                      icon: Icon(isIos ? CupertinoIcons.house : Icons.home_outlined),
-                      selectedIcon: Icon(isIos ? CupertinoIcons.house_fill : Icons.home_rounded),
-                      label: const Text('Accueil'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(isIos ? CupertinoIcons.person_2 : Icons.people_outline_rounded),
-                      selectedIcon: Icon(isIos ? CupertinoIcons.person_2_fill : Icons.people_rounded),
-                      label: const Text('Patients'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(isIos ? CupertinoIcons.doc_text : Icons.biotech_outlined),
-                      selectedIcon: Icon(isIos ? CupertinoIcons.doc_text_fill : Icons.biotech_rounded),
-                      label: const Text('Bilans'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(isIos ? CupertinoIcons.chart_bar : Icons.insights_outlined),
-                      selectedIcon: Icon(isIos ? CupertinoIcons.chart_bar_fill : Icons.insights_rounded),
-                      label: const Text('Suivi'),
-                    ),
-                  ],
                 ),
-                VerticalDivider(width: 1, thickness: 1, color: palette.border),
                 Expanded(child: content),
               ]),
             )
