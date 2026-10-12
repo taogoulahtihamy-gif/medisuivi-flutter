@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 import 'exam_detail_screen.dart';
 
@@ -42,7 +42,7 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
 
   void _save() {
     if (!form.currentState!.validate()) return;
-    final store = DemoScope.of(context);
+    final store = context.store;
     late final String examId;
     if (isResult) {
       examId = widget.exam!.id;
