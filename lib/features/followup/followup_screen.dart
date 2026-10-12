@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../patients/patient_detail_screen.dart';
 import 'followup_editor_screen.dart';
@@ -44,12 +44,12 @@ class _FollowupScreenState extends State<FollowupScreen> {
       ),
     );
     if (!mounted || confirmed != true) return;
-    DemoScope.of(context).closeFollowUp(plan.id, completed: completed);
+    context.store.closeFollowUp(plan.id, completed: completed);
   }
 
   @override
   Widget build(BuildContext context) {
-    final store = DemoScope.of(context);
+    final store = context.store;
     final now = DateTime.now();
     final overdue = store.plannedFollowUps
       .where((plan) => plan.isOverdue(now)).toList();
