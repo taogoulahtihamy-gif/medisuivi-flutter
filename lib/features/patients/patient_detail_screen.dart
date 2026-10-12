@@ -16,13 +16,13 @@ class PatientDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = context.store;
-    final patient = store.patientById(patientId);
+    final Patient? patient = store.patientById(patientId);
     if (patient == null) return const Scaffold(body: Center(child: Text('Dossier introuvable.')));
-    final visits = store.visitsFor(patient.id);
-    final exams = store.examsFor(patient.id);
+    final List<Visit> visits = List<Visit>.from(store.visitsFor(patient.id));
+    final List<LabExam> exams = List<LabExam>.from(store.examsFor(patient.id));
     final last = visits.isEmpty ? null : visits.first;
     final pending = exams.where((e) => e.status == ExamStatus.pending).length;
-    final planned = store.followUpsFor(patient.id)
+    final planned = List<FollowUpPlan>.from(store.followUpsFor(patient.id))
       .where((plan) => plan.isPlanned).toList();
     return Scaffold(
       appBar: AppBar(title: const Text('Dossier médical')),
