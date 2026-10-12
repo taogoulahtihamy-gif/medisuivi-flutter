@@ -6,7 +6,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../../app/design_tokens.dart';
 import '../../app/theme.dart';
 
 class ClinicalSidebar extends StatelessWidget {
