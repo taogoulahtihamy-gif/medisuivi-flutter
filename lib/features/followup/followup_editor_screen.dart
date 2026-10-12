@@ -17,6 +17,7 @@ class FollowUpEditorScreen extends StatefulWidget {
 }
 
 class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
+  bool _saving = false;
   final formKey = GlobalKey<FormState>();
   final reason = TextEditingController();
   final notes = TextEditingController();
@@ -68,32 +69,43 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
       scheduledAt.day, selected.hour, selected.minute));
   }
 
-  void save() {
-    if (!(formKey.currentState?.validate() ?? false)) return;
+  Future<void> save() async {
+    if (_saving || !(formKey.currentState?.validate() ?? false)) return;
     if (patientId == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Sélectionnez un dossier patient.')));
+        content: Text('Sélectionnez un dossier patient.'),
+      ));
       return;
     }
-    final store = context.store;
-    if (widget.plan == null) {
-      store.scheduleFollowUp(
-        patientId: patientId!,
-        scheduledAt: scheduledAt,
-        reason: reason.text,
-        notes: notes.text,
-      );
-    } else {
-      store.rescheduleFollowUp(
-        followUpId: widget.plan!.id,
-        scheduledAt: scheduledAt,
-        reason: reason.text,
-        notes: notes.text,
-      );
+    setState(() => _saving = true);
+    try {
+      final store = context.store;
+      if (widget.plan == null) {
+        await store.scheduleFollowUp(
+          patientId: patientId!,
+          scheduledAt: scheduledAt,
+          reason: reason.text,
+          notes: notes.text,
+        );
+      } else {
+        await store.rescheduleFollowUp(
+          followUpId: widget.plan!.id,
+          scheduledAt: scheduledAt,
+          reason: reason.text,
+          notes: notes.text,
+        );
+      }
+      if (mounted) Navigator.of(context).pop();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Impossible de programmer le suivi. Réessayez.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
-    Navigator.of(context).pop();
   }
-
   String formatDate(DateTime date) =>
     '${date.day.toString().padLeft(2, '0')}/'
     '${date.month.toString().padLeft(2, '0')}/${date.year}';
@@ -207,7 +219,7 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
                 ),
                 const SizedBox(height: 22),
                 ElevatedButton.icon(
-                  onPressed: save,
+                  onPressed: _saving ? null : save,
                   icon: const Icon(Icons.check_rounded),
                   label: Text(widget.plan == null
                     ? 'Programmer le suivi' : 'Enregistrer la modification'),
