@@ -18,19 +18,17 @@ extension StoreContext on BuildContext {
   /// L'API publique est identique sur les deux implémentations
   /// (patients, visits, exams, followUps et méthodes métier).
   dynamic get store {
-    final demoElement =
-        getElementForInheritedWidgetOfExactType<DemoScope>();
-    if (demoElement != null) {
-      return (demoElement.widget as DemoScope).notifier;
-    }
-    final persistentElement =
-        getElementForInheritedWidgetOfExactType<PersistentScope>();
-    if (persistentElement != null) {
-      return (persistentElement.widget as PersistentScope).notifier;
-    }
+    // dependOnInheritedWidgetOfExactType enregistre la dépendance.
+    // Les écrans sont donc reconstruits lors des notifications du store,
+    // y compris après une écriture asynchrone Drift.
+    final demoScope = dependOnInheritedWidgetOfExactType<DemoScope>();
+    if (demoScope != null) return demoScope.notifier!;
+    final persistentScope = dependOnInheritedWidgetOfExactType<PersistentScope>();
+    if (persistentScope != null) return persistentScope.notifier!;
     throw StateError(
       'Aucun store disponible dans le contexte. '
       'Vérifiez que DemoScope ou PersistentScope enveloppe MaterialApp.',
     );
+
   }
 }
