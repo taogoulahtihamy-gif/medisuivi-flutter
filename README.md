@@ -4,17 +4,20 @@ Application de suivi clinique **personnelle pour une seule soignante**, avec int
 
 > **V0 : démonstration uniquement.** Données fictives, modifications en mémoire uniquement. Pas encore de connexion, de base locale chiffrée ni de synchronisation réelle. Ne jamais saisir de données patient réelles dans cette version.
 
-## Fonctionnalités de démarrage
+## Fonctionnalités V0.5
 
 - Accueil personnel et indicateurs fictifs.
 - Patients : liste, recherche, création temporaire et dossier individuel.
 - Constantes et historique des consultations.
 - Nouvelle consultation fictive avec validation des valeurs.
-- Bilans / résultats et liste des suivis.
+- Bilans / résultats et historique des examens.
+- Suivi daté : création, report, annulation, clôture et historique des visites à prévoir.
+- Tableau de suivi : échéances en retard, rendez-vous du jour, à venir, et dossiers sans date.
+- Aperçu de la prochaine visite depuis l’accueil et programmation depuis le dossier patient.
 - Navigation mobile adaptative : Cupertino iOS et Material 3 Android.
 - Identité **clinique sobre** : vert hospitalier `#16624F`, surfaces neutres, texte graphite, typographies système natives et animations courtes.
 - Visuels SVG embarqués et écrans de démarrage Android/iOS adaptés au thème médical.
-- Structure Offline First et contrat de synchronisation (non raccordés).
+- Contrats offline-first et spécification du futur backend FastAPI / PostgreSQL (non raccordés).
 - Tests widget initiaux et CI GitHub Actions.
 
 ## Développement Ubuntu
@@ -56,7 +59,7 @@ lib/
     home/ patients/ consultations/ exams/ followup/ settings/
 ```
 
-Voir `docs/ARCHITECTURE.md`, `docs/OFFLINE_SYNC.md`, `docs/SECURITY.md`, `docs/DESIGN_SYSTEM.md` et `docs/ROADMAP.md`.
+Voir `docs/ARCHITECTURE.md`, `docs/OFFLINE_SYNC.md`, `docs/SECURITY.md`, `docs/DESIGN_SYSTEM.md` et `docs/ROADMAP.md` et `docs/BACKEND_V1.md`.
 
 ## GitHub et sécurité
 
