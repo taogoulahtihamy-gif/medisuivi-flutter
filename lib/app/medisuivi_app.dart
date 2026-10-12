@@ -10,7 +10,9 @@ import 'theme.dart';
 import 'design_tokens.dart';
 
 class MediSuiviApp extends StatefulWidget {
-  const MediSuiviApp({super.key});
+  const MediSuiviApp({super.key, this.themeMode = ThemeMode.system});
+
+  final ThemeMode themeMode;
 
   @override
   State<MediSuiviApp> createState() => _MediSuiviAppState();
@@ -33,7 +35,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
       debugShowCheckedModeBanner: false,
       theme: MediTheme.light(),
       darkTheme: MediTheme.dark(),
-      themeMode: ThemeMode.system,
+      themeMode: widget.themeMode,
       home: const MainShell(),
     ),
   );
@@ -119,7 +121,7 @@ class _MainShellState extends State<MainShell> {
                     color: palette.muted, fontSize: 13),
                   labelType: expandedRail
                       ? NavigationRailLabelType.none
-                      : NavigationRailLabelType.selected,
+                      : NavigationRailLabelType.all,
                   leading: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 22),
                     child: Icon(Icons.medical_services_outlined,
