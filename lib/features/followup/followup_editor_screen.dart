@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
-import '../../core/state/demo_store.dart';
+import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 
 /// Planification locale d'un suivi, sans création de notification système.
@@ -75,7 +75,7 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
         content: Text('Sélectionnez un dossier patient.')));
       return;
     }
-    final store = DemoScope.of(context);
+    final store = context.store;
     if (widget.plan == null) {
       store.scheduleFollowUp(
         patientId: patientId!,
@@ -100,7 +100,7 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final patients = DemoScope.of(context).patients;
+    final patients = context.store.patients;
     return Scaffold(
       appBar: AppBar(title: Text(
         widget.plan == null ? 'Programmer un suivi' : 'Modifier le suivi')),
