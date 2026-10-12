@@ -91,7 +91,7 @@ class HomeScreen extends StatelessWidget {
             if (patients.isEmpty)
               const EmptyResults(
                 title: 'Aucun patient',
-                detail: 'Ajoutez votre premier dossier fictif.')
+                detail: 'Ajoutez votre premier dossier.')
             else Container(
               decoration: BoxDecoration(
                 color: Palette.white,
@@ -108,8 +108,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ]),
             ),
-            const SizedBox(height: 20),
-            const DemoNotice(compact: true),
+
           ]),
         ),
       ],
