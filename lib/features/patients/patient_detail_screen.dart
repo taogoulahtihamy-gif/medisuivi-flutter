@@ -5,6 +5,7 @@ import '../../core/state/demo_store.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../consultations/new_consultation_screen.dart';
 import '../exams/exam_editor_screen.dart';
+import '../exams/exam_detail_screen.dart';
 import '../followup/followup_editor_screen.dart';
 import 'patient_medical_info_screen.dart';
 
@@ -25,7 +26,11 @@ class PatientDetailScreen extends StatelessWidget {
       .where((plan) => plan.isPlanned).toList();
     return Scaffold(
       appBar: AppBar(title: const Text('Dossier médical')),
-      body: SafeArea(child: ListView(children: [ScreenWidth(child: Column(
+      body: SafeArea(child: ListView(
+        physics: const BouncingScrollPhysics(),
+        children: [ScreenWidth(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
           EntranceReveal(child: Container(
             padding: const EdgeInsets.all(19),
@@ -47,7 +52,7 @@ class PatientDetailScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text('${patient.id} · ${patient.age} ans',
                     style: const TextStyle(
-                      color: Palette.muted, fontSize: 12.5)),
+                      color: Palette.muted, fontSize: 13.5)),
                   if (patient.followUp) ...[
                     const SizedBox(height: 8),
                     const Text('Visite de suivi à prévoir',
@@ -139,10 +144,15 @@ class PatientDetailScreen extends StatelessWidget {
           if (exams.isEmpty) const SurfaceCard(child: Text('Aucun examen prescrit.'))
           else SurfaceCard(child: Column(children: [
             for (var i = 0; i < exams.length; i++) ...[
-              _ExamLine(exam: exams[i],
+              _ExamLine(
+                exam: exams[i],
+                onOpen: () => Navigator.push(context,
+                  MaterialPageRoute<void>(builder: (_) =>
+                    ExamDetailScreen(examId: exams[i].id))),
                 onResult: () => Navigator.push(context,
                   MaterialPageRoute<void>(builder: (_) =>
-                    ExamEditorScreen(patientId: patientId, exam: exams[i])))),
+                    ExamEditorScreen(patientId: patientId, exam: exams[i]))),
+              ),
               if (i < exams.length - 1) const Divider(height: 22),
             ],
           ])),
@@ -233,7 +243,7 @@ class _Fact extends StatelessWidget {
   final String value;
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(label, style: const TextStyle(fontSize: 13, color: Palette.muted)),
+    Text(label, style: const TextStyle(fontSize: 14, color: Palette.muted)),
     const SizedBox(height: 7),
     Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
   ]);
@@ -273,35 +283,78 @@ class _VisitLine extends StatelessWidget {
 }
 
 class _ExamLine extends StatelessWidget {
-  const _ExamLine({required this.exam, required this.onResult});
+  const _ExamLine({
+    required this.exam,
+    required this.onOpen,
+    required this.onResult,
+  });
+
   final LabExam exam;
+  final VoidCallback onOpen;
   final VoidCallback onResult;
+
   @override
   Widget build(BuildContext context) {
     final ready = exam.status == ExamStatus.complete;
-    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      SoftIcon(icon: Icons.biotech_outlined,
-        color: ready ? Palette.teal : Palette.laser,
-        background: ready ? Palette.tealSoft : Palette.amberSoft),
-      const SizedBox(width: 12),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(exam.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 5),
-        Text(ready ? 'Résultat disponible' : 'Résultat en attente', style: TextStyle(
-          fontSize: 12, color: ready ? Palette.teal : Palette.laser)),
-        if (ready && exam.result != null) ...[
-          const SizedBox(height: 6),
-          Text(exam.result!, style: const TextStyle(fontSize: 13, color: Palette.muted)),
-        ],
-        if (!ready) ...[
-          const SizedBox(height: 9),
-          OutlinedButton.icon(
-            onPressed: onResult,
-            icon: const Icon(Icons.edit_note_rounded, size: 18),
-            label: const Text('Saisir le résultat'),
-          ),
-        ],
-      ])),
-    ]);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onOpen,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SoftIcon(
+              icon: ready
+                ? Icons.description_outlined : Icons.biotech_outlined,
+              color: Palette.forest,
+              background: ready ? Palette.tealSoft : Palette.blueSoft,
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(exam.title, style: const TextStyle(
+                  fontSize: 16, height: 1.35,
+                  fontWeight: FontWeight.w600, color: Palette.ink)),
+                const SizedBox(height: 6),
+                Text(shortDate(exam.date), style: const TextStyle(
+                  fontSize: 13.5, color: Palette.muted)),
+                const SizedBox(height: 7),
+                Text(
+                  ready ? 'Résultat disponible' : 'Résultat en attente',
+                  style: const TextStyle(
+                    fontSize: 14, height: 1.35,
+                    fontWeight: FontWeight.w600,
+                    color: Palette.forest),
+                ),
+                if (ready && exam.result?.trim().isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    exam.result!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14, height: 1.45,
+                      color: Palette.ink),
+                  ),
+                ],
+                const SizedBox(height: 9),
+                OutlinedButton.icon(
+                  onPressed: ready ? onOpen : onResult,
+                  icon: Icon(ready
+                    ? Icons.visibility_outlined : Icons.edit_note_rounded,
+                    size: 19),
+                  label: Text(ready
+                    ? 'Voir le résultat' : 'Saisir le résultat'),
+                ),
+              ],
+            )),
+            const Icon(Icons.chevron_right_rounded,
+              color: Palette.forest, size: 22),
+          ],
+        ),
+      ),
+    );
   }
 }
