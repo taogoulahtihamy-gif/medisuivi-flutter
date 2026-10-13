@@ -4,7 +4,7 @@
 set -euo pipefail
 
 APP="com.example.medisuivi"
-APK="apk/app-debug.apk"
+APK="${MEDISUIVI_APK_PATH:-apk/app-debug.apk}"
 OUT="test-output"
 mkdir -p "$OUT"
 
