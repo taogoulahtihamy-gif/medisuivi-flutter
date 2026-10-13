@@ -11,12 +11,53 @@ import '../exams/exam_detail_screen.dart';
 import '../followup/followup_editor_screen.dart';
 import 'patient_medical_info_screen.dart';
 
-class PatientDetailScreen extends StatelessWidget {
+class PatientDetailScreen extends StatefulWidget {
   const PatientDetailScreen({super.key, required this.patientId});
   final String patientId;
 
   @override
+  State<PatientDetailScreen> createState() => _PatientDetailScreenState();
+}
+
+class _PatientDetailScreenState extends State<PatientDetailScreen> {
+  int _section = 0;
+
+  Widget _navigation() {
+    const labels = <(String, IconData)>[
+      ('Dossier', Icons.person_outline_rounded),
+      ('Consultations', Icons.medical_services_outlined),
+      ('Bilans', Icons.biotech_outlined),
+      ('Suivi', Icons.event_repeat_rounded),
+    ];
+    final palette = Palette.of(context);
+    return SizedBox(
+      height: 45,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: labels.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 7),
+        itemBuilder: (context, index) {
+          final selected = _section == index;
+          return ChoiceChip(
+            key: Key('patient-tab-$index'),
+            selected: selected,
+            showCheckmark: false,
+            avatar: Icon(labels[index].$2, size: 17,
+              color: selected ? palette.forest : palette.muted),
+            label: Text(labels[index].$1),
+            labelStyle: TextStyle(fontSize: 12.5,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              color: selected ? palette.forest : palette.ink),
+            onSelected: (_) => setState(() => _section = index),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final patientId = widget.patientId;
     final store = context.store;
     final Patient? patient = store.patientById(patientId);
     if (patient == null) return const Scaffold(body: Center(child: Text('Dossier introuvable.')));
@@ -31,19 +72,19 @@ class PatientDetailScreen extends StatelessWidget {
       body: SafeArea(child: ListView(
         physics: const BouncingScrollPhysics(),
         children: [ScreenWidth(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 110),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 34),
           child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
           EntranceReveal(child: Container(
-            padding: const EdgeInsets.all(19),
+            padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               color: Palette.of(context).surface,
               border: Border.all(color: Palette.of(context).border),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Row(children: [
-              PatientAvatar(patient: patient, size: 68, hero: true),
-              const SizedBox(width: 15),
+              PatientAvatar(patient: patient, size: 54, hero: true),
+              const SizedBox(width: 12),
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -65,9 +106,9 @@ class PatientDetailScreen extends StatelessWidget {
               )),
             ]),
           )),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
           Row(children: [
-            Expanded(child: SizedBox(height: 48, child: ElevatedButton.icon(
+            Expanded(child: SizedBox(height: 46, child: ElevatedButton.icon(
               onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
                 builder: (_) => NewConsultationScreen(patient: patient))),
               icon: const Icon(Icons.add_rounded, size: 19),
@@ -82,18 +123,27 @@ class PatientDetailScreen extends StatelessWidget {
                 builder: (_) => ExamEditorScreen(patientId: patientId))),
             )),
           ]),
-          const SizedBox(height: 26),
-          Row(children: [
-            Expanded(child: _CountCard(count: visits.length, label: 'Consultations')),
-            const SizedBox(width: 9),
-            Expanded(child: _CountCard(count: exams.length, label: 'Bilans')),
-            const SizedBox(width: 9),
-            Expanded(child: _CountCard(count: pending, label: 'En attente')),
-          ]),
-          const SizedBox(height: 26),
+          const SizedBox(height: 13),
+          SurfaceCard(
+            padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
+            child: Row(children: [
+              Expanded(child: _CountCard(count: visits.length, label: 'Consultations')),
+              _MetricRule(),
+              Expanded(child: _CountCard(count: exams.length, label: 'Bilans')),
+              _MetricRule(),
+              Expanded(child: _CountCard(count: pending, label: 'En attente')),
+            ]),
+          ),
+          const SizedBox(height: 16),
+          _navigation(),
+          const SizedBox(height: 18),
+          if (_section == 0) ...[
           SectionHeading(title: 'Informations médicales', trailing: 'Modifier',
-            onTap: () => Navigator.push(context, MaterialPageRoute<void>(
-              builder: (_) => PatientMedicalInfoScreen(patient: patient)))),
+            onTap: () async {
+              await Navigator.push(context, MaterialPageRoute<void>(
+                builder: (_) => PatientMedicalInfoScreen(patient: patient)));
+              if (mounted) setState(() {});
+            },
           const SizedBox(height: 11),
           SurfaceCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
@@ -132,18 +182,23 @@ class PatientDetailScreen extends StatelessWidget {
                 MapEntry('Antécédents familiaux', extra.familyHistory),
               ].where((item) => item.value.trim().isNotEmpty).toList();
               if (entries.isEmpty) return const SizedBox.shrink();
-              return SurfaceCard(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Informations complémentaires',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 12),
-                  for (final item in entries) ...[
-                    _Fact(label: item.key, value: item.value),
+              return SizedBox(
+                width: double.infinity,
+                child: SurfaceCard(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('Coordonnées et antécédents',
+                      style: TextStyle(fontWeight: FontWeight.w700,
+                        fontSize: 14.5, color: Palette.of(context).ink)),
                     const SizedBox(height: 12),
+                    for (var i = 0; i < entries.length; i++) ...[
+                      _Fact(label: entries[i].key, value: entries[i].value),
+                      if (i < entries.length - 1)
+                        const Divider(height: 22),
+                    ],
                   ],
-                ],
-              ));
+                )),
+              );
             },
           ),
           const SizedBox(height: 26),
@@ -164,7 +219,8 @@ class PatientDetailScreen extends StatelessWidget {
               Expanded(child: _Vital(label: 'SpO₂', value: last.spo2 == null ? '—' : '${last.spo2} %', icon: Icons.air_rounded)),
             ]),
           ])),
-          const SizedBox(height: 25),
+          ],
+          if (_section == 1) ...[
           SectionHeading(title: 'Historique des consultations',
             trailing: 'Ajouter', onTap: () => Navigator.push(context,
               MaterialPageRoute<void>(builder: (_) =>
@@ -182,7 +238,8 @@ class PatientDetailScreen extends StatelessWidget {
               if (i < visits.length - 1) const Divider(height: 22),
             ],
           ])),
-          const SizedBox(height: 25),
+          ],
+          if (_section == 2) ...[
           SectionHeading(title: 'Bilans et examens',
             trailing: 'Prescrire', onTap: () => Navigator.push(context,
               MaterialPageRoute<void>(builder: (_) =>
@@ -203,7 +260,8 @@ class PatientDetailScreen extends StatelessWidget {
               if (i < exams.length - 1) const Divider(height: 22),
             ],
           ])),
-          const SizedBox(height: 26),
+          ],
+          if (_section == 3) ...[
           SectionHeading(title: 'Suivi du patient', trailing: 'Programmer',
             onTap: () => Navigator.push(context, MaterialPageRoute<void>(
               builder: (_) => FollowUpEditorScreen(patientId: patientId)))),
@@ -259,9 +317,17 @@ class PatientDetailScreen extends StatelessWidget {
               ],
             ],
           ])),
+          ],
         ]))])),
     );
   }
+}
+
+class _MetricRule extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 1, height: 36, color: Palette.of(context).border,
+  );
 }
 
 class _CountCard extends StatelessWidget {
@@ -269,17 +335,16 @@ class _CountCard extends StatelessWidget {
   final int count;
   final String label;
   @override
-  Widget build(BuildContext context) => Container(
-    constraints: const BoxConstraints(minHeight: 83),
-    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-    decoration: BoxDecoration(color: Palette.of(context).tealSoft,
-      borderRadius: BorderRadius.circular(15)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 5),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
       Text('$count', style: TextStyle(
-        fontSize: 23, fontWeight: FontWeight.w700, color: Palette.of(context).ink)),
-      const SizedBox(height: 5),
-      Text(label, maxLines: 2, style: TextStyle(
-        fontSize: 12.5, height: 1.2, color: Palette.of(context).muted)),
+        fontSize: 19, fontWeight: FontWeight.w700,
+        color: Palette.of(context).ink)),
+      const SizedBox(height: 3),
+      Text(label, maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 10.5,
+          color: Palette.of(context).muted)),
     ]),
   );
 }
