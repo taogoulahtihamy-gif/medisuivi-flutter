@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
 import '../../core/widgets/medical_ui.dart';
+import '../../core/state/store_context.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -11,14 +13,46 @@ class SettingsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start, children: [
         PageTitle(title: 'Mon espace', subtitle: 'État et paramètres de l’application'),
         SizedBox(height: 21),
-        _Item(Icons.info_outline_rounded, 'Stockage actuel',
-          'Les informations sont temporaires et disparaissent après fermeture. Ne pas saisir de données médicales réelles.'),
-        SizedBox(height: 10),
-        _Item(Icons.lock_outline_rounded, 'Protection des dossiers',
-          'À réaliser en V1 : stockage chiffré, authentification et verrouillage.'),
-        SizedBox(height: 10),
-        _Item(Icons.cloud_sync_outlined, 'Synchronisation hors ligne',
-          'Prévue dans l’architecture. Aucun serveur n’est connecté en V0.'),
+        _Item(
+          Icons.info_outline_rounded,
+          'Stockage actuel',
+          kIsWeb
+              ? 'Navigateur : données fictives temporaires. Elles disparaissent à la fermeture.'
+              : 'Téléphone : données stockées localement. Validation du chiffrement sur appareil réel encore nécessaire.',
+        ),
+        const SizedBox(height: 10),
+        _Item(
+          Icons.lock_outline_rounded,
+          'Protection des dossiers',
+          'Application en développement. Ne pas enregistrer de données patients réelles avant la validation sécurité.',
+        ),
+        const SizedBox(height: 10),
+        if (!kIsWeb) ...[
+          FutureBuilder<int>(
+            future: context.store.pendingSyncCount as Future<int>,
+            builder: (context, snapshot) {
+              final count = snapshot.data;
+              final message = snapshot.hasError
+                  ? 'Impossible de vérifier les opérations locales.'
+                  : count == null
+                      ? 'Vérification des opérations locales…'
+                      : count == 0
+                          ? 'Aucune modification en attente. Aucun serveur distant connecté.'
+                          : '$count modification(s) conservée(s) sur ce téléphone, en attente d’un futur envoi.';
+              return _Item(
+                Icons.cloud_upload_outlined,
+                'Modifications à envoyer',
+                message,
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+        ],
+        _Item(
+          Icons.cloud_sync_outlined,
+          'Synchronisation distante',
+          'Non configurée. Aucune transmission automatique à un serveur.',
+        ),
         SizedBox(height: 10),
         _Item(Icons.devices_rounded, 'iOS et Android',
           'Interface adaptative Flutter avec navigation propre à chaque plateforme.'),
