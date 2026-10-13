@@ -15,6 +15,10 @@ import '../models/medical_models.dart';
 class PersistentStore extends ChangeNotifier {
   final db.AppDatabase _database;
 
+  /// Opérations durables en attente : aucune synchronisation serveur active.
+  Future<int> get pendingSyncCount async =>
+      (await _database.pendingOperationsDao.getPendingOperations()).length;
+
   // DAOs
   late final PatientDao _patientDao;
   late final VisitDao _visitDao;
