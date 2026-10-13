@@ -22,7 +22,7 @@ part 'database.g.dart';
 
 /// Version du schéma de base de données.
 /// Incrémenter à chaque migration.
-const int _schemaVersion = 1;
+const int _schemaVersion = 2;
 
 /// Tables Drift pour la persistance locale chiffrée.
 
@@ -159,6 +159,7 @@ class AppDatabase extends _$AppDatabase implements AppDatabaseInterface {
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (Migrator m) async {
       await m.createAll();
+      await _createClinicalSupplementTables();
       // Initialiser les métadonnées
       await into(appMetadata).insert(AppMetadataCompanion(
         key: const Value('schema_version'),
@@ -183,10 +184,36 @@ class AppDatabase extends _$AppDatabase implements AppDatabaseInterface {
     },
   );
 
-  /// Exécute les migrations de schéma
+  /// Tables additives SQLite. Les tables Drift existantes restent en v1.
+  /// Ainsi, aucun ancien patient ni ancienne consultation n'est réécrit.
+  Future<void> _createClinicalSupplementTables() async {
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS patient_supplements (
+        patient_id TEXT NOT NULL PRIMARY KEY,
+        payload TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+    await customStatement('''
+      CREATE TABLE IF NOT EXISTS visit_intakes (
+        visit_id TEXT NOT NULL PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// Migration additive et atomique ; pas de suppression de dossiers.
   Future<void> _runMigrations(Migrator m, int from, int to) async {
-    // Import dynamique pour éviter les dépendances circulaires
-    // Les migrations sont définies dans migration/schema_migrations.dart
+    if (from == 1 && to == 2) {
+      await transaction(() async {
+        await _createClinicalSupplementTables();
+        await (update(appMetadata)..where((row) => row.key.equals('schema_version')))
+            .write(const AppMetadataCompanion(value: Value('2')));
+      });
+      return;
+    }
+    throw StateError('Migration SQLite non prise en charge : $from → $to');
   }
 
   /// Ferme la base de données

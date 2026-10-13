@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../database.dart';
+import '../clinical_supplement_repository.dart';
+import '../../models/clinical_intake.dart';
 
 part 'visit_dao.g.dart';
 
@@ -22,7 +24,10 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
     int? pulse,
     int? spo2,
     String notes = '',
+    ClinicalIntake? intake,
   }) async {
+    final errors = intake?.validate() ?? <String>[];
+    if (errors.isNotEmpty) throw ArgumentError(errors.join(' '));
     final id = generateId();
     final now = DateTime.now().toUtc();
     await attachedDatabase.transaction(() async {
@@ -40,6 +45,9 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
         createdAt: Value(now),
         updatedAt: Value(now),
       ));
+      if (intake != null) {
+        await ClinicalSupplementRepository(attachedDatabase).insertVisitIntake(id, intake);
+      }
       await attachedDatabase.pendingOperationsDao.addOperation(
         operationId: generateId(),
         entityType: 'visit',
@@ -50,6 +58,7 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
           'temperature': temperature, 'systolic': systolic,
           'diastolic': diastolic, 'pulse': pulse, 'spo2': spo2,
           'notes': notes, 'date': now.toIso8601String(),
+          if (intake != null) 'intake': intake.toJson(),
         }),
         baseRevision: 0,
       );
