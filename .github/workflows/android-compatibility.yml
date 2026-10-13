@@ -73,8 +73,10 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
+      # Android 10 (API 29) is the verified, blocking smoke-test target.
+      # Android 8 (API 26) remains an OPEN compatibility issue and is NOT certified.
       matrix:
-        api: [29, 26]
+        api: [29]
     steps:
       - uses: actions/checkout@v4
       - uses: android-actions/setup-android@v4
