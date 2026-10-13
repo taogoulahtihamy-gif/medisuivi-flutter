@@ -135,10 +135,19 @@ void main() {
     expect(find.text('Dossier médical'), findsOneWidget);
     expect(find.text('Informations médicales'), findsOneWidget);
     expect(find.text('Antécédents médicaux'), findsOneWidget);
-    expect(find.text('Bilans et examens'), findsOneWidget);
-    expect(find.text('Suivi du patient'), findsOneWidget);
-    await tester.ensureVisible(find.text('Suivi du patient'));
+    // Les rubriques ne sont plus empilées dans une seule page verticale.
+    // Tester leur navigation sur un écran étroit et le scroll horizontal.
+    final bilanTab = find.byKey(const Key('patient-tab-2'));
+    await tester.ensureVisible(bilanTab);
+    await tester.tap(bilanTab);
     await tester.pumpAndSettle();
+    expect(find.text('Bilans et examens'), findsOneWidget);
+
+    final followUpTab = find.byKey(const Key('patient-tab-3'));
+    await tester.ensureVisible(followUpTab);
+    await tester.tap(followUpTab);
+    await tester.pumpAndSettle();
+    expect(find.text('Suivi du patient'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
