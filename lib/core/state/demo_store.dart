@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import '../data/demo_data.dart';
 import '../models/medical_models.dart';
+import '../models/clinical_intake.dart';
 import 'clinical_store.dart';
 
 /// Etat EN MEMOIRE : perdu à la fermeture de l'application.
@@ -14,6 +15,15 @@ class DemoStore extends ChangeNotifier implements ClinicalStore {
   int _examSequence = 0;
   final List<FollowUpPlan> _followUps = [...DemoData.followUps];
   int _followUpSequence = 0;
+  final Map<String, PatientProfileSupplement> _patientProfiles = {};
+  final Map<String, ClinicalIntake> _visitIntakes = {};
+
+  @override
+  Future<PatientProfileSupplement?> patientProfile(String id) async =>
+      _patientProfiles[id];
+
+  @override
+  Future<ClinicalIntake?> visitIntake(String id) async => _visitIntakes[id];
 
   /// Prototype Web : aucune opération distante, aucun stockage durable.
   @override
@@ -188,16 +198,18 @@ class DemoStore extends ChangeNotifier implements ClinicalStore {
       Stream.value(followUpPatients);
 
   @override
-  Future<void> addPatient({required String name, required int age, required String sex, required String phone}) async {
+  Future<void> addPatient({required String name, required int age, required String sex, required String phone, PatientProfileSupplement? profile}) async {
     final identifier = DateTime.now().microsecondsSinceEpoch;
+    final patientId = 'PAT-$identifier';
     _patients.insert(0, Patient(
-      id: 'PAT-$identifier',
+      id: patientId,
       name: name.trim(),
       age: age,
       sex: sex,
       phone: phone.trim().isEmpty ? 'Non renseigné' : phone.trim(),
       createdAt: DateTime.now(),
     ));
+    if (profile != null) _patientProfiles[patientId] = profile;
     notifyListeners();
   }
 
@@ -207,6 +219,7 @@ class DemoStore extends ChangeNotifier implements ClinicalStore {
     required String phone,
     required String allergies,
     required String medicalHistory,
+    PatientProfileSupplement? profile,
   }) async {
     final index = _patients.indexWhere((p) => p.id == patientId);
     if (index < 0) throw StateError('Dossier patient introuvable.');
@@ -216,6 +229,7 @@ class DemoStore extends ChangeNotifier implements ClinicalStore {
       medicalHistory: medicalHistory.trim().isEmpty
         ? 'Non renseignés' : medicalHistory.trim(),
     );
+    if (profile != null) _patientProfiles[patientId] = profile;
     notifyListeners();
   }
 
@@ -290,9 +304,13 @@ class DemoStore extends ChangeNotifier implements ClinicalStore {
     int? pulse,
     int? spo2,
     String notes = '',
+    ClinicalIntake? intake,
   }) async {
+    final errors = intake?.validate() ?? <String>[];
+    if (errors.isNotEmpty) throw ArgumentError(errors.join(' '));
+    final visitId = 'VIS-${DateTime.now().microsecondsSinceEpoch}';
     _visits.insert(0, Visit(
-      id: 'VIS-${DateTime.now().microsecondsSinceEpoch}',
+      id: visitId,
       patientId: patientId,
       date: DateTime.now(),
       reason: reason.trim(),
@@ -303,6 +321,7 @@ class DemoStore extends ChangeNotifier implements ClinicalStore {
       spo2: spo2,
       notes: notes.trim(),
     ));
+    if (intake != null) _visitIntakes[visitId] = intake;
     notifyListeners();
   }
 }

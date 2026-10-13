@@ -8,6 +8,8 @@ import '../persistence/dao/visit_dao.dart';
 import '../persistence/dao/exam_dao.dart';
 import '../persistence/dao/followup_dao.dart';
 import '../models/medical_models.dart';
+import '../models/clinical_intake.dart';
+import '../persistence/clinical_supplement_repository.dart';
 import 'clinical_store.dart';
 
 /// Exception spécifique pour les erreurs de base de données SQLite.
@@ -187,12 +189,14 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
     required int age,
     required String sex,
     required String phone,
+    PatientProfileSupplement? profile,
   }) async {
     await _patientDao.createPatient(
       name: name,
       age: age,
       sex: sex,
       phone: phone,
+      profile: profile,
     );
     // Le stream mettra à jour le cache automatiquement
   }
@@ -203,12 +207,14 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
     required String phone,
     required String allergies,
     required String medicalHistory,
+    PatientProfileSupplement? profile,
   }) async {
     await _patientDao.updatePatientInfo(
       patientId: patientId,
       phone: phone,
       allergies: allergies,
       medicalHistory: medicalHistory,
+      profile: profile,
     );
   }
 
@@ -216,6 +222,14 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   Future<void> setFollowUp(String patientId, {required bool toReview}) async {
     await _patientDao.setFollowUp(patientId, toReview: toReview);
   }
+
+  @override
+  Future<PatientProfileSupplement?> patientProfile(String patientId) =>
+      ClinicalSupplementRepository(_database).patientProfile(patientId);
+
+  @override
+  Future<ClinicalIntake?> visitIntake(String visitId) =>
+      ClinicalSupplementRepository(_database).visitIntake(visitId);
 
   // ==================== VISITES ====================
 
@@ -255,6 +269,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
     int? pulse,
     int? spo2,
     String notes = '',
+    ClinicalIntake? intake,
   }) async {
     await _visitDao.createVisit(
       patientId: patientId,
@@ -265,6 +280,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
       pulse: pulse,
       spo2: spo2,
       notes: notes,
+      intake: intake,
     );
   }
 
