@@ -127,8 +127,11 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
     });
   }
 
-  /// Supprime un patient (et ses données liées via triggers ou manuellement)
+  /// Suppression bloquée jusqu'à disponibilité d'une procédure auditée.
+  /// Ne jamais supprimer un dossier clinique sans tombstone ni synchronisation.
   Future<void> deletePatient(String patientId) async {
-    await (delete(patients)..where((p) => p.id.equals(patientId))).go();
+    throw UnsupportedError(
+      'La suppression d’un patient nécessite une procédure tracée et synchronisable.',
+    );
   }
 }
