@@ -27,7 +27,7 @@ Identité du malade (nom, prénom, adresse/quartier/téléphone, âge, sexe) ; p
 - Tests ajoutés : reconstitution fidèle du schéma v1 dans une base chiffrée réelle (tables historiques inchangées, tables complémentaires absentes, `user_version=1`), migration vers v2 avec la **même clé**, conservation des patients, visites, examens, suivis et outbox ; nouveau profil/visite rechargés après redémarrage ; échec d'outbox provoque rollback des données et du complément. Validation CI requise avant fusion.
 - Pas de renommage `applicationId`, pas de suppression/reconstruction DB, pas de conversion synchronisée artificielle.
 
-### 5C · Interfaces Nocturne Clinique
+### 5C · Interfaces Nocturne Clinique (implémentées sur la branche Sprint 5, validation CI en cours)
 
 - Dossier patient : identité + quartier/adresse + téléphone/contact d'urgence, antécédents, allergies, traitements habituels.
 - Consultation : motif et histoire de la maladie ; signes associés ; constantes (poids, taille, température, TA, FC, fréquence respiratoire, SpO₂) ; état général et examen des appareils ; hypothèses/diagnostic ; bilans/résultats ; conduite à tenir ; décision ambulatoire/observation/hospitalisation/transfert ; suivi.
@@ -51,4 +51,17 @@ Identité du malade (nom, prénom, adresse/quartier/téléphone, âge, sexe) ; p
 - Aucune capture de vrai patient, ni données sensibles en GitHub Actions.
 - Tests de migration et non-régression : `test/persistence/sprint5_migration_test.dart`.
 - **Ne pas installer un APK Sprint 5 avant validation de la migration en CI et sur une copie chiffrée de test**, et sans politique sûre pour l'ancien APK debug du S9+.
-- Les nouveaux champs ne sont pas encore saisis dans l'interface : Sprint 5C prévu.
+- Les nouveaux champs sont désormais accessibles dans les écrans du Sprint 5C de cette branche, mais leur publication sur mobile reste conditionnée aux contrôles CI et aux essais de conservation des dossiers.
+
+## Livraison Sprint 5C : formulaires liés au stockage
+
+- `NewPatientScreen` : coordonnées détaillées (quartier, adresse, contact d'urgence) et antécédents complémentaires saisis à la création, transmis au `ClinicalStore` avec le patient.
+- `PatientMedicalInfoScreen` : charge le profil depuis `patientProfile()`, conserve les champs non modifiés et bloque l'enregistrement en cas de chargement échoué, sans remplacer silencieusement les données.
+- `PatientDetailScreen` : présente le profil enrichi et ouvre le compte rendu d'une visite.
+- `NewConsultationScreen` : histoire et signes, constantes, examen physique, hypothèses, diagnostic, bilan, interprétation, conduite à tenir et décision (ambulatoire, observation, hospitalisation, transfert). Des justifications sont exigées pour hospitalisation/transfert ; les champs non renseignés restent vides.
+- `ConsultationDetailScreen` : lecture seule, compatible avec les anciennes visites v1 sans compte rendu complémentaire.
+- `test/sprint5c_clinical_forms_test.dart` : tests de formulaires Flutter et du parcours mémoire sur écran étroit.
+
+**Limites :** la rédaction d'un bilan dans une consultation **ne vaut pas** création d'un examen ou confirmation de résultat dans le module Bilans. L'interface ne déclenche aucun diagnostic automatisé. L'authentification et la synchronisation distante ne sont pas réalisées ici. Ces écrans utilisent SQLite chiffré uniquement sur mobile et la mémoire fictive en Web.
+
+**Prudence Galaxy S9+ :** le Sprint 5 ne doit pas être installé par-dessus une version debug aux certificats différents ni après désinstallation de celle-ci ; aucune procédure de migration de signature sans perte des données n'est encore validée. Ne pas utiliser de données patients réels.
