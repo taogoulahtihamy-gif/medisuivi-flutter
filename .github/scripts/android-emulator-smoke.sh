@@ -56,18 +56,38 @@ if grep -qE 'Error type|does not exist|SecurityException|Permission Denial' "$OU
   exit 1
 fi
 
-# Give the Android system prompt time to appear; use only the test PIN.
+# Android 8 may open ConfirmDeviceCredentialActivity later than Android 10.
+# Wait for the SYSTEM credential prompt before typing; never send a PIN blindly.
 sleep 4
 adb exec-out screencap -p > "$OUT/before-auth-screen.png" 2>/dev/null || true
-for attempt in 1 2 3; do
-  # If initialization already succeeded, no additional UI interaction.
+pin_attempts=0
+ui_retries=0
+for attempt in $(seq 1 18); do
   if adb logcat -d -v brief 2>/dev/null | grep -q 'MEDISUIVI_BOOT_READY'; then
     break
   fi
-  echo "===== DEVICE CREDENTIAL ATTEMPT ${attempt} ====="
-  adb shell input text "$TEST_PIN" || true
-  adb shell input keyevent KEYCODE_ENTER || true
-  sleep 5
+  focus="$(adb shell dumpsys window windows 2>/dev/null | grep -E 'mCurrentFocus=|mFocusedApp=' | tail -n 2 || true)"
+  resumed="$(adb shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|topResumedActivity' | tail -n 1 || true)"
+  printf 'Attempt %s focus: %s | %s\n' "$attempt" "$focus" "$resumed" >> "$OUT/ui-focus.txt"
+  if [[ "$focus $resumed" == *ConfirmLockPassword* ||
+        "$focus $resumed" == *ConfirmDeviceCredential* ||
+        "$focus $resumed" == *ConfirmLockPattern* ]]; then
+    if (( pin_attempts < 3 )); then
+      echo "===== CONFIRM ANDROID CREDENTIAL (attempt $((pin_attempts+1))) ====="
+      adb shell input text "$TEST_PIN" || true
+      adb shell input keyevent KEYCODE_ENTER || true
+      pin_attempts=$((pin_attempts+1))
+    fi
+  elif [[ "$focus $resumed" == *"$APP"* ]] &&
+       adb logcat -d -v brief 2>/dev/null | grep -q 'MEDISUIVI_BOOT_RESULT=authenticationRequired' &&
+       (( ui_retries < 2 )); then
+    # Retry button on the test-only 1080x1920 Flutter error screen.
+    # This triggers another normal local_auth challenge; no bypass.
+    echo "===== RE-REQUEST AUTHENTICATION ====="
+    adb shell input tap 540 1220 || true
+    ui_retries=$((ui_retries+1))
+  fi
+  sleep 4
 done
 
 echo "===== PROCESS STILL ALIVE ====="
