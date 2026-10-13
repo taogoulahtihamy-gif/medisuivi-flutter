@@ -49,7 +49,8 @@ Prérequis : Java/JDK avec `keytool` sur ton propre ordinateur. **Ne transmets j
 
 ## Générer et récupérer un APK stable
 
-- Le workflow démarre **automatiquement lors d'un push sur** `feat/medisuivi-premium-redesign` (notamment après fusion de sa pull request). Sur GitHub, ouvrir **Actions → MediSuivi signed demo APK**.\n- Important : GitHub ne permet pas toujours le déclenchement manuel `workflow_dispatch` d'un workflow absent de `main`. Comme nous ne modifions pas `main`, utiliser le déclenchement `push`. Si la première exécution échoue faute de secrets, terminer la configuration puis utiliser **Re-run all jobs**, ou déclencher un nouveau push approuvé sur la branche d'intégration.
+- Le workflow démarre **automatiquement lors d'un push sur** `feat/medisuivi-premium-redesign` (notamment après fusion de sa pull request). Sur GitHub, ouvrir **Actions → MediSuivi signed demo APK**.
+- Important : GitHub ne permet pas toujours le déclenchement manuel `workflow_dispatch` d'un workflow absent de `main`. Comme nous ne modifions pas `main`, utiliser le déclenchement `push`. Si la première exécution échoue faute de secrets, terminer la configuration puis utiliser **Re-run all jobs**, ou déclencher un nouveau push approuvé sur la branche d'intégration.
 - Le workflow vérifie la signature, le package, le certificat et les ABI ARM64/x86_64. Il **ne doit être fusionné qu'une fois les secrets configurés**, sauf si l'on accepte un premier workflow rouge sans livrable final.
 - Il installe l'**APK release exact** sur l'émulateur Android 10 avec PIN fictif, puis exige `MEDISUIVI_BOOT_READY`.
 - **Uniquement si tous les jobs passent**, récupérer l'artifact final `MediSuivi-V1-Android-Stable-Demo`.
