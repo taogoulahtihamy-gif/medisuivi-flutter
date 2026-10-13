@@ -35,7 +35,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: labels.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 7),
+        separatorBuilder: (context, index) => const SizedBox(width: 7),
         itemBuilder: (context, index) {
           final selected = _section == index;
           return ChoiceChip(
@@ -143,7 +143,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               await Navigator.push(context, MaterialPageRoute<void>(
                 builder: (_) => PatientMedicalInfoScreen(patient: patient)));
               if (mounted) setState(() {});
-            },
+            }),
           const SizedBox(height: 11),
           SurfaceCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
