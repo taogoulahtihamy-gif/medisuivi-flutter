@@ -52,6 +52,8 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
     try {
       final result = await DatabaseProvider.initialize();
       _initResult = result.$1;
+      // Statut générique pour diagnostics Android : aucune clé ni donnée patient.
+      debugPrint('MEDISUIVI_BOOT_RESULT=${result.$1.name}');
 
       switch (result.$1) {
         case DatabaseInitResult.success:
@@ -62,11 +64,18 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
               // Les erreurs sont propagées (rethrow dans _loadInitialData)
               // et déclenchent l'écran d'erreur ci-dessous.
               await _persistentStore!.ready;
+              debugPrint('MEDISUIVI_BOOT_READY');
             } catch (e) {
               _errorMessage = 'Erreur de chargement des données : $e';
               _initResult = null; // déclenche l'écran d'erreur existant
             }
           }
+          break;
+        case DatabaseInitResult.authenticationRequired:
+          _errorMessage =
+              'Authentification Android non disponible ou refusée. '
+              'Configurez un code de verrouillage ou une empreinte '
+              'sur votre téléphone, puis réessayez.';
           break;
         case DatabaseInitResult.wrongKey:
           _errorMessage =

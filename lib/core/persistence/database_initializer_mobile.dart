@@ -39,7 +39,9 @@ class DatabaseInitializerMobile implements DatabaseInitializer {
       // Déverrouiller et obtenir la clé
       final encryptionKey = await _keyManager.unlockDatabase();
       if (encryptionKey == null) {
-        return (DatabaseInitResult.wrongKey, null);
+        // Échec/refus de l'authentification système, pas une mauvaise clé SQLite.
+        // La base ne doit ni être ouverte sans validation ni être réinitialisée.
+        return (DatabaseInitResult.authenticationRequired, null);
       }
 
       // Ouvrir la base chiffrée

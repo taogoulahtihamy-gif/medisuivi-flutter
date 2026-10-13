@@ -5,6 +5,7 @@ library;
 enum DatabaseInitResult {
   success,
   wrongKey,
+  authenticationRequired,
   corruption,
   unavailable,
   notSupported,

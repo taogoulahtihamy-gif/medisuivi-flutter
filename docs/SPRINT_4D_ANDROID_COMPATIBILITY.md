@@ -1,0 +1,73 @@
+# Sprint 4D · Compatibilité APK Android, Samsung Galaxy S9+
+
+## Constats de départ
+
+- Le premier APK debug s'installait sur un Samsung Galaxy S9+, mais l'application affichait une erreur d'initialisation de la clé au démarrage.
+- Le correctif Android (commit `3919a8d`) introduit `FlutterFragmentActivity`, la permission biométrique et le repli vers l'authentification par code de l'appareil.
+- Un APK ultérieur construit sur GitHub a été refusé par le téléphone avec « Application non installée », même après désinstallation déclarée de la version antérieure.
+- Aucun message `INSTALL_FAILED_...` ni logcat du Galaxy S9+ n'a été obtenu : **la cause réelle du refus d'installation n'est pas connue**.
+- Le SDK Android manque sur l'Ubuntu local et le téléphone n'est pas accessible pour le moment.
+
+## Banc de test CI
+
+Workflow : `.github/workflows/android-compatibility.yml`, isolé sur la branche `fix/medisuivi-4d-android-compat`.
+
+1. Compiler un APK debug avec Flutter 3.47.7 et Java 17, sans modifier le code médical.
+2. Vérifier l'intégrité ZIP, la signature `apksigner`, l'alignement `zipalign`, les métadonnées `aapt`, le package `com.example.medisuivi`, les bibliothèques `libflutter.so` ARM64 et x86_64.
+3. Installer exactement cet APK sur les émulateurs x86_64 Android API 29 (Android 10) et API 26 (Android 8).
+4. Enregistrer le retour d'`adb install`, lancer `MainActivity`, attendre 20 secondes, vérifier que le processus est présent, fournir capture d'écran et journaux Android filtrés.
+5. Publier les diagnostics comme artifacts CI pour analyse.
+
+## Limites et sécurité
+
+- Un émulateur x86_64 n'est **pas** un Galaxy S9+ ARM64/One UI. La vérification statique ARM64 ne remplace pas un essai sur appareil physique.
+- `adb install` réussi signifie seulement « installation acceptée ». Le maintien du processus ne prouve pas que la base SQLite est déverrouillée ni que les pages cliniques sont accessibles.
+- La biométrie et le PIN d'un Galaxy S9+ ne sont pas reproduits fidèlement. Une capture d'écran peut montrer l'écran d'erreur malgré un processus actif.
+- Aucune donnée de patient réel, aucun contournement de l'authentification, aucune suppression de base et aucune modification du chiffrement.
+- La signature debug peut différer entre runners GitHub éphémères. Une signature stable sera étudiée après diagnostic et nécessite une clé privée conservée hors Git ; ne pas en générer ici.
+- L'APK inspecté ne peut pas être considéré comme **validé sur Galaxy S9+** avant un essai sur l'appareil et une analyse de l'éventuelle erreur d'installation.
+- Ce document décrit un protocole. Les résultats des jobs GitHub seront ajoutés uniquement après leur exécution réelle.
+
+## Prochaines vérifications
+
+- Consulter `medisuivi-apk-inspection`, `medisuivi-android-api-29-diagnostics` et `medisuivi-android-api-26-diagnostics`.
+- Si les émulateurs installent l'APK, analyser les captures du premier écran et les logs afin de distinguer erreur d'authentification, SQLite et crash.
+- Dès que le téléphone redevient accessible, capturer le statut d'installation exact via ADB ou Android Package Installer.
+
+## Exécutions intermédiaires du banc de test
+
+- Première exécution : l'émulateur démarre mais l'action exécute `set -euo pipefail` dans `/bin/sh`, qui refuse `pipefail`. **Aucune installation testée**.
+- Deuxième exécution (commit `312f3f7`) : Android 10 / API 29 accepte l'APK avec `adb install` → `Success`. Le `script: |` était néanmoins exécuté en commandes séparées par l'action, ce qui perdait la variable `APP` avant le lancement. Android 8 / API 26 échouait sur un `adb logcat -c` non essentiel. **Démarrage non validé**.
+- Correctif suivant : script Bash autonome `.github/scripts/android-emulator-smoke.sh`, exécuté en une seule commande ; purge logcat facultative ; validation explicite de `Success`, du paquet et du processus. Les résultats complets devront être confirmés par une nouvelle CI.
+
+## Résultat des tests d'installation sur le commit d24372d
+
+- Android 8/API 26 : installation ADB `Success`, activité démarrée, processus vivant, mais la capture affiche une erreur « Clé de déchiffrement invalide ».
+- Android 10/API 29 : installation ADB `Success`, activité démarrée, processus vivant, même écran d'erreur.
+- **La CI était verte à tort concernant la disponibilité fonctionnelle de l'application** : elle ne contrôlait que le processus.
+- Analyse de code : un retour `null` de `KeyManager.unlockDatabase()` était classé `wrongKey`, alors qu'il peut correspondre à l'authentification Android refusée/indisponible. Les émulateurs de ce banc de test n'ont pas de code PIN ou empreinte configurés.
+- Correctif de diagnostic : catégorie explicite `authenticationRequired`, message adapté, trace générique non sensible `MEDISUIVI_BOOT_READY`, et échec CI si le stockage n'est pas réellement prêt.
+- Cette correction n'active aucun bypass de sécurité et **ne prouve pas la résolution du démarrage** : l'étape suivante consiste à simuler un appareil verrouillé pour permettre l'authentification et vérifier SQLite.
+
+## Expérience suivante : authentification Android simulée
+
+L'exécution sur le commit `5b3447f` montre sur Android 8/API 26 et Android 10/API 29 :
+- `adb install` retourne `Success` ;
+- `MainActivity` démarre ;
+- `MEDISUIVI_BOOT_RESULT=authenticationRequired` et **aucun `MEDISUIVI_BOOT_READY`**.
+
+Les diagnostics d'installation sont donc acquis, mais la base clinique n'est pas déverrouillée.
+
+Le scénario suivant configure **un PIN fictif sur l'émulateur jetable**, lance l'application et répond au dialogue système avec ce PIN. Il échoue si la base n'atteint pas `MEDISUIVI_BOOT_READY`. Cette automatisation **n'ajoute aucun contournement** au code Flutter et ne prouve pas le fonctionnement sur Galaxy S9+ tant qu'aucun test physique n'est disponible.
+
+
+## Décision de périmètre (13/10/2026)
+
+**Version Android fonctionnellement validée sur émulateur : Android 10 / API 29.**
+
+- Job du 13/10/2026 `38453310307` : API 29 réussit `adb install`, démarre l'activité et atteint `MEDISUIVI_BOOT_READY` après authentification système par PIN fictif. Cela démontre le démarrage et l'initialisation locale, **pas** la persistance après redémarrage ni la validité sur Samsung.
+- Job `38455211627` : API 26 s'installe et démarre, mais retourne encore `MEDISUIVI_BOOT_RESULT=authenticationRequired` après plusieurs interactions avec l'écran système `ConfirmLockPassword`. Le comportement de `local_auth` et l'UI de confirmation nécessitent une investigation dédiée ; **Android 8 n'est pas validé fonctionnellement**.
+- La matrice automatique de compatibilité est temporairement limitée à API 29, afin de préserver un indicateur de qualité honnête pour la cible qui réussit. **Cela ne signifie pas qu'Android 8 est corrigé ou officiellement abandonné.**
+- `minSdk` n'est pas modifié. La capacité d'installation d'un APK et la prise en charge fonctionnelle doivent rester deux assertions distinctes.
+- Le refus d'installation sur le Galaxy S9+ physique reste **non expliqué** faute de message `INSTALL_FAILED_...` ou d'accès à l'appareil. Une réussite API 29 sur émulateur ne garantit pas le fonctionnement sur cet appareil.
+- Prochaine validation : produire une signature de développement stable (keystore privé hors Git), tester restauration/persistance après redémarrage, puis recueillir sur S9+ le vrai diagnostic d'installation. Pas de contournement biométrique ni suppression des données médicales.
