@@ -382,19 +382,30 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
         .toList();
   }
 
-  /// Programme un nouveau suivi
+  /// Crée le suivi et active le drapeau patient dans une seule transaction.
+  /// Les transactions DAO imbriquées participent à la transaction englobante.
+  @override
   Future<void> scheduleFollowUp({
     required String patientId,
     required DateTime scheduledAt,
     required String reason,
     String notes = '',
   }) async {
-    await _followUpDao.scheduleFollowUp(
-      patientId: patientId,
-      scheduledAt: scheduledAt,
-      reason: reason,
-      notes: notes,
-    );
+    await _database.transaction(() async {
+      final patient = await _patientDao.getPatientById(patientId);
+      if (patient == null) {
+        throw StateError('Dossier patient introuvable.');
+      }
+      await _followUpDao.scheduleFollowUp(
+        patientId: patientId,
+        scheduledAt: scheduledAt,
+        reason: reason,
+        notes: notes,
+      );
+      if (!patient.followUp) {
+        await _patientDao.setFollowUp(patientId, toReview: true);
+      }
+    });
   }
 
   /// Reporte un suivi
@@ -412,13 +423,33 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
     );
   }
 
-  /// Clôture un suivi
+  /// Clôture sans suppression, à partir de l'état transactionnel de SQLite.
+  /// Le rendez-vous, le drapeau patient et leurs outbox sont atomiques.
+  @override
   Future<void> closeFollowUp(String followUpId,
       {required bool completed}) async {
-    await _followUpDao.closeFollowUp(
-      followUpId: followUpId,
-      completed: completed,
-    );
+    await _database.transaction(() async {
+      final followUp = await _followUpDao.getFollowUpById(followUpId);
+      if (followUp == null) {
+        throw StateError('Suivi introuvable.');
+      }
+      await _followUpDao.closeFollowUp(
+        followUpId: followUpId,
+        completed: completed,
+      );
+
+      final hasOtherPlanned =
+          await _followUpDao.hasPlannedFollowUpForPatient(followUp.patientId);
+      if (!hasOtherPlanned) {
+        final patient = await _patientDao.getPatientById(followUp.patientId);
+        if (patient == null) {
+          throw StateError('Dossier patient introuvable.');
+        }
+        if (patient.followUp) {
+          await _patientDao.setFollowUp(followUp.patientId, toReview: false);
+        }
+      }
+    });
   }
 
   // ==================== MAPPERS ====================

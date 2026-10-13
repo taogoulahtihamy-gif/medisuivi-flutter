@@ -47,6 +47,21 @@ class FollowUpDao extends DatabaseAccessor<AppDatabase> with _$FollowUpDaoMixin 
     });
   }
 
+  /// Lit un suivi par ID directement dans SQLite.
+  Future<FollowUp?> getFollowUpById(String followUpId) {
+    return (select(followUps)..where((f) => f.id.equals(followUpId)))
+        .getSingleOrNull();
+  }
+
+  /// Vérifie les suivis planifiés restants sans se fier au cache UI.
+  Future<bool> hasPlannedFollowUpForPatient(String patientId) async {
+    final planned = await (select(followUps)
+          ..where((f) => f.patientId.equals(patientId) & f.status.equals(0))
+          ..limit(1))
+        .getSingleOrNull();
+    return planned != null;
+  }
+
   /// Récupère les suivis planifiés (futurs)
   Future<List<FollowUp>> getPlannedFollowUps() {
     final now = DateTime.now().toUtc();
