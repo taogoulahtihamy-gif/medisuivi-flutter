@@ -12,6 +12,9 @@ class DemoStore extends ChangeNotifier {
   final List<FollowUpPlan> _followUps = [...DemoData.followUps];
   int _followUpSequence = 0;
 
+  /// Prototype Web : aucune opération distante, aucun stockage durable.
+  Future<int> get pendingSyncCount async => 0;
+
   List<Patient> get patients => List.unmodifiable(_patients);
   List<Visit> get visits => List.unmodifiable(_visits);
   List<LabExam> get exams => List.unmodifiable(_exams);
