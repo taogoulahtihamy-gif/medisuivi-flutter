@@ -74,7 +74,17 @@ for attempt in $(seq 1 18); do
         "$focus $resumed" == *ConfirmLockPattern* ]]; then
     if (( pin_attempts < 3 )); then
       echo "===== CONFIRM ANDROID CREDENTIAL (attempt $((pin_attempts+1))) ====="
-      adb shell input text "$TEST_PIN" || true
+      # Android 8 ConfirmLockPassword can ignore `input text`.
+      # Dispatch physical numeric key events when API 26 is under test.
+      sdk="$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+      if [[ "$sdk" == "26" ]]; then
+        adb shell input keyevent KEYCODE_2 || true
+        adb shell input keyevent KEYCODE_4 || true
+        adb shell input keyevent KEYCODE_6 || true
+        adb shell input keyevent KEYCODE_8 || true
+      else
+        adb shell input text "$TEST_PIN" || true
+      fi
       adb shell input keyevent KEYCODE_ENTER || true
       pin_attempts=$((pin_attempts+1))
     fi
