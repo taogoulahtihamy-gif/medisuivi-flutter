@@ -1,9 +1,6 @@
 name: MediSuivi Android compatibility
 
 on:
-  push:
-    branches:
-      - fix/medisuivi-4d-android-compat
   pull_request:
     branches:
       - feat/medisuivi-premium-redesign
@@ -105,27 +102,7 @@ jobs:
           heap-size: 512M
           emulator-boot-timeout: 900
           disable-animations: true
-          script: |
-            # The emulator action executes this via /bin/sh. Run the body in Bash.
-            bash -euo pipefail <<'BASH'
-            mkdir -p test-output
-            APP=com.example.medisuivi
-            trap 'adb logcat -d -v threadtime 2>/dev/null | grep -Ei "AndroidRuntime|Flutter|medisuivi|sqlite|cipher|biometric|Keystore|local_auth" | tail -n 700 > test-output/relevant-logcat.txt || true; adb exec-out screencap -p > test-output/screen.png || true' EXIT
-            adb shell getprop ro.build.version.release | tee test-output/android-version.txt
-            adb shell getprop ro.product.cpu.abilist | tee test-output/cpu-abi.txt
-            adb logcat -c
-            adb install -r -t apk/app-debug.apk 2>&1 | tee test-output/installation.txt
-            adb shell pm path "$APP" | tee test-output/package-path.txt
-            adb shell input keyevent KEYCODE_WAKEUP || true
-            adb shell wm dismiss-keyguard || true
-            adb shell am start -W -n "$APP/.MainActivity" 2>&1 | tee test-output/launch.txt
-            sleep 20
-            if ! adb shell pidof "$APP" | tee test-output/process.txt; then
-              echo 'ERROR: MediSuivi process stopped after launch' >&2
-              exit 1
-            fi
-            echo 'INSTALLATION + PROCESS LAUNCH OK. UI/authentication/SQLite unlock NOT YET VALIDATED.'
-            BASH
+          script: bash .github/scripts/android-emulator-smoke.sh
       - name: Save install result, filtered logs and screenshot
         if: always()
         uses: actions/upload-artifact@v4

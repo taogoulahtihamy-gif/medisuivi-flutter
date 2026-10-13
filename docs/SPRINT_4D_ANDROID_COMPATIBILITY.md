@@ -33,3 +33,9 @@ Workflow : `.github/workflows/android-compatibility.yml`, isolé sur la branche 
 - Consulter `medisuivi-apk-inspection`, `medisuivi-android-api-29-diagnostics` et `medisuivi-android-api-26-diagnostics`.
 - Si les émulateurs installent l'APK, analyser les captures du premier écran et les logs afin de distinguer erreur d'authentification, SQLite et crash.
 - Dès que le téléphone redevient accessible, capturer le statut d'installation exact via ADB ou Android Package Installer.
+
+## Exécutions intermédiaires du banc de test
+
+- Première exécution : l'émulateur démarre mais l'action exécute `set -euo pipefail` dans `/bin/sh`, qui refuse `pipefail`. **Aucune installation testée**.
+- Deuxième exécution (commit `312f3f7`) : Android 10 / API 29 accepte l'APK avec `adb install` → `Success`. Le `script: |` était néanmoins exécuté en commandes séparées par l'action, ce qui perdait la variable `APP` avant le lancement. Android 8 / API 26 échouait sur un `adb logcat -c` non essentiel. **Démarrage non validé**.
+- Correctif suivant : script Bash autonome `.github/scripts/android-emulator-smoke.sh`, exécuté en une seule commande ; purge logcat facultative ; validation explicite de `Success`, du paquet et du processus. Les résultats complets devront être confirmés par une nouvelle CI.
