@@ -113,7 +113,7 @@ class KeyManager {
       final authenticated = await _localAuth.authenticate(
         localizedReason: localizedReason,
         options: AuthenticationOptions(
-          biometricOnly: true,
+          biometricOnly: false,
           stickyAuth: stickyAuth,
           useErrorDialogs: useErrorDialogs,
         ),
