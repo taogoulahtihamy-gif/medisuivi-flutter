@@ -61,13 +61,33 @@ jobs:
 
           umask 077
           SIGNING_FILE="$RUNNER_TEMP/medisuivi-stable-demo.p12"
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$SIGNING_FILE"
-          test -s "$SIGNING_FILE"
-          keytool -list -keystore "$SIGNING_FILE" \
+          if ! printf '%s' "$KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > "$SIGNING_FILE" 2>/dev/null; then
+            echo "::error::MEDISUIVI_DEMO_KEYSTORE_BASE64 is not valid Base64. Replace the secret with the Base64 of the complete .p12 file."
+            exit 1
+          fi
+          if [[ ! -s "$SIGNING_FILE" ]]; then
+            echo "::error::MEDISUIVI_DEMO_KEYSTORE_BASE64 decoded to an empty file. The secret must contain the Base64 of the .p12 file, not its password."
+            exit 1
+          fi
+          echo "Signing input: non-empty keystore file decoded."
+
+          if ! keytool -list -storetype PKCS12 -keystore "$SIGNING_FILE" \
+            -storepass "$MEDISUIVI_SIGNING_STORE_PASSWORD" >/dev/null 2>&1; then
+            echo "::error::Cannot open PKCS12 keystore. Check MEDISUIVI_DEMO_STORE_PASSWORD and that MEDISUIVI_DEMO_KEYSTORE_BASE64 contains the correct .p12."
+            exit 1
+          fi
+          echo "PKCS12 integrity and store password: verified."
+
+          if ! keytool -list -storetype PKCS12 -keystore "$SIGNING_FILE" \
             -storepass "$MEDISUIVI_SIGNING_STORE_PASSWORD" \
-            -alias "$MEDISUIVI_SIGNING_KEY_ALIAS" >/dev/null
+            -alias "$MEDISUIVI_SIGNING_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "::error::Keystore opened, but the requested key alias was not found. Check MEDISUIVI_DEMO_KEY_ALIAS."
+            exit 1
+          fi
+          echo "Key alias: verified."
+
           echo "MEDISUIVI_SIGNING_STORE_FILE=$SIGNING_FILE" >> "$GITHUB_ENV"
-          echo "Signing material verified; private key and passwords are not printed."
+          echo "Signing material verified; no private key, password or Base64 is logged."
 
       - name: Build signed release APK
         shell: bash
