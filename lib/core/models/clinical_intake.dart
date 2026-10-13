@@ -1,6 +1,7 @@
 /// Données structurées du Sprint 5, sans décision médicale automatique.
-/// Ce contrat est préparatoire : il n'est PAS encore branché sur SQLite.
-/// Ne pas utiliser pour de vrais dossiers avant la migration auditée.
+/// Sur mobile, les compléments sont conservés dans les tables additives
+/// chiffrées du Sprint 5B. Ne pas utiliser pour de vrais dossiers avant
+/// validation de la sécurité, de l'audit et de la reprise après perte.
 library;
 
 enum CareDisposition {
@@ -15,7 +16,7 @@ enum CareDisposition {
 ///
 /// Les champs historiques [Patient.name], [Patient.age], [Patient.sex],
 /// [Patient.phone], [Patient.allergies] et [Patient.medicalHistory] restent
-/// inchangés. Ce complément sera persisté par la migration dédiée du Sprint 5.
+/// inchangés. Ce complément est persisté via patient_supplements (v2).
 class PatientProfileSupplement {
   const PatientProfileSupplement({
     this.neighborhood = '',
@@ -136,8 +137,8 @@ class ClinicalIntake {
     return errors;
   }
 
-  /// Sérialisation versionnée : les champs vides restent distinguables de
-  /// données ajoutées ultérieurement. Le schéma Drift sera migré séparément.
+  /// Sérialisation versionnée dans la table chiffrée visit_intakes (v2).
+  /// Les champs non renseignés restent explicites.
   Map<String, Object?> toJson() => {
     'schemaVersion': schemaVersion,
     'weightKg': weightKg,
