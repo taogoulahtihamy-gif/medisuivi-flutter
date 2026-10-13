@@ -8,6 +8,7 @@ import '../persistence/dao/visit_dao.dart';
 import '../persistence/dao/exam_dao.dart';
 import '../persistence/dao/followup_dao.dart';
 import '../models/medical_models.dart';
+import 'clinical_store.dart';
 
 /// Exception spécifique pour les erreurs de base de données SQLite.
 class DatabaseException implements Exception {
@@ -19,7 +20,7 @@ class DatabaseException implements Exception {
 
 /// Store persistant utilisant Drift + SQLite3MultipleCiphers
 /// Remplace DemoStore tout en conservant la même API publique (synchrone pour compatibilité)
-class PersistentStore extends ChangeNotifier {
+class PersistentStore extends ChangeNotifier implements ClinicalStore {
   final db.AppDatabase _database;
 
   /// Opérations durables en attente : aucune synchronisation serveur active.
@@ -218,16 +219,27 @@ class PersistentStore extends ChangeNotifier {
 
   // ==================== VISITES ====================
 
+  /// Stream de toutes les visites
+  Stream<List<Visit>> get visitsStream =>
+      _visitDao.watchAllVisits().map(_mapVisits);
+
+  /// Liste de toutes les visites (synchrone via cache)
+  @override
+  List<Visit> get visits => List.unmodifiable(_visits);
+
   /// Stream des visites d'un patient
+  @override
   Stream<List<Visit>> visitsForStream(String patientId) =>
       _visitDao.watchVisitsForPatient(patientId).map(_mapVisits);
 
   /// Liste des visites d'un patient (synchrone via cache)
+  @override
   List<Visit> visitsFor(String patientId) =>
       _visits.where((v) => v.patientId == patientId).toList()
         ..sort((a, b) => b.date.compareTo(a.date));
 
   /// Dernière visite d'un patient (synchrone via cache)
+  @override
   Visit? lastVisitFor(String patientId) {
     final patientVisits = visitsFor(patientId);
     return patientVisits.isEmpty ? null : patientVisits.first;
@@ -318,34 +330,49 @@ class PersistentStore extends ChangeNotifier {
 
   // ==================== SUIVIS ====================
 
+  /// Stream de tous les suivis
+  Stream<List<FollowUpPlan>> get followUpsStream =>
+      _followUpDao.watchAllFollowUps().map(_mapFollowUps);
+
+  /// Liste de tous les suivis (synchrone via cache)
+  @override
+  List<FollowUpPlan> get followUps => List.unmodifiable(_followUps);
+
   /// Stream des suivis planifiés
+  @override
   Stream<List<FollowUpPlan>> get plannedFollowUpsStream =>
       _followUpDao.watchPlannedFollowUps().map(_mapFollowUps);
 
   /// Liste des suivis planifiés (synchrone via cache)
+  @override
   List<FollowUpPlan> get plannedFollowUps =>
       _followUps.where((f) => f.isPlanned).toList()
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 
   /// Stream des suivis passés (historique)
+  @override
   Stream<List<FollowUpPlan>> get pastFollowUpsStream =>
       _followUpDao.watchPastFollowUps().map(_mapFollowUps);
 
   /// Liste des suivis passés (synchrone via cache)
+  @override
   List<FollowUpPlan> get pastFollowUps =>
       _followUps.where((f) => !f.isPlanned).toList()
         ..sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
 
   /// Suivis d'un patient (synchrone via cache)
+  @override
   List<FollowUpPlan> followUpsFor(String patientId) =>
       _followUps.where((f) => f.patientId == patientId).toList()
         ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
 
   /// Stream des suivis d'un patient
+  @override
   Stream<List<FollowUpPlan>> followUpsForStream(String patientId) =>
       _followUpDao.watchFollowUpsForPatient(patientId).map(_mapFollowUps);
 
   /// Patients avec suivi signalé mais sans RDV programmé (synchrone via cache)
+  @override
   List<Patient> get followUpsWithoutDate {
     final patientsWithPlannedFollowUp =
         _followUps.where((f) => f.isPlanned).map((f) => f.patientId).toSet();

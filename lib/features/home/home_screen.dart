@@ -39,13 +39,11 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = _palette(context);
     final store = context.store;
-    final patients = store.patients as List<Patient>;
+    final patients = store.patients;
     final toReview = patients.where((pt) => pt.followUp).length;
-    final pending = (store.exams as List<LabExam>)
-        .where((e) => e.status == ExamStatus.pending)
-        .length;
+    final pending = store.exams.where((e) => e.status == ExamStatus.pending).length;
     final today = DateTime.now();
-    final coming = (store.plannedFollowUps as List<FollowUpPlan>)
+    final coming = store.plannedFollowUps
         .where((plan) => !plan.isOverdue(today))
         .toList();
     final nextVisit = coming.isEmpty ? null : coming.first;

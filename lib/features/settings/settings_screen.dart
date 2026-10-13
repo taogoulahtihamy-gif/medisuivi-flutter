@@ -20,7 +20,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // Mise à jour seulement lors d'une dépendance InheritedNotifier,
     // pas à chaque reconstruction causée par FutureBuilder.
     if (!kIsWeb) {
-      _pendingSyncCountFuture = context.store.pendingSyncCount as Future<int>;
+      _pendingSyncCountFuture = context.store.pendingSyncCount;
     }
   }
 
