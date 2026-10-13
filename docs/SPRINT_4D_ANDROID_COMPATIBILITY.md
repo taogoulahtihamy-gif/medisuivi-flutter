@@ -48,3 +48,14 @@ Workflow : `.github/workflows/android-compatibility.yml`, isolé sur la branche 
 - Analyse de code : un retour `null` de `KeyManager.unlockDatabase()` était classé `wrongKey`, alors qu'il peut correspondre à l'authentification Android refusée/indisponible. Les émulateurs de ce banc de test n'ont pas de code PIN ou empreinte configurés.
 - Correctif de diagnostic : catégorie explicite `authenticationRequired`, message adapté, trace générique non sensible `MEDISUIVI_BOOT_READY`, et échec CI si le stockage n'est pas réellement prêt.
 - Cette correction n'active aucun bypass de sécurité et **ne prouve pas la résolution du démarrage** : l'étape suivante consiste à simuler un appareil verrouillé pour permettre l'authentification et vérifier SQLite.
+
+## Expérience suivante : authentification Android simulée
+
+L'exécution sur le commit `5b3447f` montre sur Android 8/API 26 et Android 10/API 29 :
+- `adb install` retourne `Success` ;
+- `MainActivity` démarre ;
+- `MEDISUIVI_BOOT_RESULT=authenticationRequired` et **aucun `MEDISUIVI_BOOT_READY`**.
+
+Les diagnostics d'installation sont donc acquis, mais la base clinique n'est pas déverrouillée.
+
+Le scénario suivant configure **un PIN fictif sur l'émulateur jetable**, lance l'application et répond au dialogue système avec ce PIN. Il échoue si la base n'atteint pas `MEDISUIVI_BOOT_READY`. Cette automatisation **n'ajoute aucun contournement** au code Flutter et ne prouve pas le fonctionnement sur Galaxy S9+ tant qu'aucun test physique n'est disponible.
