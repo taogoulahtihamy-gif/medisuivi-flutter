@@ -182,7 +182,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                ClinicalFormSection(
+                ClinicalDisclosureSection(
                   title: 'Adresse et contact',
                   subtitle: 'Facultatif',
                   icon: Icons.location_on_outlined,
@@ -198,7 +198,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                   ]),
                 ),
                 const SizedBox(height: 14),
-                ClinicalFormSection(
+                ClinicalDisclosureSection(
                   title: 'Informations médicales complémentaires',
                   subtitle: 'À renseigner si connues',
                   icon: Icons.medical_information_outlined,
@@ -210,12 +210,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                     _input('Antécédents familiaux', familyHistory, maxLines: 3),
                   ]),
                 ),
-                const SizedBox(height: 22),
-                ElevatedButton.icon(
-                  onPressed: _saving ? null : save,
-                  icon: const Icon(Icons.check_rounded),
-                  label: const Text('Ajouter le patient'),
-                ),
+
                 const SizedBox(height: 12),
                 Text(
                   kIsWeb ? 'Version Web : données fictives temporaires.' : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
@@ -224,6 +219,21 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    ),
+    bottomNavigationBar: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton.icon(
+            onPressed: _saving ? null : save,
+            icon: const Icon(Icons.check_rounded),
+            label: Text(_saving ? 'Enregistrement…' : 'Ajouter le patient'),
           ),
         ),
       ),

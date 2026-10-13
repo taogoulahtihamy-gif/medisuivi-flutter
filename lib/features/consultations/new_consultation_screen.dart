@@ -64,7 +64,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
   String? checkNumber(String? input, double min, double max, bool integerOnly) {
     if (input == null || input.trim().isEmpty) return null;
     final n = number(input);
-    if (n == null || n < min || n > max ||
+    if (n == null || !n.isFinite || n < min || n > max ||
         (integerOnly && n != n.truncateToDouble())) {
       return 'Valeur invalide.';
     }
@@ -131,8 +131,35 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
     careDisposition: _disposition,
   );
 
+  /// Les sections repliées ne doivent pas contourner la validation numérique.
+  String? _hiddenMeasurementError() {
+    final measurements = <(String, TextEditingController, double, double, bool)>[
+      ('Température', temp, 25, 45, false),
+      ('Pouls', pulse, 20, 250, true),
+      ('TA systolique', systolic, 40, 300, true),
+      ('TA diastolique', diastolic, 20, 200, true),
+      ('SpO₂', spo2, 0, 100, true),
+      ('Poids', weight, 0.1, 500, false),
+      ('Taille', height, 0.1, 300, false),
+      ('Fréquence respiratoire', respiratoryRate, 1, 100, true),
+    ];
+    for (final (label, controller, min, max, integerOnly) in measurements) {
+      if (checkNumber(controller.text, min, max, integerOnly) != null) {
+        return 'Mesure invalide : $label';
+      }
+    }
+    return null;
+  }
+
   Future<void> save() async {
     if (_saving || !(form.currentState?.validate() ?? false)) return;
+    final measurementError = _hiddenMeasurementError();
+    if (measurementError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(measurementError)),
+      );
+      return;
+    }
     final intake = _intake();
     final issues = intake.validate();
     if (issues.isNotEmpty) {
@@ -221,8 +248,9 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            ClinicalFormSection(
+            ClinicalDisclosureSection(
               title: 'Constantes vitales',
+              initiallyExpanded: true,
               icon: Icons.monitor_heart_outlined,
               subtitle: 'Mesures lors de la visite',
               child: Column(children: [
@@ -241,7 +269,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               ]),
             ),
             const SizedBox(height: 14),
-            ClinicalFormSection(
+            ClinicalDisclosureSection(
               title: 'Mesures complémentaires',
               icon: Icons.scale_outlined,
               subtitle: 'Facultatif ; unités indiquées',
@@ -255,7 +283,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               ]),
             ),
             const SizedBox(height: 14),
-            ClinicalFormSection(
+            ClinicalDisclosureSection(
               title: 'Histoire et signes',
               icon: Icons.notes_outlined,
               child: Column(children: [
@@ -265,7 +293,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               ]),
             ),
             const SizedBox(height: 14),
-            ClinicalFormSection(
+            ClinicalDisclosureSection(
               title: 'Examen physique',
               icon: Icons.personal_injury_outlined,
               child: Column(children: [
@@ -278,7 +306,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               ]),
             ),
             const SizedBox(height: 14),
-            ClinicalFormSection(
+            ClinicalDisclosureSection(
               title: 'Diagnostic',
               icon: Icons.medical_information_outlined,
               child: Column(children: [
@@ -288,7 +316,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               ]),
             ),
             const SizedBox(height: 14),
-            ClinicalFormSection(
+            ClinicalDisclosureSection(
               title: 'Bilan et résultats',
               icon: Icons.biotech_outlined,
               subtitle: 'Les examens prescrits disposent aussi de leur suivi dédié.',
@@ -300,7 +328,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
               ]),
             ),
             const SizedBox(height: 14),
-            ClinicalFormSection(
+            ClinicalDisclosureSection(
               title: 'Conduite à tenir',
               icon: Icons.fact_check_outlined,
               child: Column(children: [
@@ -348,12 +376,7 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
                 _textEntry('Consignes et suivi', followUpInstructions),
               ]),
             ),
-            const SizedBox(height: 21),
-            ElevatedButton.icon(
-              onPressed: _saving ? null : save,
-              icon: const Icon(Icons.check_rounded),
-              label: const Text('Enregistrer la consultation'),
-            ),
+
             const SizedBox(height: 12),
             Text(
               kIsWeb ? 'Version Web : données fictives temporaires.' : 'Enregistrement local hors connexion ; aucun envoi au serveur.',
@@ -365,5 +388,20 @@ class _NewConsultationScreenState extends State<NewConsultationScreen> {
         ),
       ),
     ))),
+    bottomNavigationBar: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton.icon(
+            onPressed: _saving ? null : save,
+            icon: const Icon(Icons.check_rounded),
+            label: Text(_saving ? 'Enregistrement…' : 'Enregistrer la consultation'),
+          ),
+        ),
+      ),
+    ),
   );
 }

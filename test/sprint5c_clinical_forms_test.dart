@@ -43,6 +43,9 @@ void main() {
     await openScreen(tester, const NewPatientScreen());
     await tester.enterText(find.byType(TextFormField).at(0), 'Patient Fictif');
     await tester.enterText(find.byType(TextFormField).at(1), '39');
+    await tester.ensureVisible(find.text('Adresse et contact'));
+    await tester.tap(find.text('Adresse et contact'));
+    await tester.pumpAndSettle();
     final quarter = find.widgetWithText(TextFormField, 'Quartier');
     await tester.ensureVisible(quarter);
     await tester.enterText(quarter, 'Quartier de test');
@@ -91,6 +94,9 @@ void main() {
     await openScreen(tester, NewConsultationScreen(patient: patient));
     await tester.enterText(find.byType(TextFormField).first,
       'Consultation fictive');
+    await tester.ensureVisible(find.text('Mesures complémentaires'));
+    await tester.tap(find.text('Mesures complémentaires'));
+    await tester.pumpAndSettle();
     final weight = find.widgetWithText(TextFormField, 'Poids (kg)');
     await tester.ensureVisible(weight);
     await tester.enterText(weight, '68,5');
