@@ -123,7 +123,11 @@ jobs:
           grep -q '^lib/arm64-v8a/libflutter\.so$' test-output/native-libraries.txt
           grep -q '^lib/x86_64/libflutter\.so$' test-output/native-libraries.txt
 
-          ACTUAL="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' test-output/signature.txt | head -n 1)"
+          # apksigner labels depend on the signing scheme:
+          # "V2 Signer: certificate SHA-256 digest:" (modern Android)
+          # or "Signer #1 certificate SHA-256 digest:" (other versions).
+          # Accept either format, but reject differing certificate digests.
+          ACTUAL="$(sed -nE 's/^.*certificate SHA-256 digest: ([[:xdigit:]]{64})$/\1/p' test-output/signature.txt | sort -u)"
           if ! [[ "$ACTUAL" =~ ^[[:xdigit:]]{64}$ ]] || [[ "${ACTUAL,,}" != "${EXPECTED_CERT_SHA256,,}" ]]; then
             echo "::error::APK signing certificate does not match the pinned fingerprint."
             exit 1
