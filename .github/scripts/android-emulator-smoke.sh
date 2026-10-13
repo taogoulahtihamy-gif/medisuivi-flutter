@@ -24,6 +24,16 @@ adb wait-for-device
 adb shell getprop ro.build.version.release | tee "$OUT/android-version.txt"
 adb shell getprop ro.product.cpu.abilist | tee "$OUT/cpu-abi.txt"
 
+# Configure only the disposable emulator. This is a dummy PIN, never a
+# production credential. Device authentication remains mandatory.
+TEST_PIN="2468"
+echo "===== SET EMULATOR DEVICE CREDENTIAL ====="
+if ! adb shell locksettings set-pin "$TEST_PIN" > "$OUT/device-credential-setup.txt" 2>&1; then
+  echo "ERROR: Could not configure screen-lock credential on emulator." >&2
+  exit 1
+fi
+echo "Emulator lock credential configured."
+
 # Android 8 emulators may reject clearing system logs; this is non-fatal.
 if ! adb logcat -c > "$OUT/logcat-reset.txt" 2>&1; then
   echo "Warning: logcat clear unavailable; continuing without log reset."
@@ -46,7 +56,20 @@ if grep -qE 'Error type|does not exist|SecurityException|Permission Denial' "$OU
   exit 1
 fi
 
-sleep 20
+# Give the Android system prompt time to appear; use only the test PIN.
+sleep 4
+adb exec-out screencap -p > "$OUT/before-auth-screen.png" 2>/dev/null || true
+for attempt in 1 2 3; do
+  # If initialization already succeeded, no additional UI interaction.
+  if adb logcat -d -v brief 2>/dev/null | grep -q 'MEDISUIVI_BOOT_READY'; then
+    break
+  fi
+  echo "===== DEVICE CREDENTIAL ATTEMPT ${attempt} ====="
+  adb shell input text "$TEST_PIN" || true
+  adb shell input keyevent KEYCODE_ENTER || true
+  sleep 5
+done
+
 echo "===== PROCESS STILL ALIVE ====="
 adb shell pidof "$APP" | tee "$OUT/process.txt"
 test -s "$OUT/process.txt"
