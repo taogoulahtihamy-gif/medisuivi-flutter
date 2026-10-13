@@ -19,12 +19,12 @@ Identité du malade (nom, prénom, adresse/quartier/téléphone, âge, sexe) ; p
 - Tests unitaires de round-trip JSON, décisions d'orientation et refus de formats inconnus.
 - Aucune modification de schéma, de la clé SQLite, du système d'authentification, de la signature APK ou de `main`.
 
-### 5B · Migration chiffrée et persistance sans perte (prochaine PR)
+### 5B · Migration chiffrée et persistance sans perte (implémentée dans la PR #8, à valider en CI)
 
-- Planifier une **migration additive v1 → v2**, avec colonnes nullable et valeurs par défaut pour les dossiers existants ; ne pas réécrire ni effacer les anciennes consultations.
-- Mettre à jour `Patients` et `Visits` ou tables auxiliaires dédiées, régénérer Drift via `build_runner`, garder le code généré versionné.
-- DAO : création/mise à jour transactionnelle avec outbox JSON contenant les nouveaux champs ; erreurs outbox = rollback complet. Une consultation clôturée ne s'écrase pas silencieusement.
-- Tests obligatoires : ouverture d'une vraie base v1 chiffrée, migration vers v2 avec la **même clé**, nombre de patients/consultations/examens/suivis et outbox inchangé, nouveaux champs enregistrés/retrouvés après réouverture, rétrocompatibilité des anciennes interfaces.
+- Migration **additive v1 → v2** implémentée par deux tables SQLite auxiliaires `patient_supplements` et `visit_intakes`, sans modifier les tables Drift historiques, leurs colonnes, ni le code `database.g.dart`. Évite de réécrire les anciennes consultations.
+- Les tables auxiliaires sont créées via `AppDatabase._createClinicalSupplementTables()` à la création ou lors de l'upgrade 1→2. Le code généré Drift v1 demeure valide puisqu'aucune table déclarée dans `@DriftDatabase` ne change.
+- DAO : ajout optionnel `profile` lors de la création/mise à jour patient et `intake` à la création de visite. Écriture des tables auxiliaires + outbox JSON **dans la même transaction**. Les consultations précédentes ne sont pas modifiables ; `INSERT` ne remplace jamais un compte rendu existant.
+- Tests ajoutés : reconstitution fidèle du schéma v1 dans une base chiffrée réelle (tables historiques inchangées, tables complémentaires absentes, `user_version=1`), migration vers v2 avec la **même clé**, conservation des patients, visites, examens, suivis et outbox ; nouveau profil/visite rechargés après redémarrage ; échec d'outbox provoque rollback des données et du complément. Validation CI requise avant fusion.
 - Pas de renommage `applicationId`, pas de suppression/reconstruction DB, pas de conversion synchronisée artificielle.
 
 ### 5C · Interfaces Nocturne Clinique
@@ -45,3 +45,10 @@ Identité du malade (nom, prénom, adresse/quartier/téléphone, âge, sexe) ; p
 6. Aucun stockage de données patient dans les logs, analytics, GitHub, captures d'écran ou artifacts.
 
 **Attention :** cette V1 n'est pas autorisée pour une utilisation clinique avec de vraies données tant que les comptes, permissions, audit, reprise après perte d'appareil et exigences réglementaires n'ont pas été évalués.
+
+## Validation Sprint 5B
+
+- Aucune capture de vrai patient, ni données sensibles en GitHub Actions.
+- Tests de migration et non-régression : `test/persistence/sprint5_migration_test.dart`.
+- **Ne pas installer un APK Sprint 5 avant validation de la migration en CI et sur une copie chiffrée de test**, et sans politique sûre pour l'ancien APK debug du S9+.
+- Les nouveaux champs ne sont pas encore saisis dans l'interface : Sprint 5C prévu.
