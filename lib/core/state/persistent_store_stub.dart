@@ -8,6 +8,12 @@ import 'package:medisuivi/core/state/demo_store.dart';
 /// Stub pour PersistentStore sur le web - utilise DemoStore
 class PersistentStore extends DemoStore {
   PersistentStore();
+
+  // Aucun abonnement Drift sur Web.
+  Future<void> get streamsStopped => Future<void>.value();
+
+  /// Compatibilité API : l'initialisation est immédiate sur le web (données fictives)
+  Future<void> get ready => Future.value();
 }
 
 /// Stub pour PersistentScope sur le web

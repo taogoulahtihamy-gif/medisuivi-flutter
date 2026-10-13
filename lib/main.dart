@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
@@ -54,9 +56,21 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
       switch (result.$1) {
         case DatabaseInitResult.success:
           _persistentStore = createPersistentStore(result.$2);
+          if (_persistentStore != null) {
+            try {
+              // Attendre la fin du chargement initial des données.
+              // Les erreurs sont propagées (rethrow dans _loadInitialData)
+              // et déclenchent l'écran d'erreur ci-dessous.
+              await _persistentStore!.ready;
+            } catch (e) {
+              _errorMessage = 'Erreur de chargement des données : $e';
+              _initResult = null; // déclenche l'écran d'erreur existant
+            }
+          }
           break;
         case DatabaseInitResult.wrongKey:
-          _errorMessage = 'Clé de déchiffrement invalide. Veuillez redémarrer l\'application.';
+          _errorMessage =
+              'Clé de déchiffrement invalide. Veuillez redémarrer l\'application.';
           break;
         case DatabaseInitResult.corruption:
           _errorMessage = 'Base de données corrompue. Contactez le support.';
@@ -76,11 +90,39 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
     }
   }
 
+  // L'UI ferme son store sans attendre. La base est fermée ensuite,
+  // uniquement après la fin effective de l'annulation des flux Drift.
+  Future<void> _releaseStorage(PersistentStore? store) async {
+    try {
+      try {
+        if (store != null) {
+          // Une fermeture pendant l'initialisation ne doit pas la devancer.
+          try {
+            await store.ready;
+          } catch (_) {
+            // L'erreur de lecture est traitée par le bootstrap ; fermer quand même.
+          }
+          await store.streamsStopped;
+        }
+      } finally {
+        await DatabaseProvider.dispose();
+      }
+    } catch (_, stack) {
+      // Ne jamais journaliser le contenu de données médicales ou SQLite.
+      FlutterError.reportError(FlutterErrorDetails(
+        exception: StateError('Échec de libération du stockage local.'),
+        stack: stack,
+        library: 'MediSuivi',
+      ));
+    }
+  }
+
   @override
   void dispose() {
     _demoStore?.dispose();
-    _persistentStore?.dispose();
-    DatabaseProvider.dispose();
+    final store = _persistentStore;
+    store?.dispose();
+    unawaited(_releaseStorage(store));
     super.dispose();
   }
 
@@ -99,7 +141,8 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
     }
 
     // Écran d'erreur si initialisation échouée
-    if (_initResult != DatabaseInitResult.success && _initResult != DatabaseInitResult.notSupported) {
+    if (_initResult != DatabaseInitResult.success &&
+        _initResult != DatabaseInitResult.notSupported) {
       return MaterialApp(
         title: 'MediSuivi',
         debugShowCheckedModeBanner: false,
@@ -122,8 +165,8 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
           title: 'MediSuivi',
           debugShowCheckedModeBanner: false,
           theme: ClinicalTheme.light(),
-        darkTheme: ClinicalTheme.dark(),
-        themeMode: ThemeMode.system,
+          darkTheme: ClinicalTheme.dark(),
+          themeMode: ThemeMode.system,
           home: const MainShell(),
         ),
       );

@@ -1,6 +1,4 @@
-/// Store persistant utilisant Drift + SQLite3MultipleCiphers
-/// Remplace DemoStore tout en conservant la même API publique (synchrone pour compatibilité)
-library;
+import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
@@ -11,7 +9,16 @@ import '../persistence/dao/exam_dao.dart';
 import '../persistence/dao/followup_dao.dart';
 import '../models/medical_models.dart';
 
-/// Store persistant pour la V1 - API compatible avec DemoStore
+/// Exception spécifique pour les erreurs de base de données SQLite.
+class DatabaseException implements Exception {
+  final String message;
+  DatabaseException(this.message);
+  @override
+  String toString() => 'DatabaseException: $message';
+}
+
+/// Store persistant utilisant Drift + SQLite3MultipleCiphers
+/// Remplace DemoStore tout en conservant la même API publique (synchrone pour compatibilité)
 class PersistentStore extends ChangeNotifier {
   final db.AppDatabase _database;
 
@@ -31,57 +38,128 @@ class PersistentStore extends ChangeNotifier {
   final List<LabExam> _exams = [];
   final List<FollowUpPlan> _followUps = [];
 
+  // Abonnements streams - nullable car dispose peut arriver avant fin de chargement
+  StreamSubscription<List<Patient>>? _patientStreamSubscription;
+  StreamSubscription<List<Visit>>? _visitStreamSubscription;
+  StreamSubscription<List<LabExam>>? _examStreamSubscription;
+  StreamSubscription<List<FollowUpPlan>>? _followUpStreamSubscription;
+
+  // Drapeau pour empêcher les opérations après destruction
+  bool _disposed = false;
+
+  // Fin effective de l'annulation des abonnements, distincte de dispose().
+  Future<void>? _streamCleanup;
+
+  /// À attendre avant que le propriétaire ne ferme la base SQLite.
+  Future<void> get streamsStopped => _streamCleanup ?? Future<void>.value();
+
+  // Future d'initialisation exposé pour attendre le chargement initial
+  Future<void>? _initialization;
+
   PersistentStore(this._database) {
     _patientDao = _database.patientDao;
     _visitDao = _database.visitDao;
     _examDao = _database.examDao;
     _followUpDao = _database.followUpDao;
-    _loadInitialData();
+    _initialization = _loadInitialData();
   }
 
-  /// Charge les données initiales depuis la base et configure les streams réactifs
+  /// Future qui se termine quand le chargement initial est fini.
+  /// Les erreurs de chargement sont propagées (jamais présentées comme base vide).
+  Future<void> get ready => _initialization ?? Future.value();
+
+  /// Charge les données initiales depuis la base et configure les streams réactifs.
+  /// Les erreurs de chargement initial sont propagées via rethrow,
+  /// jamais présentées comme une base vide valide.
   Future<void> _loadInitialData() async {
-    _patients.addAll(_mapPatients(await _patientDao.getAllPatients()));
-    _visits.addAll(_mapVisits(await _visitDao.getVisitsForAllPatients()));
-    _exams.addAll(_mapExams(await _examDao.getAllExams()));
-    _followUps.addAll(_mapFollowUps(await _followUpDao.getAllFollowUps()));
+    try {
+      _patients.addAll(_mapPatients(await _patientDao.getAllPatients()));
+      _visits.addAll(_mapVisits(await _visitDao.getVisitsForAllPatients()));
+      _exams.addAll(_mapExams(await _examDao.getAllExams()));
+      _followUps.addAll(_mapFollowUps(await _followUpDao.getAllFollowUps()));
+    } catch (e) {
+      // Erreur lors du chargement initial : on relaie l'exception
+      // pour qu'elle ne soit pas interprétée comme une base vide valide.
+      rethrow;
+    }
 
-    // Écouter les changements pour maintenir le cache à jour
-    _patientDao.watchAllPatients().map(_mapPatients).listen((patients) {
-      _patients
-        ..clear()
-        ..addAll(patients);
-      notifyListeners();
-    });
+    // Si le store a été détruit pendant le chargement, ne pas installer les abonnements
+    if (_disposed) return;
 
-    _visitDao.watchAllVisits().map(_mapVisits).listen((visits) {
-      _visits
-        ..clear()
-        ..addAll(visits);
-      notifyListeners();
-    });
+    // Écouter les changements pour maintenir le cache à jour.
+    // Gestion d'erreurs explicite sur chaque stream.
+    _patientStreamSubscription =
+        _patientDao.watchAllPatients().map(_mapPatients).listen(
+              _onPatientChanged,
+              onError: (e) => _handleStreamError(e, 'patients'),
+            );
 
-    _examDao.watchAllExams().map(_mapExams).listen((exams) {
-      _exams
-        ..clear()
-        ..addAll(exams);
-      notifyListeners();
-    });
+    _visitStreamSubscription =
+        _visitDao.watchAllVisits().map(_mapVisits).listen(
+              _onVisitChanged,
+              onError: (e) => _handleStreamError(e, 'visites'),
+            );
 
-    _followUpDao.watchAllFollowUps().map(_mapFollowUps).listen((followUps) {
-      _followUps
-        ..clear()
-        ..addAll(followUps);
-      notifyListeners();
-    });
+    _examStreamSubscription = _examDao.watchAllExams().map(_mapExams).listen(
+          _onExamChanged,
+          onError: (e) => _handleStreamError(e, 'examens'),
+        );
 
+    _followUpStreamSubscription =
+        _followUpDao.watchAllFollowUps().map(_mapFollowUps).listen(
+              _onFollowUpChanged,
+              onError: (e) => _handleStreamError(e, 'suivis'),
+            );
+  }
+
+  /// Gestion centralisée des erreurs de stream.
+  /// Ne fait pas notifyListeners après destruction.
+  void _handleStreamError(Object error, String streamName) {
+    if (_disposed) return;
+    // L'erreur est journalisée mais ne casse pas l'UI.
+    // En production, envoyer vers un service de logging.
+    debugPrint('PersistentStore: erreur stream $streamName: $error');
+  }
+
+  // ==================== GESTION DES ABONNEMENTS RÉACTIFS ====================
+
+  void _onPatientChanged(List<Patient> patients) {
+    if (_disposed) return;
+    _patients
+      ..clear()
+      ..addAll(patients);
+    notifyListeners();
+  }
+
+  void _onVisitChanged(List<Visit> visits) {
+    if (_disposed) return;
+    _visits
+      ..clear()
+      ..addAll(visits);
+    notifyListeners();
+  }
+
+  void _onExamChanged(List<LabExam> exams) {
+    if (_disposed) return;
+    _exams
+      ..clear()
+      ..addAll(exams);
+    notifyListeners();
+  }
+
+  void _onFollowUpChanged(List<FollowUpPlan> followUps) {
+    if (_disposed) return;
+    _followUps
+      ..clear()
+      ..addAll(followUps);
     notifyListeners();
   }
 
   // ==================== PATIENTS ====================
 
   /// Stream de tous les patients (réactif)
-  Stream<List<Patient>> get patientsStream => _patientDao.watchAllPatients().map(_mapPatients);
+  Stream<List<Patient>> get patientsStream =>
+      _patientDao.watchAllPatients().map(_mapPatients);
 
   /// Liste de tous les patients (synchrone via cache)
   List<Patient> get patients => List.unmodifiable(_patients);
@@ -95,7 +173,8 @@ class PersistentStore extends ChangeNotifier {
   }
 
   /// Patients marqués pour suivi (synchrone via cache)
-  List<Patient> get followUpPatients => _patients.where((p) => p.followUp).toList();
+  List<Patient> get followUpPatients =>
+      _patients.where((p) => p.followUp).toList();
 
   /// Stream des patients marqués pour suivi
   Stream<List<Patient>> get followUpPatientsStream =>
@@ -180,7 +259,8 @@ class PersistentStore extends ChangeNotifier {
   // ==================== EXAMENS ====================
 
   /// Stream de tous les examens
-  Stream<List<LabExam>> get examsStream => _examDao.watchAllExams().map(_mapExams);
+  Stream<List<LabExam>> get examsStream =>
+      _examDao.watchAllExams().map(_mapExams);
 
   /// Liste de tous les examens (synchrone via cache)
   List<LabExam> get exams => List.unmodifiable(_exams);
@@ -267,12 +347,12 @@ class PersistentStore extends ChangeNotifier {
 
   /// Patients avec suivi signalé mais sans RDV programmé (synchrone via cache)
   List<Patient> get followUpsWithoutDate {
-    final patientsWithPlannedFollowUp = _followUps
-        .where((f) => f.isPlanned)
-        .map((f) => f.patientId)
-        .toSet();
+    final patientsWithPlannedFollowUp =
+        _followUps.where((f) => f.isPlanned).map((f) => f.patientId).toSet();
 
-    return _patients.where((p) => p.followUp && !patientsWithPlannedFollowUp.contains(p.id)).toList();
+    return _patients
+        .where((p) => p.followUp && !patientsWithPlannedFollowUp.contains(p.id))
+        .toList();
   }
 
   /// Programme un nouveau suivi
@@ -306,7 +386,8 @@ class PersistentStore extends ChangeNotifier {
   }
 
   /// Clôture un suivi
-  Future<void> closeFollowUp(String followUpId, {required bool completed}) async {
+  Future<void> closeFollowUp(String followUpId,
+      {required bool completed}) async {
     await _followUpDao.closeFollowUp(
       followUpId: followUpId,
       completed: completed,
@@ -399,7 +480,20 @@ class PersistentStore extends ChangeNotifier {
 
   @override
   void dispose() {
-    _database.close();
+    if (_disposed) return;
+    _disposed = true;
+    // cancel() est asynchrone : le propriétaire attend streamsStopped
+    // avant de fermer SQLite. La destruction du ChangeNotifier reste synchrone.
+    _streamCleanup = Future.wait<void>([
+      if (_patientStreamSubscription != null)
+        _patientStreamSubscription!.cancel(),
+      if (_visitStreamSubscription != null)
+        _visitStreamSubscription!.cancel(),
+      if (_examStreamSubscription != null)
+        _examStreamSubscription!.cancel(),
+      if (_followUpStreamSubscription != null)
+        _followUpStreamSubscription!.cancel(),
+    ]).then<void>((_) {});
     super.dispose();
   }
 }
