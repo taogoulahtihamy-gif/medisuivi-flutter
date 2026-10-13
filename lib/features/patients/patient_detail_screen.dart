@@ -32,25 +32,28 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final palette = Palette.of(context);
     return SizedBox(
       height: 45,
-      child: ListView.separated(
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        itemCount: labels.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 7),
-        itemBuilder: (context, index) {
-          final selected = _section == index;
-          return ChoiceChip(
-            key: Key('patient-tab-$index'),
-            selected: selected,
-            showCheckmark: false,
-            avatar: Icon(labels[index].$2, size: 17,
-              color: selected ? palette.forest : palette.muted),
-            label: Text(labels[index].$1),
-            labelStyle: TextStyle(fontSize: 12.5,
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              color: selected ? palette.forest : palette.ink),
-            onSelected: (_) => setState(() => _section = index),
-          );
-        },
+        child: Row(
+          children: List.generate(labels.length, (index) {
+            final selected = _section == index;
+            return Padding(
+              padding: const EdgeInsets.only(right: 7),
+              child: ChoiceChip(
+                key: Key('patient-tab-$index'),
+                selected: selected,
+                showCheckmark: false,
+                avatar: Icon(labels[index].$2, size: 17,
+                  color: selected ? palette.forest : palette.muted),
+                label: Text(labels[index].$1),
+                labelStyle: TextStyle(fontSize: 12.5,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? palette.forest : palette.ink),
+                onSelected: (_) => setState(() => _section = index),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
