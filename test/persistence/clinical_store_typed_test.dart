@@ -166,7 +166,7 @@ void main() {
       final closed = store.followUpsFor(patient.id).first;
       expect(closed.status, FollowUpStatus.completed);
       expect(closed.completedAt, isNotNull);
-      expect((await database.patientDao.getPatientById(patient.id))!.followUp, isFalse);
+      expect(store.patientById(patient.id)!.followUp, isFalse);
     });
 
     test('rescheduleFollowUp modifie la date d\'un suivi planifié', () async {
@@ -432,6 +432,8 @@ void main() {
       });
       final closed = store.followUpsFor(patient.id).first;
       expect(closed.completedAt, isNotNull);
+      expect((await database.patientDao.getPatientById(patient.id))!.followUp,
+          isFalse);
       expect(store.plannedFollowUps.where((f) => f.patientId == patient.id),
           isEmpty);
     });
