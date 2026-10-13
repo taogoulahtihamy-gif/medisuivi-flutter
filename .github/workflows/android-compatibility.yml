@@ -106,7 +106,8 @@ jobs:
           emulator-boot-timeout: 900
           disable-animations: true
           script: |
-            set -euo pipefail
+            # The emulator action executes this via /bin/sh. Run the body in Bash.
+            bash -euo pipefail <<'BASH'
             mkdir -p test-output
             APP=com.example.medisuivi
             trap 'adb logcat -d -v threadtime 2>/dev/null | grep -Ei "AndroidRuntime|Flutter|medisuivi|sqlite|cipher|biometric|Keystore|local_auth" | tail -n 700 > test-output/relevant-logcat.txt || true; adb exec-out screencap -p > test-output/screen.png || true' EXIT
@@ -124,6 +125,7 @@ jobs:
               exit 1
             fi
             echo 'INSTALLATION + PROCESS LAUNCH OK. UI/authentication/SQLite unlock NOT YET VALIDATED.'
+            BASH
       - name: Save install result, filtered logs and screenshot
         if: always()
         uses: actions/upload-artifact@v4
