@@ -4,6 +4,19 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// CI supplies stable signing material via private repository secrets.
+val medisuiviStoreFile = System.getenv("MEDISUIVI_SIGNING_STORE_FILE")
+val medisuiviStorePassword = System.getenv("MEDISUIVI_SIGNING_STORE_PASSWORD")
+val medisuiviKeyAlias = System.getenv("MEDISUIVI_SIGNING_KEY_ALIAS")
+val medisuiviKeyPassword = System.getenv("MEDISUIVI_SIGNING_KEY_PASSWORD")
+val medisuiviStableSigningReady = listOf(
+    medisuiviStoreFile,
+    medisuiviStorePassword,
+    medisuiviKeyAlias,
+    medisuiviKeyPassword,
+).all { !it.isNullOrBlank() }
+
+
 android {
     namespace = "com.example.medisuivi"
     compileSdk = flutter.compileSdkVersion
@@ -29,11 +42,26 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (medisuiviStableSigningReady) {
+            create("medisuiviStableDemo") {
+                storeFile = file(medisuiviStoreFile!!)
+                storePassword = medisuiviStorePassword!!
+                keyAlias = medisuiviKeyAlias!!
+                keyPassword = medisuiviKeyPassword!!
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Never silently sign a distributable release with a debug key.
+            // Dedicated CI enforces pinned cert and refuses missing secrets.
+            signingConfig = if (medisuiviStableSigningReady) {
+                signingConfigs.getByName("medisuiviStableDemo")
+            } else {
+                null
+            }
         }
     }
 }
