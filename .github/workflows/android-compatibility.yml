@@ -1,0 +1,134 @@
+name: MediSuivi Android compatibility
+
+on:
+  push:
+    branches:
+      - fix/medisuivi-4d-android-compat
+  pull_request:
+    branches:
+      - feat/medisuivi-premium-redesign
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-apk:
+    name: Inspect signed debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          channel: stable
+          cache: true
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+      - name: Compile debug APK
+        run: flutter build apk --debug --no-pub
+      - name: Inspect APK metadata, signature and CPU architectures
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=build/app/outputs/flutter-apk/app-debug.apk
+          test -s "$APK"
+          mkdir -p test-output
+          unzip -tq "$APK" | tee test-output/zip-integrity.txt
+          sha256sum "$APK" | tee test-output/sha256.txt
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          test -n "$BUILD_TOOLS"
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | tee test-output/apk-badging.txt
+          grep -q "package: name='com.example.medisuivi'" test-output/apk-badging.txt
+          grep -q "^sdkVersion:" test-output/apk-badging.txt
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK" | tee test-output/apk-signature.txt
+          "$BUILD_TOOLS/zipalign" -c -v 4 "$APK" | tee test-output/apk-alignment.txt
+          unzip -Z1 "$APK" | grep -E '^lib/.+\.so$' | tee test-output/native-libraries.txt
+          grep -q '^lib/arm64-v8a/libflutter\.so$' test-output/native-libraries.txt
+          grep -q '^lib/x86_64/libflutter\.so$' test-output/native-libraries.txt
+          echo 'APK integrity, signature, ARM64 and x86_64: OK.'
+      - name: Save inspection report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: medisuivi-apk-inspection
+          path: test-output/
+          retention-days: 5
+          if-no-files-found: warn
+      - name: Share tested APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: medisuivi-apk-under-test
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 5
+          if-no-files-found: error
+
+  emulator-install:
+    name: Install and launch on Android API ${{ matrix.api }}
+    needs: inspect-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [29, 26]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: android-actions/setup-android@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: medisuivi-apk-under-test
+          path: apk/
+      - name: Permit access to KVM when available
+        shell: bash
+        run: |
+          if [ -e /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+          else
+            echo 'Warning: /dev/kvm not available; emulator may be slow.'
+          fi
+      - name: Install APK and capture Android startup
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          cores: 2
+          ram-size: 2048M
+          heap-size: 512M
+          emulator-boot-timeout: 900
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            mkdir -p test-output
+            APP=com.example.medisuivi
+            trap 'adb logcat -d -v threadtime 2>/dev/null | grep -Ei "AndroidRuntime|Flutter|medisuivi|sqlite|cipher|biometric|Keystore|local_auth" | tail -n 700 > test-output/relevant-logcat.txt || true; adb exec-out screencap -p > test-output/screen.png || true' EXIT
+            adb shell getprop ro.build.version.release | tee test-output/android-version.txt
+            adb shell getprop ro.product.cpu.abilist | tee test-output/cpu-abi.txt
+            adb logcat -c
+            adb install -r -t apk/app-debug.apk 2>&1 | tee test-output/installation.txt
+            adb shell pm path "$APP" | tee test-output/package-path.txt
+            adb shell input keyevent KEYCODE_WAKEUP || true
+            adb shell wm dismiss-keyguard || true
+            adb shell am start -W -n "$APP/.MainActivity" 2>&1 | tee test-output/launch.txt
+            sleep 20
+            if ! adb shell pidof "$APP" | tee test-output/process.txt; then
+              echo 'ERROR: MediSuivi process stopped after launch' >&2
+              exit 1
+            fi
+            echo 'INSTALLATION + PROCESS LAUNCH OK. UI/authentication/SQLite unlock NOT YET VALIDATED.'
+      - name: Save install result, filtered logs and screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: medisuivi-android-api-${{ matrix.api }}-diagnostics
+          path: test-output/
+          retention-days: 5
+          if-no-files-found: warn
