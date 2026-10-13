@@ -59,3 +59,15 @@ L'exécution sur le commit `5b3447f` montre sur Android 8/API 26 et Android 10/A
 Les diagnostics d'installation sont donc acquis, mais la base clinique n'est pas déverrouillée.
 
 Le scénario suivant configure **un PIN fictif sur l'émulateur jetable**, lance l'application et répond au dialogue système avec ce PIN. Il échoue si la base n'atteint pas `MEDISUIVI_BOOT_READY`. Cette automatisation **n'ajoute aucun contournement** au code Flutter et ne prouve pas le fonctionnement sur Galaxy S9+ tant qu'aucun test physique n'est disponible.
+
+
+## Décision de périmètre (13/10/2026)
+
+**Version Android fonctionnellement validée sur émulateur : Android 10 / API 29.**
+
+- Job du 13/10/2026 `38453310307` : API 29 réussit `adb install`, démarre l'activité et atteint `MEDISUIVI_BOOT_READY` après authentification système par PIN fictif. Cela démontre le démarrage et l'initialisation locale, **pas** la persistance après redémarrage ni la validité sur Samsung.
+- Job `38455211627` : API 26 s'installe et démarre, mais retourne encore `MEDISUIVI_BOOT_RESULT=authenticationRequired` après plusieurs interactions avec l'écran système `ConfirmLockPassword`. Le comportement de `local_auth` et l'UI de confirmation nécessitent une investigation dédiée ; **Android 8 n'est pas validé fonctionnellement**.
+- La matrice automatique de compatibilité est temporairement limitée à API 29, afin de préserver un indicateur de qualité honnête pour la cible qui réussit. **Cela ne signifie pas qu'Android 8 est corrigé ou officiellement abandonné.**
+- `minSdk` n'est pas modifié. La capacité d'installation d'un APK et la prise en charge fonctionnelle doivent rester deux assertions distinctes.
+- Le refus d'installation sur le Galaxy S9+ physique reste **non expliqué** faute de message `INSTALL_FAILED_...` ou d'accès à l'appareil. Une réussite API 29 sur émulateur ne garantit pas le fonctionnement sur cet appareil.
+- Prochaine validation : produire une signature de développement stable (keystore privé hors Git), tester restauration/persistance après redémarrage, puis recueillir sur S9+ le vrai diagnostic d'installation. Pas de contournement biométrique ni suppression des données médicales.
