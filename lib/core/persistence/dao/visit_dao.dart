@@ -81,14 +81,18 @@ class VisitDao extends DatabaseAccessor<AppDatabase> with _$VisitDaoMixin {
         .getSingleOrNull();
   }
 
-  /// Met à jour une visite
+  /// Une consultation validée se rectifie par un événement auditée, jamais par remplacement brut.
   Future<void> updateVisit(VisitsCompanion companion) async {
-    await update(visits).replace(companion);
+    throw UnsupportedError(
+      'La rectification d’une consultation exige une opération médicale tracée.',
+    );
   }
 
-  /// Supprime une visite
+  /// Aucune suppression physique sans politique d'audit et synchronisation.
   Future<void> deleteVisit(String visitId) async {
-    await (delete(visits)..where((v) => v.id.equals(visitId))).go();
+    throw UnsupportedError(
+      'La suppression d’une consultation nécessite une procédure tracée.',
+    );
   }
 
   /// Récupère toutes les visites (pour initialisation cache)
