@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
+import '../../core/models/clinical_intake.dart';
+import '../consultations/consultation_detail_screen.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../consultations/new_consultation_screen.dart';
@@ -104,6 +106,46 @@ class PatientDetailScreen extends StatelessWidget {
             const Divider(height: 28),
             _Fact(label: 'Allergies connues', value: patient.allergies),
           ])),
+          const SizedBox(height: 14),
+          FutureBuilder<PatientProfileSupplement?>(
+            future: store.patientProfile(patient.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const Padding(
+                  padding: EdgeInsets.all(14),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (snapshot.hasError) {
+                return const SurfaceCard(child:
+                  Text('Complément du dossier indisponible.'));
+              }
+              final extra = snapshot.data;
+              if (extra == null) return const SizedBox.shrink();
+              final entries = <MapEntry<String, String>>[
+                MapEntry('Quartier', extra.neighborhood),
+                MapEntry('Adresse', extra.address),
+                MapEntry("Contact d'urgence", extra.emergencyContactName),
+                MapEntry("Téléphone d'urgence", extra.emergencyContactPhone),
+                MapEntry('Traitements habituels', extra.currentMedications),
+                MapEntry('Antécédents chirurgicaux', extra.surgicalHistory),
+                MapEntry('Antécédents familiaux', extra.familyHistory),
+              ].where((item) => item.value.trim().isNotEmpty).toList();
+              if (entries.isEmpty) return const SizedBox.shrink();
+              return SurfaceCard(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Informations complémentaires',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 12),
+                  for (final item in entries) ...[
+                    _Fact(label: item.key, value: item.value),
+                    const SizedBox(height: 12),
+                  ],
+                ],
+              ));
+            },
+          ),
           const SizedBox(height: 26),
           const SectionHeading(title: 'Dernières constantes'),
           const SizedBox(height: 11),
@@ -131,7 +173,12 @@ class PatientDetailScreen extends StatelessWidget {
           if (visits.isEmpty) const SurfaceCard(child: Text('Aucune consultation.'))
           else SurfaceCard(child: Column(children: [
             for (var i = 0; i < visits.length; i++) ...[
-              _VisitLine(visit: visits[i]),
+              _VisitLine(
+                visit: visits[i],
+                onTap: () => Navigator.push(context, MaterialPageRoute<void>(
+                  builder: (_) => ConsultationDetailScreen(visit: visits[i]),
+                )),
+              ),
               if (i < visits.length - 1) const Divider(height: 22),
             ],
           ])),
@@ -264,10 +311,16 @@ class _Vital extends StatelessWidget {
 }
 
 class _VisitLine extends StatelessWidget {
-  const _VisitLine({required this.visit});
+  const _VisitLine({required this.visit, required this.onTap});
   final Visit visit;
+  final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+  Widget build(BuildContext context) => InkWell(
+    borderRadius: BorderRadius.circular(12),
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
     const SoftIcon(icon: Icons.medical_services_outlined),
     const SizedBox(width: 12),
     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -279,7 +332,11 @@ class _VisitLine extends StatelessWidget {
         Text(visit.notes, style: TextStyle(fontSize: 13, color: Palette.of(context).muted)),
       ],
     ])),
-  ]);
+    Icon(Icons.chevron_right_rounded, size: 20,
+      color: Palette.of(context).muted),
+  ]),
+    ),
+  );
 }
 
 class _ExamLine extends StatelessWidget {

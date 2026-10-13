@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
+import '../../core/models/clinical_intake.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 
@@ -17,13 +18,25 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
   final name = TextEditingController();
   final age = TextEditingController();
   final phone = TextEditingController();
+  final neighborhood = TextEditingController();
+  final address = TextEditingController();
+  final emergencyName = TextEditingController();
+  final emergencyPhone = TextEditingController();
+  final medications = TextEditingController();
+  final surgicalHistory = TextEditingController();
+  final familyHistory = TextEditingController();
   String sex = 'F';
 
   @override
   void dispose() {
     name.dispose();
     age.dispose();
-    phone.dispose();
+    for (final controller in [
+      phone, neighborhood, address, emergencyName, emergencyPhone,
+      medications, surgicalHistory, familyHistory,
+    ]) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -35,7 +48,16 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
         name: name.text,
         age: int.parse(age.text.trim()),
         sex: sex,
-        phone: phone.text,
+        phone: phone.text.trim(),
+        profile: PatientProfileSupplement(
+          neighborhood: neighborhood.text.trim(),
+          address: address.text.trim(),
+          emergencyContactName: emergencyName.text.trim(),
+          emergencyContactPhone: emergencyPhone.text.trim(),
+          currentMedications: medications.text.trim(),
+          surgicalHistory: surgicalHistory.text.trim(),
+          familyHistory: familyHistory.text.trim(),
+        ),
       );
       if (!mounted) return;
       Navigator.pop(context);
@@ -49,6 +71,20 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
       if (mounted) setState(() => _saving = false);
     }
   }
+  Widget _input(
+    String label,
+    TextEditingController controller, {
+    TextInputType keyboard = TextInputType.text,
+    int maxLines = 1,
+  }) => TextFormField(
+    controller: controller,
+    keyboardType: maxLines > 1 ? TextInputType.multiline : keyboard,
+    textCapitalization: TextCapitalization.sentences,
+    minLines: maxLines > 1 ? 2 : 1,
+    maxLines: maxLines,
+    decoration: InputDecoration(labelText: label),
+  );
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Nouveau patient')),
@@ -144,6 +180,35 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                       hintText: 'Numéro de téléphone',
                     ),
                   ),
+                ),
+                const SizedBox(height: 14),
+                ClinicalFormSection(
+                  title: 'Adresse et contact',
+                  subtitle: 'Facultatif',
+                  icon: Icons.location_on_outlined,
+                  child: Column(children: [
+                    _input('Quartier', neighborhood),
+                    const SizedBox(height: 13),
+                    _input('Adresse', address, maxLines: 2),
+                    const SizedBox(height: 13),
+                    _input("Nom du contact d'urgence", emergencyName),
+                    const SizedBox(height: 13),
+                    _input("Téléphone du contact d'urgence", emergencyPhone,
+                      keyboard: TextInputType.phone),
+                  ]),
+                ),
+                const SizedBox(height: 14),
+                ClinicalFormSection(
+                  title: 'Informations médicales complémentaires',
+                  subtitle: 'À renseigner si connues',
+                  icon: Icons.medical_information_outlined,
+                  child: Column(children: [
+                    _input('Traitements habituels', medications, maxLines: 3),
+                    const SizedBox(height: 13),
+                    _input('Antécédents chirurgicaux', surgicalHistory, maxLines: 3),
+                    const SizedBox(height: 13),
+                    _input('Antécédents familiaux', familyHistory, maxLines: 3),
+                  ]),
                 ),
                 const SizedBox(height: 22),
                 ElevatedButton.icon(

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
+import '../../core/models/clinical_intake.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
 
-/// Informations complémentaires de la fiche. Données de session uniquement.
+/// Édition des informations du patient via le ClinicalStore chiffré.
 class PatientMedicalInfoScreen extends StatefulWidget {
   const PatientMedicalInfoScreen({super.key, required this.patient});
   final Patient patient;
@@ -15,6 +16,16 @@ class PatientMedicalInfoScreen extends StatefulWidget {
 
 class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
   bool _saving = false;
+  bool _loadingProfile = true;
+  bool _profileLoadFailed = false;
+  bool _profileRequested = false;
+  final neighborhood = TextEditingController();
+  final address = TextEditingController();
+  final emergencyName = TextEditingController();
+  final emergencyPhone = TextEditingController();
+  final medications = TextEditingController();
+  final surgicalHistory = TextEditingController();
+  final familyHistory = TextEditingController();
   late final TextEditingController phone;
   late final TextEditingController allergies;
   late final TextEditingController history;
@@ -33,15 +44,69 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_profileRequested) {
+      _profileRequested = true;
+      _loadProfile();
+    }
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() {
+      _loadingProfile = true;
+      _profileLoadFailed = false;
+    });
+    try {
+      final profile = await context.store.patientProfile(widget.patient.id);
+      if (!mounted) return;
+      neighborhood.text = profile?.neighborhood ?? '';
+      address.text = profile?.address ?? '';
+      emergencyName.text = profile?.emergencyContactName ?? '';
+      emergencyPhone.text = profile?.emergencyContactPhone ?? '';
+      medications.text = profile?.currentMedications ?? '';
+      surgicalHistory.text = profile?.surgicalHistory ?? '';
+      familyHistory.text = profile?.familyHistory ?? '';
+      setState(() => _loadingProfile = false);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loadingProfile = false;
+          _profileLoadFailed = true;
+        });
+      }
+    }
+  }
+
+  Widget _entry(String label, TextEditingController controller, {
+    bool multiline = false,
+    TextInputType keyboardType = TextInputType.text,
+  }) => TextFormField(
+    controller: controller,
+    keyboardType: multiline ? TextInputType.multiline : keyboardType,
+    textCapitalization: TextCapitalization.sentences,
+    minLines: multiline ? 2 : 1,
+    maxLines: multiline ? 4 : 1,
+    decoration: InputDecoration(labelText: label),
+  );
+
+  @override
   void dispose() {
     phone.dispose();
     allergies.dispose();
     history.dispose();
+    for (final controller in [
+      neighborhood, address, emergencyName, emergencyPhone,
+      medications, surgicalHistory, familyHistory,
+    ]) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _save() async {
-    if (_saving || !_formKey.currentState!.validate()) return;
+    if (_saving || _loadingProfile || _profileLoadFailed ||
+        !(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _saving = true);
     try {
       await context.store.updatePatientInfo(
@@ -49,6 +114,15 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
         phone: phone.text,
         allergies: allergies.text,
         medicalHistory: history.text,
+        profile: PatientProfileSupplement(
+          neighborhood: neighborhood.text.trim(),
+          address: address.text.trim(),
+          emergencyContactName: emergencyName.text.trim(),
+          emergencyContactPhone: emergencyPhone.text.trim(),
+          currentMedications: medications.text.trim(),
+          surgicalHistory: surgicalHistory.text.trim(),
+          familyHistory: familyHistory.text.trim(),
+        ),
       );
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -68,7 +142,22 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
     body: SafeArea(child: SingleChildScrollView(
       child: ScreenWidth(
         padding: const EdgeInsets.fromLTRB(20, 10, 20, 36),
-        child: Form(key: _formKey,
+        child: _loadingProfile
+          ? const Center(child: Padding(
+              padding: EdgeInsets.all(28),
+              child: CircularProgressIndicator(),
+            ))
+          : _profileLoadFailed
+            ? Column(children: [
+                const Text("Impossible de charger les informations enregistrées."),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  onPressed: _loadProfile,
+                  icon: const Icon(Icons.refresh_rounded),
+                  label: const Text('Réessayer'),
+                ),
+              ])
+            : Form(key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -111,6 +200,34 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Téléphone', hintText: 'Numéro du patient'),
                 ),
+              ),
+              const SizedBox(height: 14),
+              ClinicalFormSection(
+                icon: Icons.location_on_outlined,
+                title: 'Adresse et contact',
+                subtitle: 'Informations complémentaires',
+                child: Column(children: [
+                  _entry('Quartier', neighborhood),
+                  const SizedBox(height: 13),
+                  _entry('Adresse', address, multiline: true),
+                  const SizedBox(height: 13),
+                  _entry("Nom du contact d'urgence", emergencyName),
+                  const SizedBox(height: 13),
+                  _entry("Téléphone du contact d'urgence", emergencyPhone,
+                    keyboardType: TextInputType.phone),
+                ]),
+              ),
+              const SizedBox(height: 14),
+              ClinicalFormSection(
+                icon: Icons.medical_services_outlined,
+                title: 'Antécédents complémentaires',
+                child: Column(children: [
+                  _entry('Traitements habituels', medications, multiline: true),
+                  const SizedBox(height: 13),
+                  _entry('Antécédents chirurgicaux', surgicalHistory, multiline: true),
+                  const SizedBox(height: 13),
+                  _entry('Antécédents familiaux', familyHistory, multiline: true),
+                ]),
               ),
               const SizedBox(height: 21),
               ElevatedButton.icon(

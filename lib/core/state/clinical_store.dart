@@ -9,6 +9,7 @@
 library;
 
 import '../models/medical_models.dart';
+import '../models/clinical_intake.dart';
 
 /// Interface métier pour le store clinique.
 ///
@@ -106,7 +107,14 @@ abstract class ClinicalStore {
     required int age,
     required String sex,
     required String phone,
+    PatientProfileSupplement? profile,
   });
+
+  /// Null pour un dossier patient historique v1.
+  Future<PatientProfileSupplement?> patientProfile(String patientId);
+
+  /// Null pour une ancienne visite sans complément clinique.
+  Future<ClinicalIntake?> visitIntake(String visitId);
 
   /// Met à jour les infos médicales d'un patient.
   Future<void> updatePatientInfo({
@@ -114,6 +122,7 @@ abstract class ClinicalStore {
     required String phone,
     required String allergies,
     required String medicalHistory,
+    PatientProfileSupplement? profile,
   });
 
   /// Active/désactive le drapeau de suivi d'un patient.
@@ -129,6 +138,7 @@ abstract class ClinicalStore {
     int? pulse,
     int? spo2,
     String notes = '',
+    ClinicalIntake? intake,
   });
 
   /// Crée un examen (prescription) et retourne son identifiant.

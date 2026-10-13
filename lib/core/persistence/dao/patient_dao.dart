@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../database.dart';
+import '../clinical_supplement_repository.dart';
+import '../../models/clinical_intake.dart';
 
 part 'patient_dao.g.dart';
 
@@ -18,6 +20,7 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
     required int age,
     required String sex,
     required String phone,
+    PatientProfileSupplement? profile,
   }) async {
     final id = generateId();
     final now = DateTime.now().toUtc();
@@ -31,6 +34,9 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
         createdAt: Value(now),
         updatedAt: Value(now),
       ));
+      if (profile != null) {
+        await ClinicalSupplementRepository(attachedDatabase).writePatientProfile(id, profile);
+      }
       await attachedDatabase.pendingOperationsDao.addOperation(
         operationId: generateId(),
         entityType: 'patient',
@@ -39,6 +45,7 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
         payload: jsonEncode({
           'id': id, 'name': name, 'age': age, 'sex': sex, 'phone': phone,
           'createdAt': now.toIso8601String(), 'updatedAt': now.toIso8601String(),
+          if (profile != null) 'profile': profile.toJson(),
         }),
         baseRevision: 0,
       );
@@ -74,6 +81,7 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
     required String phone,
     required String allergies,
     required String medicalHistory,
+    PatientProfileSupplement? profile,
   }) async {
     final now = DateTime.now().toUtc();
     await attachedDatabase.transaction(() async {
@@ -87,6 +95,9 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
           updatedAt: Value(now),
         ),
       );
+      if (profile != null) {
+        await ClinicalSupplementRepository(attachedDatabase).writePatientProfile(patientId, profile);
+      }
       await attachedDatabase.pendingOperationsDao.addOperation(
         operationId: generateId(),
         entityType: 'patient',
@@ -95,6 +106,7 @@ class PatientDao extends DatabaseAccessor<AppDatabase> with _$PatientDaoMixin {
         payload: jsonEncode({
           'id': patientId, 'phone': phone, 'allergies': allergies,
           'medicalHistory': medicalHistory, 'updatedAt': now.toIso8601String(),
+          if (profile != null) 'profile': profile.toJson(),
         }),
         baseRevision: 0,
       );
