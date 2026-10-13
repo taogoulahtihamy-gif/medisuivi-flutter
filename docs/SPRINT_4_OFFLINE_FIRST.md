@@ -103,3 +103,42 @@ risques d'erreurs à l'exécution.
 - Compilation Flutter Web release réussie.
 - Contrôle de la branche GitHub ; aucune fusion avec `main`.
 - Tests sur Android et iOS physiques requis avant usage hors ligne opérationnel.
+
+
+## Sprint 4B — Sécurité des mutations et état local
+
+### Mutations non tracées bloquées
+
+Les API DAO ci-dessous refusent maintenant explicitement toute écriture tant
+qu'une procédure de rectification ou suppression auditée n'existe pas :
+
+- `PatientDao.deletePatient`
+- `VisitDao.updateVisit` et `VisitDao.deleteVisit`
+- `ExamDao.updateExam` et `ExamDao.deleteExam`
+- `FollowUpDao.deleteFollowUp`
+
+Cela évite des suppressions physiques ou des remplacements silencieux pouvant
+contourner l'outbox. Pour annuler un suivi, utiliser
+`closeFollowUp(completed: false)`, qui conserve la trace de l'opération.
+**Ces opérations ne sont pas remplacées par un nouveau workflow de correction
+médicale.** La rectification auditée reste à spécifier et développer.
+
+### État de synchronisation honnête dans les paramètres
+
+- Le Web signale clairement la nature temporaire de ses données fictives.
+- Le mobile affiche le nombre d'opérations locales encore en attente,
+  obtenu directement de `PendingOperationsDao`.
+- Aucun écran ne présente la file locale comme « synchronisée » ni ne
+  prétend qu'un serveur distant est disponible.
+- Les erreurs de lecture de la file ne sont pas masquées par un faux « 0 ».
+
+Tests ajoutés :
+`test/persistence/clinical_mutation_safety_test.dart` et
+`test/persistence/offline_status_settings_test.dart`.
+
+### Restant pour la vraie synchronisation
+
+Un backend authentifié, un protocole de révisions, la gestion des conflits,
+les accusés de réception et un moteur de synchronisation restent indispensables.
+Ne jamais utiliser l'application sur de vrais dossiers médicaux avant validation
+métier, sécurité, réglementaire et tests sur appareils physiques.
