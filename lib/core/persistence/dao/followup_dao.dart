@@ -169,9 +169,11 @@ class FollowUpDao extends DatabaseAccessor<AppDatabase> with _$FollowUpDaoMixin 
     });
   }
 
-  /// Supprime un suivi
+  /// Utiliser closeFollowUp(completed: false) pour annuler avec traçabilité.
   Future<void> deleteFollowUp(String followUpId) async {
-    await (delete(followUps)..where((f) => f.id.equals(followUpId))).go();
+    throw UnsupportedError(
+      'La suppression d’un suivi est bloquée : annulez-le de façon tracée.',
+    );
   }
 
   /// Récupère tous les suivis (pour initialisation cache)
