@@ -51,4 +51,13 @@ echo "===== PROCESS STILL ALIVE ====="
 adb shell pidof "$APP" | tee "$OUT/process.txt"
 test -s "$OUT/process.txt"
 
-echo "APK INSTALLED + PROCESS STARTED. UI/BIOMETRICS/SQLITE UNLOCK STILL UNVERIFIED."
+# Le processus peut rester actif tout en affichant un écran d'erreur.
+# N'approuver le démarrage que lorsque Flutter confirme le store prêt.
+adb logcat -d -v brief 2>/dev/null > "$OUT/bootstrap-logcat.txt" || true
+if ! grep -q 'MEDISUIVI_BOOT_READY' "$OUT/bootstrap-logcat.txt"; then
+  echo "ERROR: MediSuivi installed but encrypted storage was not initialized." >&2
+  grep -E 'MEDISUIVI_BOOT_RESULT=|MEDISUIVI_BOOT_READY' "$OUT/bootstrap-logcat.txt" || true
+  exit 1
+fi
+
+echo "APK INSTALLED + CLINICAL STORE READY. Android biometrics and real-device compatibility still need testing."

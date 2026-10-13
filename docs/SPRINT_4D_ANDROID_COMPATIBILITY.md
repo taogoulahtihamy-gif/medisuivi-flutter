@@ -39,3 +39,12 @@ Workflow : `.github/workflows/android-compatibility.yml`, isolé sur la branche 
 - Première exécution : l'émulateur démarre mais l'action exécute `set -euo pipefail` dans `/bin/sh`, qui refuse `pipefail`. **Aucune installation testée**.
 - Deuxième exécution (commit `312f3f7`) : Android 10 / API 29 accepte l'APK avec `adb install` → `Success`. Le `script: |` était néanmoins exécuté en commandes séparées par l'action, ce qui perdait la variable `APP` avant le lancement. Android 8 / API 26 échouait sur un `adb logcat -c` non essentiel. **Démarrage non validé**.
 - Correctif suivant : script Bash autonome `.github/scripts/android-emulator-smoke.sh`, exécuté en une seule commande ; purge logcat facultative ; validation explicite de `Success`, du paquet et du processus. Les résultats complets devront être confirmés par une nouvelle CI.
+
+## Résultat des tests d'installation sur le commit d24372d
+
+- Android 8/API 26 : installation ADB `Success`, activité démarrée, processus vivant, mais la capture affiche une erreur « Clé de déchiffrement invalide ».
+- Android 10/API 29 : installation ADB `Success`, activité démarrée, processus vivant, même écran d'erreur.
+- **La CI était verte à tort concernant la disponibilité fonctionnelle de l'application** : elle ne contrôlait que le processus.
+- Analyse de code : un retour `null` de `KeyManager.unlockDatabase()` était classé `wrongKey`, alors qu'il peut correspondre à l'authentification Android refusée/indisponible. Les émulateurs de ce banc de test n'ont pas de code PIN ou empreinte configurés.
+- Correctif de diagnostic : catégorie explicite `authenticationRequired`, message adapté, trace générique non sensible `MEDISUIVI_BOOT_READY`, et échec CI si le stockage n'est pas réellement prêt.
+- Cette correction n'active aucun bypass de sécurité et **ne prouve pas la résolution du démarrage** : l'étape suivante consiste à simuler un appareil verrouillé pour permettre l'authentification et vérifier SQLite.
