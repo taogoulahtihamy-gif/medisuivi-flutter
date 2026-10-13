@@ -122,13 +122,17 @@ class ExamDao extends DatabaseAccessor<AppDatabase> with _$ExamDaoMixin {
     });
   }
 
-  /// Met à jour un examen
+  /// Un résultat clinique ne doit jamais être modifié par remplacement brut.
   Future<void> updateExam(ExamsCompanion companion) async {
-    await update(exams).replace(companion);
+    throw UnsupportedError(
+      'La rectification d’un examen nécessite une piste d’audit.',
+    );
   }
 
-  /// Supprime un examen
+  /// Suppression bloquée jusqu'à implémentation des rectificatifs et tombstones.
   Future<void> deleteExam(String examId) async {
-    await (delete(exams)..where((e) => e.id.equals(examId))).go();
+    throw UnsupportedError(
+      'La suppression d’un examen nécessite une procédure tracée.',
+    );
   }
 }
