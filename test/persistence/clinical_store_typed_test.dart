@@ -166,6 +166,7 @@ void main() {
       final closed = store.followUpsFor(patient.id).first;
       expect(closed.status, FollowUpStatus.completed);
       expect(closed.completedAt, isNotNull);
+      expect((await database.patientDao.getPatientById(patient.id))!.followUp, isFalse);
     });
 
     test('rescheduleFollowUp modifie la date d\'un suivi planifié', () async {
@@ -401,6 +402,7 @@ void main() {
       final followUps = store.followUpsFor(patient.id);
       expect(followUps.first.reason, 'Contrôle tensionnel');
       expect(followUps.first.notes, 'Apporter tensiomètre');
+      expect((await database.patientDao.getPatientById(patient.id))!.followUp, isTrue);
     });
 
     test('closeFollowUp clôture un suivi en base', () async {
@@ -432,6 +434,69 @@ void main() {
       expect(closed.completedAt, isNotNull);
       expect(store.plannedFollowUps.where((f) => f.patientId == patient.id),
           isEmpty);
+    });
+
+
+    test('deux suivis : le drapeau persiste puis se retire', () async {
+      await store.addPatient(name: 'Deux suivis', age: 40, sex: 'F', phone: '');
+      await attendreCache((s) {
+        expect(s.patients.any((p) => p.name == 'Deux suivis'), isTrue);
+      });
+      final id = store.patients.firstWhere((p) => p.name == 'Deux suivis').id;
+      await store.scheduleFollowUp(patientId: id,
+          scheduledAt: DateTime.now().add(const Duration(days: 2)),
+          reason: 'Premier');
+      await store.scheduleFollowUp(patientId: id,
+          scheduledAt: DateTime.now().add(const Duration(days: 3)),
+          reason: 'Second');
+      final plans = await database.followUpDao.getFollowUpsForPatient(id);
+      expect(plans, hasLength(2));
+      await store.closeFollowUp(plans.first.id, completed: true);
+      expect((await database.patientDao.getPatientById(id))!.followUp, isTrue);
+      await store.closeFollowUp(plans.last.id, completed: false);
+      expect((await database.patientDao.getPatientById(id))!.followUp, isFalse);
+      expect((await database.followUpDao.getFollowUpsForPatient(id)).length, 2);
+    });
+
+    test('programmation : rollback suivi et outbox après échec patient', () async {
+      await store.addPatient(name: 'Rollback création', age: 40, sex: 'F', phone: '');
+      await attendreCache((s) {
+        expect(s.patients.any((p) => p.name == 'Rollback création'), isTrue);
+      });
+      final id = store.patients.firstWhere((p) => p.name == 'Rollback création').id;
+      final before = (await database.pendingOperationsDao.getPendingOperations()).length;
+      await database.customStatement('''
+        CREATE TRIGGER fail_patient_update BEFORE UPDATE ON patients
+        BEGIN SELECT RAISE(ABORT, 'patient update rejected'); END;
+      ''');
+      await expectLater(store.scheduleFollowUp(patientId: id,
+          scheduledAt: DateTime.now().add(const Duration(days: 4)),
+          reason: 'Test fictif'), throwsA(isA<Exception>()));
+      expect(await database.followUpDao.getFollowUpsForPatient(id), isEmpty);
+      expect((await database.patientDao.getPatientById(id))!.followUp, isFalse);
+      expect((await database.pendingOperationsDao.getPendingOperations()).length, before);
+    });
+
+    test('clôture : rollback suivi et outbox après échec patient', () async {
+      await store.addPatient(name: 'Rollback clôture', age: 40, sex: 'M', phone: '');
+      await attendreCache((s) {
+        expect(s.patients.any((p) => p.name == 'Rollback clôture'), isTrue);
+      });
+      final id = store.patients.firstWhere((p) => p.name == 'Rollback clôture').id;
+      await store.scheduleFollowUp(patientId: id,
+          scheduledAt: DateTime.now().add(const Duration(days: 4)),
+          reason: 'Test fictif');
+      final plan = (await database.followUpDao.getFollowUpsForPatient(id)).single;
+      final before = (await database.pendingOperationsDao.getPendingOperations()).length;
+      await database.customStatement('''
+        CREATE TRIGGER fail_patient_update BEFORE UPDATE ON patients
+        BEGIN SELECT RAISE(ABORT, 'patient update rejected'); END;
+      ''');
+      await expectLater(store.closeFollowUp(plan.id, completed: true),
+          throwsA(isA<Exception>()));
+      expect((await database.followUpDao.getFollowUpById(plan.id))!.status, 0);
+      expect((await database.patientDao.getPatientById(id))!.followUp, isTrue);
+      expect((await database.pendingOperationsDao.getPendingOperations()).length, before);
     });
 
     test('rescheduleFollowUp modifie un suivi en base', () async {
