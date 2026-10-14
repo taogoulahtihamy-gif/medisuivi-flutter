@@ -1,0 +1,61 @@
+# VPS LWS KVM ONLY. Synthetic data and read-only API in staging.
+# Run with: docker compose --env-file .env.staging -f docker-compose.staging.yml ...
+name: medisuivi-staging
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medisuivi_staging
+      POSTGRES_USER: medisuivi_staging
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD}
+    volumes:
+      - staging_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medisuivi_staging -d medisuivi_staging"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    networks: [internal]
+    security_opt:
+      - no-new-privileges:true
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      APP_ENV: staging
+      APP_DATABASE_URL: postgresql+psycopg://medisuivi_staging:${POSTGRES_PASSWORD:?Missing POSTGRES_PASSWORD}@db:5432/medisuivi_staging
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?Missing APP_JWT_SECRET}
+      APP_ALLOW_DEVELOPMENT_REGISTRATION: "false"
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    networks: [internal]
+    security_opt:
+      - no-new-privileges:true
+  https:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      STAGING_API_DOMAIN: ${STAGING_API_DOMAIN:?Missing STAGING_API_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile.staging:/etc/caddy/Caddyfile:ro
+      - staging_caddy_data:/data
+      - staging_caddy_config:/config
+    depends_on: [api]
+    networks: [internal]
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  staging_pgdata:
+  staging_caddy_data:
+  staging_caddy_config:
+networks:
+  internal:
+    driver: bridge
