@@ -258,6 +258,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
             _authApi == null ? _EntryStep.profile : _EntryStep.register),
           onSignIn: () => _go(_EntryStep.signIn),
           onLocalAccess: () => _go(_EntryStep.workspace),
+          allowLocalAccess: _authApi == null,
         ),
         _EntryStep.signIn => _authApi == null
           ? _SignInPending(
@@ -794,9 +795,10 @@ class _OnboardSecondaryButton extends StatelessWidget {
 class _AccessChoice extends StatelessWidget {
   const _AccessChoice({super.key, required this.isWebDemo,
     required this.onCreate, required this.onSignIn,
-    required this.onLocalAccess});
+    required this.onLocalAccess, required this.allowLocalAccess});
 
   final bool isWebDemo;
+  final bool allowLocalAccess;
   final VoidCallback onCreate;
   final VoidCallback onSignIn;
   final VoidCallback onLocalAccess;
@@ -846,6 +848,7 @@ class _AccessChoice extends StatelessWidget {
                   onTap: onSignIn,
                   onPhoto: true,
                 ),
+                if (allowLocalAccess) ...[
                 const SizedBox(height: 13),
                 Center(child: TextButton(
                   key: const Key('welcome-demo'),
@@ -866,6 +869,7 @@ class _AccessChoice extends StatelessWidget {
                     color: Color(0xFFC3CEC8), fontSize: 10.5,
                     height: 1.35),
                 ),
+                ],
               ],
             ),
           ),
