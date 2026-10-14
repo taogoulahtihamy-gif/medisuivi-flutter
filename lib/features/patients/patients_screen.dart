@@ -42,9 +42,11 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
                   builder: (_) => const NewPatientScreen())),
                 style: IconButton.styleFrom(
-                  backgroundColor: Palette.of(context).forest,
-                  foregroundColor: Palette.of(context).white,
-                  minimumSize: const Size(48, 48)),
+                  backgroundColor: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF3A5F4F)
+                      : const Color(0xFF354A40),
+                  foregroundColor: const Color(0xFFF7F8F5),
+                  minimumSize: const Size(46, 46)),
                 icon: const Icon(Icons.add_rounded),
               ),
             ]),
