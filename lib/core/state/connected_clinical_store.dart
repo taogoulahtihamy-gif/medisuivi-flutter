@@ -83,7 +83,7 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
         final bundle = bundles[index];
         patients.add(Patient(
           id: patient.id, name: patient.displayName, age: patient.age,
-          sex: '', phone: '', createdAt: DateTime.now(),
+          sex: '', phone: '', createdAt: patient.createdAt ?? DateTime.now(),
           followUp: bundle.followUps.any((f) => f.status == 'planned'),
         ));
         for (final v in bundle.visits) {
@@ -91,13 +91,13 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
             id: v.id, patientId: patient.id, date: v.createdAt,
             reason: v.reason, temperature: v.temperature,
             systolic: v.systolic, diastolic: v.diastolic,
-            pulse: v.pulse, spo2: v.spo2,
+            pulse: v.pulse, spo2: v.spo2, notes: v.notes,
           ));
         }
         for (final exam in bundle.exams) {
           exams.add(LabExam(
             id: exam.id, patientId: patient.id, title: exam.title,
-            date: exam.resultRecordedAt ?? DateTime.now(),
+            date: exam.createdAt ?? exam.resultRecordedAt ?? DateTime.now(),
             status: exam.status == 'complete'
               ? ExamStatus.complete : ExamStatus.pending,
             result: exam.result,
@@ -108,6 +108,7 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
           followUps.add(FollowUpPlan(
             id: followUp.id, patientId: patient.id,
             scheduledAt: followUp.scheduledAt, reason: followUp.reason,
+            notes: followUp.notes,
             status: switch (followUp.status) {
               'completed' => FollowUpStatus.completed,
               'cancelled' => FollowUpStatus.cancelled,
