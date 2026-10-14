@@ -13,7 +13,7 @@ void main() {
   const original = DevPractitioner(
     id: 'practitioner-a', email: 'alpha@medisuvi-ci.org',
     firstName: 'Awa', lastName: 'Test');
-  const session = DevSession(
+  final session = DevSession(
     practitioner: original, accessToken: 'token-alpha');
 
   test('P3.2: update and private avatar request carry only current token',
