@@ -20,7 +20,7 @@ from app.main import (
 def validate_postgres_migrations():
     assert engine.dialect.name == "postgresql"
     with engine.connect() as connection:
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0005"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0006"
     tables = set(inspect(engine).get_table_names())
     assert {"patients", "practitioners", "visits", "exams", "followups", "login_attempts"} <= tables
     settings.environment = "development"
