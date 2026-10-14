@@ -58,15 +58,18 @@ class DevSession {
 
 class DevPatient {
   const DevPatient({required this.id, required this.displayName,
-      required this.age});
+      required this.age, this.createdAt});
   final String id;
   final String displayName;
   final int age;
+  final DateTime? createdAt;
 
   factory DevPatient.fromJson(Map<String, dynamic> json) =>
       DevPatient(id: json['id'] as String,
         displayName: json['display_name'] as String,
-        age: json['age'] as int);
+        age: json['age'] as int,
+        createdAt: json['created_at'] is String
+          ? DateTime.parse(json['created_at'] as String) : null);
 }
 
 /// Data returned by the authenticated backend, never by DemoStore.
@@ -74,12 +77,14 @@ class DevVisit {
   const DevVisit({
     required this.id, required this.reason, required this.createdAt,
     this.temperature, this.systolic, this.diastolic, this.pulse, this.spo2,
+    this.notes = '',
   });
   final String id;
   final String reason;
   final DateTime createdAt;
   final double? temperature;
   final int? systolic, diastolic, pulse, spo2;
+  final String notes;
   factory DevVisit.fromJson(Map<String, dynamic> data) => DevVisit(
     id: data['id'] as String, reason: data['reason'] as String,
     createdAt: DateTime.parse(data['created_at'] as String),
@@ -88,40 +93,48 @@ class DevVisit {
     diastolic: (data['diastolic'] as num?)?.toInt(),
     pulse: (data['pulse'] as num?)?.toInt(),
     spo2: (data['spo2'] as num?)?.toInt(),
+    notes: data['notes'] as String? ?? '',
   );
 }
 
 class DevExam {
   const DevExam({required this.id, required this.title,
-    required this.status, this.result, this.resultRecordedAt});
+    required this.status, this.result, this.resultRecordedAt,
+    this.createdAt});
   final String id;
   final String title;
   final String status;
   final String? result;
   final DateTime? resultRecordedAt;
+  final DateTime? createdAt;
   factory DevExam.fromJson(Map<String, dynamic> data) => DevExam(
     id: data['id'] as String, title: data['title'] as String,
     status: data['status'] as String,
     result: data['result'] as String?,
     resultRecordedAt: data['result_recorded_at'] is String
       ? DateTime.parse(data['result_recorded_at'] as String) : null,
+    createdAt: data['created_at'] is String
+      ? DateTime.parse(data['created_at'] as String) : null,
   );
 }
 
 class DevFollowUp {
   const DevFollowUp({required this.id, required this.reason,
-    required this.status, required this.scheduledAt, this.completedAt});
+    required this.status, required this.scheduledAt, this.completedAt,
+    this.notes = ''});
   final String id;
   final String reason;
   final String status;
   final DateTime scheduledAt;
   final DateTime? completedAt;
+  final String notes;
   factory DevFollowUp.fromJson(Map<String, dynamic> data) => DevFollowUp(
     id: data['id'] as String, reason: data['reason'] as String,
     status: data['status'] as String,
     scheduledAt: DateTime.parse(data['scheduled_at'] as String),
     completedAt: data['completed_at'] is String
       ? DateTime.parse(data['completed_at'] as String) : null,
+    notes: data['notes'] as String? ?? '',
   );
 }
 
@@ -691,6 +704,94 @@ class DevAuthApi {
       '/api/v1/followups/${Uri.encodeComponent(followUp.id)}/close',
       session: session, body: {'completed':true});
     _ensureSuccess(response);
+  }
+
+  /// Authenticated clinical operations used by the ORIGINAL ClinicalStore UI.
+  /// The backend always derives owner_user_id from the JWT.
+  /// No broad/anonymous dataset and no direct DemoStore fallback.
+  Future<DevPatient> createClinicalPatient(
+      DevSession session, String displayName, int age) async {
+    final value = displayName.trim();
+    if (!value.toUpperCase().startsWith('PATIENT FICTIF')) {
+      throw const DevApiException(
+        'En développement, seuls les patients fictifs sont autorisés.');
+    }
+    final response = await _request('POST', '/api/v1/patients',
+        session: session, body: {'display_name': value, 'age': age});
+    _ensureSuccess(response, expected: 201);
+    return DevPatient.fromJson(_map(response));
+  }
+
+  Future<DevVisit> createClinicalVisit(DevSession session, String patientId, {
+    required String reason, double? temperature, int? systolic,
+    int? diastolic, int? pulse, int? spo2, String notes = '',
+  }) async {
+    final response = await _request('POST',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}/visits',
+        session: session, body: {
+          'reason': reason.trim(), 'temperature': temperature,
+          'systolic': systolic, 'diastolic': diastolic,
+          'pulse': pulse, 'spo2': spo2, 'notes': notes.trim(),
+        });
+    _ensureSuccess(response, expected: 201);
+    return DevVisit.fromJson(_map(response));
+  }
+
+  Future<DevExam> createClinicalExam(
+      DevSession session, String patientId, String title) async {
+    final response = await _request('POST',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}/exams',
+        session: session, body: {'title': title.trim()});
+    _ensureSuccess(response, expected: 201);
+    return DevExam.fromJson(_map(response));
+  }
+
+  Future<DevExam> submitClinicalExamResult(
+      DevSession session, String examId, String result) async {
+    final response = await _request('PUT',
+        '/api/v1/exams/${Uri.encodeComponent(examId)}/result',
+        session: session, body: {'result': result.trim()});
+    _ensureSuccess(response);
+    return DevExam.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> createClinicalFollowUp(
+      DevSession session, String patientId, {
+        required DateTime scheduledAt, required String reason,
+        String notes = '',
+      }) async {
+    final response = await _request('POST',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}/followups',
+        session: session, body: {
+          'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+          'reason': reason.trim(), 'notes': notes.trim(),
+        });
+    _ensureSuccess(response, expected: 201);
+    return DevFollowUp.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> updateClinicalFollowUp(
+      DevSession session, String followUpId, {
+        required DateTime scheduledAt, required String reason,
+        String notes = '',
+      }) async {
+    final response = await _request('PUT',
+        '/api/v1/followups/${Uri.encodeComponent(followUpId)}/reschedule',
+        session: session, body: {
+          'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+          'reason': reason.trim(), 'notes': notes.trim(),
+        });
+    _ensureSuccess(response);
+    return DevFollowUp.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> completeClinicalFollowUp(
+      DevSession session, String followUpId, bool completed) async {
+    final response = await _request('PUT',
+        '/api/v1/followups/${Uri.encodeComponent(followUpId)}/close',
+        session: session, body: {'completed': completed});
+    _ensureSuccess(response);
+    return DevFollowUp.fromJson(_map(response));
   }
 
   /// Changes the current practitioner's password on the server.

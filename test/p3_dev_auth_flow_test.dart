@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:medisuivi/app/theme.dart';
+import 'package:medisuivi/core/state/store_context.dart';
 import 'package:medisuivi/features/auth/dev_auth_api.dart';
 import 'package:medisuivi/features/onboarding/medisuivi_welcome_gate.dart';
 
@@ -109,7 +110,10 @@ void main() {
       theme: MediTheme.light(),
       home: MediSuiviWelcomeGate(
         isWebDemo: true, developmentAuthApi: api,
-        child: const Text('DEMO STORE MUST NEVER BE SHOWN')),
+        child: Builder(builder: (context) => Text(
+          context.store.patients.isEmpty
+            ? 'DOSSIERS COMPTE VIDE'
+            : context.store.patients.first.name))),
     ));
     await tester.pump(const Duration(milliseconds: 3000));
     await tester.pumpAndSettle();
@@ -125,18 +129,14 @@ void main() {
     await tester.tap(find.byKey(const Key('dev-auth-submit')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('dev-authenticated-workspace')), findsOneWidget);
-    expect(find.text('Awa Test'), findsOneWidget);
-    expect(find.text('DEMO STORE MUST NEVER BE SHOWN'), findsNothing);
-    expect(find.byKey(const Key('dev-patients-empty')), findsOneWidget);
+    expect(find.byKey(const Key('original-authenticated-workspace')),
+      findsOneWidget);
+    expect(find.text('DOSSIERS COMPTE VIDE'), findsOneWidget);
+    expect(find.text('PATIENT FICTIF 1234'), findsNothing);
 
-    await tester.ensureVisible(find.byKey(const Key('dev-add-synthetic-patient')));
-    await tester.tap(find.byKey(const Key('dev-add-synthetic-patient')));
-    await tester.pumpAndSettle();
-    expect(find.text('PATIENT FICTIF 1234'), findsOneWidget);
-    expect(fakePatientCreated, isTrue);
-
-    await tester.tap(find.byKey(const Key('dev-workspace-logout')));
+    // The original slot reads context.store, not DemoStore.
+    // A refresh will be exercised by the dedicated P4.9 adapter tests.
+    await tester.tap(find.byKey(const Key('original-connected-signout')));
     await tester.pumpAndSettle();
     expect(revoked, isTrue);
     expect(find.byKey(const Key('welcome-login')), findsOneWidget);

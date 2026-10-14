@@ -8,6 +8,7 @@ import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
 import '../auth/dev_auth_api.dart';
 import '../auth/dev_auth_screens.dart';
+import '../auth/original_connected_clinical_gate.dart';
 import '../auth/dev_email_flows.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
@@ -94,6 +95,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
     setState(() {
       if (_resumeSession != null) {
         _authenticatedSession = _resumeSession;
+        _useAuthenticatedProfile(_resumeSession!);
         _resumeSession = null;
         _step = _EntryStep.authenticated;
       } else if (_resumeError != null) {
@@ -183,18 +185,37 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
     _step = _EntryStep.verifyEmail;
   });
 
-  void _onAuthenticated(DevSession session) => setState(() {
-    _resumeAttempt++;
-    _authenticatedSession?.clear();
-    _authenticatedSession = session;
-    _step = _EntryStep.authenticated;
-  });
+  void _useAuthenticatedProfile(DevSession session) {
+    final practitioner = session.practitioner;
+    _practitioner.update(
+      firstName: practitioner.firstName,
+      lastName: practitioner.lastName,
+      email: practitioner.email,
+      phone: practitioner.phone,
+      specialty: practitioner.specialty,
+    );
+  }
 
-  void _onSignedOut() => setState(() {
+  void _onAuthenticated(DevSession session) {
+    _useAuthenticatedProfile(session);
+    setState(() {
+      _resumeAttempt++;
+      _authenticatedSession?.clear();
+      _authenticatedSession = session;
+      _step = _EntryStep.authenticated;
+    });
+  }
+
+  void _onSignedOut() {
     _authenticatedSession?.clear();
-    _authenticatedSession = null;
-    _step = _EntryStep.access;
-  });
+    _practitioner.update(
+      firstName: '', lastName: '', email: '', phone: '', specialty: '',
+    );
+    setState(() {
+      _authenticatedSession = null;
+      _step = _EntryStep.access;
+    });
+  }
 
   @override
   Widget build(BuildContext context) => PractitionerPreviewScope(
@@ -308,11 +329,12 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
           key: const ValueKey('welcome-workspace'),
           child: widget.child,
         ),
-        _EntryStep.authenticated => DevConnectedWorkspace(
-          key: const ValueKey('dev-authenticated-workspace'),
+        _EntryStep.authenticated => OriginalConnectedClinicalGate(
+          key: const ValueKey('original-authenticated-workspace'),
           api: _authApi!,
           session: _authenticatedSession!,
           onSignedOut: _onSignedOut,
+          child: widget.child,
         ),
       },
     ),
