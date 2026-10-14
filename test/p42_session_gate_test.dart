@@ -64,7 +64,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('dev-authenticated-workspace')),
       findsOneWidget);
-    expect(find.text('Awa Fictif'), findsOneWidget);
+    expect(find.byKey(const Key('original-connected-shell')), findsOneWidget);
+    expect(find.byKey(const ValueKey('medisuivi-home')), findsOneWidget);
     expect(find.text('FORBIDDEN SHARED DEMO STORE'), findsNothing);
     expect(storage.saved?.refreshToken, 'new-refresh');
     api.close();

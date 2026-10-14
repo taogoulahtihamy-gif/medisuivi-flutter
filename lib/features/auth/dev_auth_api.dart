@@ -57,16 +57,35 @@ class DevSession {
 }
 
 class DevPatient {
-  const DevPatient({required this.id, required this.displayName,
-      required this.age});
+  const DevPatient({
+    required this.id, required this.displayName, required this.age,
+    this.sex = 'N', this.phone = '', this.allergies = '',
+    this.medicalHistory = '', this.followUp = false,
+    this.profileJson, this.createdAt,
+  });
   final String id;
   final String displayName;
   final int age;
+  final String sex;
+  final String phone;
+  final String allergies;
+  final String medicalHistory;
+  final bool followUp;
+  final Map<String, dynamic>? profileJson;
+  final DateTime? createdAt;
 
-  factory DevPatient.fromJson(Map<String, dynamic> json) =>
-      DevPatient(id: json['id'] as String,
-        displayName: json['display_name'] as String,
-        age: json['age'] as int);
+  factory DevPatient.fromJson(Map<String, dynamic> json) => DevPatient(
+    id: json['id'] as String,
+    displayName: json['display_name'] as String,
+    age: json['age'] as int,
+    sex: json['sex'] as String? ?? 'N',
+    phone: json['phone'] as String? ?? '',
+    allergies: json['allergies'] as String? ?? '',
+    medicalHistory: json['medical_history'] as String? ?? '',
+    followUp: json['follow_up'] as bool? ?? false,
+    profileJson: (json['profile_json'] as Map?)?.cast<String, dynamic>(),
+    createdAt: DateTime.tryParse(json['created_at'] as String? ?? ''),
+  );
 }
 
 /// Data returned by the authenticated backend, never by DemoStore.
@@ -74,12 +93,15 @@ class DevVisit {
   const DevVisit({
     required this.id, required this.reason, required this.createdAt,
     this.temperature, this.systolic, this.diastolic, this.pulse, this.spo2,
+    this.notes = '', this.intakeJson,
   });
   final String id;
   final String reason;
   final DateTime createdAt;
   final double? temperature;
   final int? systolic, diastolic, pulse, spo2;
+  final String notes;
+  final Map<String, dynamic>? intakeJson;
   factory DevVisit.fromJson(Map<String, dynamic> data) => DevVisit(
     id: data['id'] as String, reason: data['reason'] as String,
     createdAt: DateTime.parse(data['created_at'] as String),
@@ -88,40 +110,48 @@ class DevVisit {
     diastolic: (data['diastolic'] as num?)?.toInt(),
     pulse: (data['pulse'] as num?)?.toInt(),
     spo2: (data['spo2'] as num?)?.toInt(),
+    notes: data['notes'] as String? ?? '',
+    intakeJson: (data['intake_json'] as Map?)?.cast<String, dynamic>(),
   );
 }
 
 class DevExam {
   const DevExam({required this.id, required this.title,
-    required this.status, this.result, this.resultRecordedAt});
+    required this.status, this.result, this.resultRecordedAt,
+    this.createdAt});
   final String id;
   final String title;
   final String status;
   final String? result;
   final DateTime? resultRecordedAt;
+  final DateTime? createdAt;
   factory DevExam.fromJson(Map<String, dynamic> data) => DevExam(
     id: data['id'] as String, title: data['title'] as String,
     status: data['status'] as String,
     result: data['result'] as String?,
     resultRecordedAt: data['result_recorded_at'] is String
       ? DateTime.parse(data['result_recorded_at'] as String) : null,
+    createdAt: DateTime.tryParse(data['created_at'] as String? ?? ''),
   );
 }
 
 class DevFollowUp {
   const DevFollowUp({required this.id, required this.reason,
-    required this.status, required this.scheduledAt, this.completedAt});
+    required this.status, required this.scheduledAt, this.completedAt,
+    this.notes = ''});
   final String id;
   final String reason;
   final String status;
   final DateTime scheduledAt;
   final DateTime? completedAt;
+  final String notes;
   factory DevFollowUp.fromJson(Map<String, dynamic> data) => DevFollowUp(
     id: data['id'] as String, reason: data['reason'] as String,
     status: data['status'] as String,
     scheduledAt: DateTime.parse(data['scheduled_at'] as String),
     completedAt: data['completed_at'] is String
       ? DateTime.parse(data['completed_at'] as String) : null,
+    notes: data['notes'] as String? ?? '',
   );
 }
 
@@ -501,6 +531,117 @@ class DevAuthApi {
     return (jsonDecode(response.body) as List<dynamic>)
         .map((item) => DevPatient.fromJson(item as Map<String, dynamic>))
         .toList(growable: false);
+  }
+
+  /// Transport for the ORIGINAL ClinicalStore screens, not a UI component.
+  /// Every operation carries the current practitioner's revocable session.
+  Future<DevPatient> createPatient(DevSession session, {
+    required String name, required int age, required String sex,
+    required String phone, Map<String, Object?>? profile,
+  }) async {
+    final response = await _request('POST', '/api/v1/patients',
+      session: session, body: {
+        'display_name': name.trim(), 'age': age, 'sex': sex,
+        'phone': phone.trim(), if (profile != null) 'profile_json': profile,
+      });
+    _ensureSuccess(response, expected: 201);
+    return DevPatient.fromJson(_map(response));
+  }
+
+  Future<DevPatient> updatePatient(DevSession session, String patientId, {
+    required String phone, required String allergies,
+    required String medicalHistory, Map<String, Object?>? profile,
+  }) async {
+    final response = await _request(
+      'PUT', '/api/v1/patients/${Uri.encodeComponent(patientId)}',
+      session: session, body: {
+        'phone': phone.trim(), 'allergies': allergies.trim(),
+        'medical_history': medicalHistory.trim(),
+        if (profile != null) 'profile_json': profile,
+      });
+    _ensureSuccess(response);
+    return DevPatient.fromJson(_map(response));
+  }
+
+  Future<DevPatient> setPatientFollowUp(DevSession session,
+      String patientId, {required bool toReview}) async {
+    final response = await _request(
+      'PUT', '/api/v1/patients/${Uri.encodeComponent(patientId)}/follow-up-flag',
+      session: session, body: {'to_review': toReview});
+    _ensureSuccess(response);
+    return DevPatient.fromJson(_map(response));
+  }
+
+  Future<DevVisit> createVisit(DevSession session, String patientId, {
+    required String reason, double? temperature, int? systolic,
+    int? diastolic, int? pulse, int? spo2, String notes = '',
+    Map<String, Object?>? intake,
+  }) async {
+    final response = await _request('POST',
+      '/api/v1/patients/${Uri.encodeComponent(patientId)}/visits',
+      session: session, body: {
+        'reason': reason.trim(), 'temperature': temperature,
+        'systolic': systolic, 'diastolic': diastolic,
+        'pulse': pulse, 'spo2': spo2, 'notes': notes.trim(),
+        if (intake != null) 'intake_json': intake,
+      });
+    _ensureSuccess(response, expected: 201);
+    return DevVisit.fromJson(_map(response));
+  }
+
+  Future<DevExam> createExam(DevSession session, String patientId,
+      String title) async {
+    final response = await _request('POST',
+      '/api/v1/patients/${Uri.encodeComponent(patientId)}/exams',
+      session: session, body: {'title': title.trim()});
+    _ensureSuccess(response, expected: 201);
+    return DevExam.fromJson(_map(response));
+  }
+
+  Future<DevExam> saveExamResult(DevSession session, String examId,
+      String result) async {
+    final response = await _request('PUT',
+      '/api/v1/exams/${Uri.encodeComponent(examId)}/result',
+      session: session, body: {'result': result.trim()});
+    _ensureSuccess(response);
+    return DevExam.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> createFollowUp(DevSession session, String patientId, {
+    required DateTime scheduledAt, required String reason,
+    String notes = '',
+  }) async {
+    final response = await _request('POST',
+      '/api/v1/patients/${Uri.encodeComponent(patientId)}/followups',
+      session: session, body: {
+        'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+        'reason': reason.trim(), 'notes': notes.trim(),
+      });
+    _ensureSuccess(response, expected: 201);
+    return DevFollowUp.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> updateFollowUp(DevSession session, String followUpId, {
+    required DateTime scheduledAt, required String reason,
+    String notes = '',
+  }) async {
+    final response = await _request('PUT',
+      '/api/v1/followups/${Uri.encodeComponent(followUpId)}/reschedule',
+      session: session, body: {
+        'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+        'reason': reason.trim(), 'notes': notes.trim(),
+      });
+    _ensureSuccess(response);
+    return DevFollowUp.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> finishFollowUp(DevSession session, String followUpId,
+      {required bool completed}) async {
+    final response = await _request('PUT',
+      '/api/v1/followups/${Uri.encodeComponent(followUpId)}/close',
+      session: session, body: {'completed': completed});
+    _ensureSuccess(response);
+    return DevFollowUp.fromJson(_map(response));
   }
 
   Future<DevPractitioner> updateProfile(

@@ -54,6 +54,32 @@ jobs:
         run: flutter pub get
       - name: Check login restore and stale clinical replies
         run: flutter test test/p42_secure_session_resume_test.dart test/p42_session_gate_test.dart test/p45_clinical_session_race_test.dart test/p46_connected_auth_gate_test.dart test/p46_android_api_transport_test.dart
+      - name: Prepare pinned Android NDK (retry corrupted SDK downloads)
+        shell: bash
+        run: |
+          set -euo pipefail
+          NDK_VERSION="28.2.13676358"
+          SDK_ROOT="${ANDROID_HOME:?}"
+          NDK_DIR="$SDK_ROOT/ndk/$NDK_VERSION"
+          if [ -f "$NDK_DIR/source.properties" ]; then
+            echo "Android NDK already installed"
+          else
+            installed=0
+            for attempt in 1 2 3; do
+              echo "Android NDK install attempt $attempt/3"
+              if sdkmanager --install "ndk;$NDK_VERSION" &&
+                 [ -f "$NDK_DIR/source.properties" ]; then
+                installed=1
+                break
+              fi
+              # GitHub-hosted runner only; delete a broken, incomplete NDK
+              # folder so the next download is clean.
+              test "$NDK_DIR" = "$ANDROID_HOME/ndk/28.2.13676358"
+              rm -rf -- "$NDK_DIR"
+              sleep "$((attempt * 10))"
+            done
+            test "$installed" -eq 1
+          fi
       - name: Build USB loopback-connected debug APK
         run: flutter build apk --debug --no-pub --dart-define=MEDISUIVI_DEV_API_BASE_URL=http://127.0.0.1:8027
       - name: Verify APK and INTERNET permission

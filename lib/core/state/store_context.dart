@@ -8,6 +8,7 @@ library;
 import 'package:flutter/widgets.dart';
 
 import 'clinical_store.dart';
+import 'remote_clinical_scope.dart';
 import 'demo_store.dart';
 import 'persistent_store_stub.dart'
     if (dart.library.io) 'persistent_store.dart';
@@ -21,6 +22,10 @@ extension StoreContext on BuildContext {
     // dependOnInheritedWidgetOfExactType enregistre la dépendance.
     // Les écrans sont donc reconstruits lors des notifications du store,
     // y compris après une écriture asynchrone Drift.
+    // Connected sessions are always resolved before any demo-only scope.
+    // Never let a global in-memory demo override practitioner-specific data.
+    final remote = dependOnInheritedWidgetOfExactType<RemoteClinicalScope>();
+    if (remote?.notifier != null) return remote!.notifier!;
     final demoScope = dependOnInheritedWidgetOfExactType<DemoScope>();
     if (demoScope != null) return demoScope.notifier!;
     final persistentScope = dependOnInheritedWidgetOfExactType<PersistentScope>();

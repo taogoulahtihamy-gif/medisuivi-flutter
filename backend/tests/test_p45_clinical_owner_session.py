@@ -26,7 +26,7 @@ def _require_disposable_postgres(monkeypatch):
     with engine.connect() as connection:
         assert connection.execute(
             text("SELECT version_num FROM alembic_version")
-        ).scalar_one() == "0005"
+        ).scalar_one() == "0006"
     monkeypatch.setattr(settings, "environment", "development")
     monkeypatch.setattr(settings, "allow_registration", True)
     monkeypatch.setattr(settings, "email_auth_enabled", False)
