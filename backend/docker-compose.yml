@@ -1,3 +1,5 @@
+name: medisuivi
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -35,3 +37,4 @@ services:
         condition: service_healthy
 volumes:
   pgdata:
+    name: medisuivi_pgdata
