@@ -253,7 +253,9 @@ abstract final class MediTheme {
         ),
       ),
       iconTheme: IconThemeData(color: p.ink),
-      listTileTheme: p.isDark ? null : ListTileThemeData(
+      // Keep identical TextStyle inheritance in both palettes so switching
+      // themes does not crash ListTile's implicit style animation.
+      listTileTheme: ListTileThemeData(
         textColor: p.ink,
         iconColor: p.forest,
         titleTextStyle: TextStyle(
