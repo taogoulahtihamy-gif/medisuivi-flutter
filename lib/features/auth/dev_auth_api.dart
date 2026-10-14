@@ -203,6 +203,7 @@ class DevAuthApi {
       _assertSession(session, revision);
       session.accessToken = access;
       session.refreshToken = refresh;
+      await _remember(session);
     } catch (_) {
       // If another action already signed out, leave the cleared session
       // untouched. Otherwise reject the damaged refresh secret.
@@ -315,10 +316,12 @@ class DevAuthApi {
     final token = tokens['access_token'] as String;
     final me = await _request('GET', '/api/v1/me', token: token);
     _ensureSuccess(me);
-    return DevSession(
+    final session = DevSession(
       practitioner: DevPractitioner.fromJson(_map(me)),
       accessToken: token,
       refreshToken: tokens['refresh_token'] as String? ?? '');
+    await _remember(session);
+    return session;
   }
 
   Future<DevSession> createAccount({
@@ -554,6 +557,7 @@ class DevAuthApi {
     _ensureSuccess(response, expected: 204);
     session.clear();
     _refreshing.remove(session);
+    await forgetSavedSession();
   }
 
   Future<void> signOut(DevSession session) async {
@@ -565,6 +569,7 @@ class DevAuthApi {
       // Clear volatile credentials even if the server cannot be reached.
       session.clear();
       _refreshing.remove(session);
+      await forgetSavedSession();
     }
   }
 
@@ -576,6 +581,7 @@ class DevAuthApi {
     } finally {
       session.clear();
       _refreshing.remove(session);
+      await forgetSavedSession();
     }
   }
 
