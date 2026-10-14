@@ -41,6 +41,7 @@ jobs:
           )
           config = json.load(open("vercel.json", encoding="utf-8"))
           assert config["regions"] == ["fra1"]
+          assert config["framework"] == "fastapi"
           assert open(".python-version", encoding="utf-8").read().strip() == "3.12"
           PY
       - name: Test fail-closed sandbox migration guard
