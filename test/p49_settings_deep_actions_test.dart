@@ -24,6 +24,9 @@ void main() {
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
           find.byKey(Key(key)), 160, scrollable: scroll);
+      await tester.pumpAndSettle();
+      expect(find.byKey(Key(key)), findsOneWidget,
+          reason: 'Le bouton $key doit être monté et cliquable.');
       await tester.tap(find.byKey(Key(key)));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -37,6 +40,9 @@ void main() {
 
     // Synchronization page, its data shortcut and server-info dialog.
     await openMain('settings-synchronization');
+    expect(find.text('État des synchronisations'), findsOneWidget,
+        reason: 'Le raccourci Synchronisation doit ouvrir sa page.');
+    expect(find.byKey(const Key('settings-sync-local-data')), findsOneWidget);
     await tester.tap(find.byKey(const Key('settings-sync-local-data')));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('data-view-patients')), findsOneWidget);
