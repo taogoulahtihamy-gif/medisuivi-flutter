@@ -89,19 +89,21 @@ class _FollowupScreenState extends State<FollowupScreen> {
               fontSize: 14, color: Palette.of(context).muted)),
           ],
           const SizedBox(height: 11),
-          for (final plan in plans) ...[
-            _FollowUpCard(
-              plan: plan,
-              patient: store.patientById(plan.patientId),
-              onOpenPatient: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) =>
-                  PatientDetailScreen(patientId: plan.patientId))),
-              onEdit: () => openEditor(plan: plan),
-              onComplete: () => closePlan(plan, completed: true),
-              onCancel: () => closePlan(plan, completed: false),
-            ),
-            const SizedBox(height: 10),
-          ],
+          ClinicalGroupedList(
+            children: [
+              for (final plan in plans)
+                _FollowUpCard(
+                  plan: plan,
+                  patient: store.patientById(plan.patientId),
+                  onOpenPatient: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => PatientDetailScreen(patientId: plan.patientId))),
+                  onEdit: () => openEditor(plan: plan),
+                  onComplete: () => closePlan(plan, completed: true),
+                  onCancel: () => closePlan(plan, completed: false),
+                ),
+            ],
+          ),
         ],
       );
     }
@@ -292,16 +294,9 @@ class _FollowUpCard extends StatelessWidget {
       FollowUpStatus.completed => 'Terminé',
       FollowUpStatus.cancelled => 'Annulé',
     };
-    return Material(
-      color: Palette.of(context).surface,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(15, 15, 12, 15),
-        decoration: BoxDecoration(
-          border: Border.all(color: Palette.of(context).border),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             InkWell(
@@ -363,7 +358,6 @@ class _FollowUpCard extends StatelessWidget {
                 fontWeight: FontWeight.w600)),
             ],
           ],
-        ),
       ),
     );
   }
