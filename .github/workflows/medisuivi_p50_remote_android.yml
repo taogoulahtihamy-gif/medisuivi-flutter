@@ -58,6 +58,8 @@ jobs:
           test/p49_original_shell_connected_test.dart
           test/p49_original_account_entry_test.dart
           test/p42_secure_session_resume_test.dart
+      - name: Test invitation-only sandbox signup
+        run: flutter test test/p50_remote_signup_test.dart --dart-define=MEDISUIVI_REMOTE_SANDBOX=true
       - name: Build installable HTTPS-only remote Android debug APK
         run: |
           flutter build apk --debug --no-pub \
