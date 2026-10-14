@@ -120,6 +120,29 @@ void main() {
     expect(find.text('Dernières constantes'), findsOneWidget);
     expect(find.text('Informations médicales'), findsOneWidget);
   });
+  testWidgets('Dossier patient : avatar centré au-dessus du nom', (tester) async {
+    tester.view.physicalSize = const Size(320, 740);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MediSuiviApp());
+    await tester.tap(find.text('Patients').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Aminata Diallo').first);
+    await tester.pumpAndSettle();
+
+    final avatar = find.byKey(const Key('patient-profile-avatar'));
+    final name = find.byKey(const Key('patient-profile-name'));
+    expect(avatar, findsOneWidget);
+    expect(name, findsOneWidget);
+    expect(tester.getBottomLeft(avatar).dy,
+      lessThan(tester.getTopLeft(name).dy));
+    expect((tester.getCenter(avatar).dx - tester.getCenter(name).dx).abs(),
+      lessThan(2));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Dossier médical complet sur écran étroit', (tester) async {
     tester.view.physicalSize = const Size(320, 740);
     tester.view.devicePixelRatio = 1;
