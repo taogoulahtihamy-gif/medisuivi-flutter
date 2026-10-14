@@ -412,7 +412,8 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 child: Row(children: [
                   Icon(Icons.switch_account_outlined, size: 20),
                   SizedBox(width: 10),
-                  Text('Changer de praticien'),
+                  Expanded(child: Text('Changer de praticien',
+                    softWrap: true, maxLines: 2)),
                 ]),
               ),
               PopupMenuItem<String>(
@@ -420,7 +421,8 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 child: Row(children: [
                   Icon(Icons.phonelink_erase_rounded, size: 20),
                   SizedBox(width: 10),
-                  Text('Déconnecter tous les appareils'),
+                  Expanded(child: Text('Déconnecter tous les appareils',
+                    softWrap: true, maxLines: 2)),
                 ]),
               ),
             ],
