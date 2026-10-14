@@ -63,25 +63,34 @@ class MobileDevSessionPersistence implements DevSessionPersistence {
 
   static const _storageKey = 'medisuivi_authenticated_refresh_v1';
   final FlutterSecureStorage _secureStorage;
+  Future<void> _tail = Future<void>.value();
+
+  // Preserve operation order: a delayed refresh write must complete before
+  // the following explicit logout deletes the protected credential.
+  Future<T> _inOrder<T>(Future<T> Function() task) {
+    final result = _tail.then((_) => task());
+    _tail = result.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    return result;
+  }
 
   @override
-  Future<SavedDevSession?> read() async {
+  Future<SavedDevSession?> read() => _inOrder(() async {
     final value = await _secureStorage.read(key: _storageKey);
     if (value == null) return null;
     final parsed = SavedDevSession.parse(value);
     if (parsed != null) return parsed;
-    // Never try to use a corrupt identity or credential.
-    await clear();
+    await _secureStorage.delete(key: _storageKey);
     return null;
-  }
+  });
 
   @override
-  Future<void> save(SavedDevSession credential) =>
+  Future<void> save(SavedDevSession credential) => _inOrder(() =>
       _secureStorage.write(
         key: _storageKey,
         value: jsonEncode(credential.toJson()),
-      );
+      ));
 
   @override
-  Future<void> clear() => _secureStorage.delete(key: _storageKey);
+  Future<void> clear() => _inOrder(() =>
+      _secureStorage.delete(key: _storageKey));
 }
