@@ -693,6 +693,94 @@ class DevAuthApi {
     _ensureSuccess(response);
   }
 
+  /// Authenticated clinical operations used by the ORIGINAL ClinicalStore UI.
+  /// The backend always derives owner_user_id from the JWT.
+  /// No broad/anonymous dataset and no direct DemoStore fallback.
+  Future<DevPatient> createClinicalPatient(
+      DevSession session, String displayName, int age) async {
+    final value = displayName.trim();
+    if (!value.toUpperCase().startsWith('PATIENT FICTIF')) {
+      throw const DevApiException(
+        'En développement, seuls les patients fictifs sont autorisés.');
+    }
+    final response = await _request('POST', '/api/v1/patients',
+        session: session, body: {'display_name': value, 'age': age});
+    _ensureSuccess(response, expected: 201);
+    return DevPatient.fromJson(_map(response));
+  }
+
+  Future<DevVisit> createClinicalVisit(DevSession session, String patientId, {
+    required String reason, double? temperature, int? systolic,
+    int? diastolic, int? pulse, int? spo2, String notes = '',
+  }) async {
+    final response = await _request('POST',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}/visits',
+        session: session, body: {
+          'reason': reason.trim(), 'temperature': temperature,
+          'systolic': systolic, 'diastolic': diastolic,
+          'pulse': pulse, 'spo2': spo2, 'notes': notes.trim(),
+        });
+    _ensureSuccess(response, expected: 201);
+    return DevVisit.fromJson(_map(response));
+  }
+
+  Future<DevExam> createClinicalExam(
+      DevSession session, String patientId, String title) async {
+    final response = await _request('POST',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}/exams',
+        session: session, body: {'title': title.trim()});
+    _ensureSuccess(response, expected: 201);
+    return DevExam.fromJson(_map(response));
+  }
+
+  Future<DevExam> submitClinicalExamResult(
+      DevSession session, String examId, String result) async {
+    final response = await _request('PUT',
+        '/api/v1/exams/${Uri.encodeComponent(examId)}/result',
+        session: session, body: {'result': result.trim()});
+    _ensureSuccess(response);
+    return DevExam.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> createClinicalFollowUp(
+      DevSession session, String patientId, {
+        required DateTime scheduledAt, required String reason,
+        String notes = '',
+      }) async {
+    final response = await _request('POST',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}/followups',
+        session: session, body: {
+          'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+          'reason': reason.trim(), 'notes': notes.trim(),
+        });
+    _ensureSuccess(response, expected: 201);
+    return DevFollowUp.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> updateClinicalFollowUp(
+      DevSession session, String followUpId, {
+        required DateTime scheduledAt, required String reason,
+        String notes = '',
+      }) async {
+    final response = await _request('PUT',
+        '/api/v1/followups/${Uri.encodeComponent(followUpId)}/reschedule',
+        session: session, body: {
+          'scheduled_at': scheduledAt.toUtc().toIso8601String(),
+          'reason': reason.trim(), 'notes': notes.trim(),
+        });
+    _ensureSuccess(response);
+    return DevFollowUp.fromJson(_map(response));
+  }
+
+  Future<DevFollowUp> completeClinicalFollowUp(
+      DevSession session, String followUpId, bool completed) async {
+    final response = await _request('PUT',
+        '/api/v1/followups/${Uri.encodeComponent(followUpId)}/close',
+        session: session, body: {'completed': completed});
+    _ensureSuccess(response);
+    return DevFollowUp.fromJson(_map(response));
+  }
+
   /// Changes the current practitioner's password on the server.
   /// A successful change invalidates ALL of their devices immediately.
   /// Nothing is persisted in browser storage.
