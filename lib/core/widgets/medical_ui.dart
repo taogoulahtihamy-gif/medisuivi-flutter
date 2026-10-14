@@ -79,7 +79,8 @@ class PatientAvatar extends StatelessWidget {
   }
 }
 
-/// Surface commune pour les registres : un seul fond et séparateurs fins.
+/// Registre ouvert : chaque ligne est indépendante, sans carte englobante.
+/// On garde le nom du composant pour ne pas casser les écrans existants.
 class ClinicalGroupedList extends StatelessWidget {
   const ClinicalGroupedList({super.key, required this.children});
   final List<Widget> children;
@@ -87,22 +88,25 @@ class ClinicalGroupedList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
-    return Material(
-      color: p.surface.withValues(alpha: p.isDark ? .76 : 1.0),
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(19),
-        side: BorderSide(color: p.border),
-      ),
-      child: Column(children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
         for (var i = 0; i < children.length; i++) ...[
-          if (i > 0) Padding(
-            padding: const EdgeInsets.only(left: 60, right: 13),
-            child: Divider(height: 1, thickness: .65, color: p.border),
+          Material(
+            type: MaterialType.transparency,
+            child: children[i],
           ),
-          children[i],
+          if (i < children.length - 1)
+            Padding(
+              padding: const EdgeInsets.only(left: 55, right: 4),
+              child: Divider(
+                height: 1,
+                thickness: .8,
+                color: p.border.withValues(alpha: p.isDark ? .65 : .88),
+              ),
+            ),
         ],
-      ]),
+      ],
     );
   }
 }
@@ -127,30 +131,31 @@ class ClinicalListRow extends StatelessWidget {
     final compact = DisplayPreferencesScope.maybeOf(context)
         ?.value.compactLists ?? true;
     return InkWell(
+      borderRadius: BorderRadius.circular(13),
       onTap: onTap,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(14, compact ? 12 : 18,
-          13, compact ? 12 : 18),
+        padding: EdgeInsets.fromLTRB(6, compact ? 15 : 21,
+          6, compact ? 15 : 21),
         child: Row(children: [
-          if (leading != null) ...[leading!, const SizedBox(width: 12)],
+          if (leading != null) ...[leading!, const SizedBox(width: 13)],
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(title,
                 maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 15.3, height: 1.22,
+                  fontSize: 16.0, height: 1.26,
                   fontWeight: FontWeight.w600, color: p.ink)),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(subtitle!,
                   maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13.1, height: 1.3, color: p.muted)),
+                  style: TextStyle(fontSize: 13.8, height: 1.35, color: p.muted)),
               ],
               if (detail != null) ...[
                 const SizedBox(height: 5),
                 Text(detail!,
                   maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13.1, fontWeight: FontWeight.w600,
+                  style: TextStyle(fontSize: 13.8, fontWeight: FontWeight.w600,
                     color: p.forest)),
               ],
             ],
