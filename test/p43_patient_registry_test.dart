@@ -43,6 +43,10 @@ void main() {
         api: api, session: session, onSignedOut: () {}),
     ));
     await tester.pumpAndSettle();
+    // La nouvelle page d’accueil affiche les dossiers récents.
+    // La recherche reste réservée au registre authentifié.
+    await tester.tap(find.byKey(const Key('dev-nav-patients')));
+    await tester.pumpAndSettle();
     expect(find.text('PATIENT FICTIF ALPHA'), findsOneWidget);
     expect(find.text('PATIENT FICTIF BETA'), findsOneWidget);
     await tester.enterText(
