@@ -5,6 +5,8 @@ on:
     branches:
       - feat/medisuivi-p1-sn-auth-foundation
       - feat/medisuivi-p2-clinical-isolation
+      - feat/medisuivi-p3-dev-auth-ui
+      - feat/medisuivi-p32-profile-avatar
       - feat/medisuivi-p32-profile-avatar
     paths:
       - "backend/**"
