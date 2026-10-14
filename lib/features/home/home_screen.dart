@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -581,9 +582,21 @@ class _HomeSearchAndGreeting extends StatefulWidget {
 class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
   final TextEditingController _controller = TextEditingController();
   String _query = '';
+  late DateTime _clock;
+  Timer? _clockTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _clock = widget.date;
+    _clockTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() => _clock = DateTime.now());
+    });
+  }
 
   @override
   void dispose() {
+    _clockTimer?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -606,7 +619,11 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
           children: [
             Expanded(
               flex: narrow ? 5 : 6,
-              child: Semantics(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 400),
+                  child: Semantics(
                 textField: true,
                 label: 'Rechercher un patient',
                 child: Container(
@@ -653,6 +670,8 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                     ),
                   ),
                 ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -661,7 +680,9 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(shortDate(widget.date),
+                  Text('${shortDate(_clock)} · '
+                    '${_clock.hour.toString().padLeft(2, '0')}:'
+                    '${_clock.minute.toString().padLeft(2, '0')}',
                     key: const Key('home-greeting-date'),
                     textAlign: TextAlign.right,
                     style: TextStyle(
