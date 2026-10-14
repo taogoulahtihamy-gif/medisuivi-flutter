@@ -674,9 +674,9 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                 child: Container(
                   height: 46,
                   decoration: BoxDecoration(
-                    color: p.surface.withValues(alpha: p.isDark ? .86 : .94),
+                    color: p.surface.withValues(alpha: p.isDark ? .86 : 1.0),
                     borderRadius: BorderRadius.circular(23),
-                    border: Border.all(color: p.border.withValues(alpha: .80)),
+                    border: Border.all(color: p.border.withValues(alpha: p.isDark ? .80 : 1.0)),
                   ),
                   child: TextField(
                     key: const Key('home-patient-search'),
