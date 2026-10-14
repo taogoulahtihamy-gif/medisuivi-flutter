@@ -251,7 +251,7 @@ abstract final class MediTheme {
         ),
       ),
       iconTheme: IconThemeData(color: p.ink),
-      listTileTheme: ListTileThemeData(
+      listTileTheme: p.isDark ? null : ListTileThemeData(
         textColor: p.ink,
         iconColor: p.forest,
         titleTextStyle: TextStyle(
@@ -259,7 +259,7 @@ abstract final class MediTheme {
         subtitleTextStyle: TextStyle(
           color: p.muted, fontSize: 12.8, height: 1.35),
       ),
-      switchTheme: SwitchThemeData(
+      switchTheme: p.isDark ? null : SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) =>
           states.contains(WidgetState.selected) ? p.raisedSurface : p.muted),
         trackColor: WidgetStateProperty.resolveWith((states) =>
@@ -267,24 +267,24 @@ abstract final class MediTheme {
             ? p.forest : p.tealSoft),
         trackOutlineColor: WidgetStateProperty.all(inputStroke),
       ),
-      checkboxTheme: CheckboxThemeData(
+      checkboxTheme: p.isDark ? null : CheckboxThemeData(
         fillColor: WidgetStateProperty.resolveWith((states) =>
           states.contains(WidgetState.selected) ? p.forest : Colors.transparent),
         checkColor: WidgetStateProperty.all(p.white),
         side: BorderSide(color: inputStroke, width: 1.4),
       ),
-      progressIndicatorTheme: ProgressIndicatorThemeData(
+      progressIndicatorTheme: p.isDark ? null : ProgressIndicatorThemeData(
         color: p.forest, linearTrackColor: p.tealSoft),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(
+      floatingActionButtonTheme: p.isDark ? null : FloatingActionButtonThemeData(
         backgroundColor: p.forest, foregroundColor: p.white),
-      popupMenuTheme: PopupMenuThemeData(
+      popupMenuTheme: p.isDark ? null : PopupMenuThemeData(
         color: p.raisedSurface,
         surfaceTintColor: Colors.transparent,
         textStyle: TextStyle(color: p.ink, fontSize: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(17),
           side: BorderSide(color: p.border))),
-      dialogTheme: DialogThemeData(
+      dialogTheme: p.isDark ? null : DialogThemeData(
         backgroundColor: p.raisedSurface,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
