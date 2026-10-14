@@ -1023,6 +1023,40 @@ def api_app() -> FastAPI:
             raise HTTPException(status_code=404, detail="Dossier introuvable")
         return PatientOut.model_validate(patient, from_attributes=True)
 
+    @app.put("/api/v1/patients/{patient_id}", response_model=PatientOut)
+    def update_patient(patient_id: str, data: UpdatePatientIn,
+                       user: User = Depends(current_user),
+                       db: Session = Depends(get_db)):
+        dev_write_only()
+        patient = db.scalar(select(Patient).where(
+            Patient.id == patient_id, Patient.owner_user_id == user.id
+        ).with_for_update())
+        if patient is None:
+            raise HTTPException(status_code=404, detail="Dossier introuvable")
+        patient.phone = data.phone
+        patient.allergies = data.allergies
+        patient.medical_history = data.medical_history
+        patient.profile = data.profile
+        db.commit()
+        db.refresh(patient)
+        return PatientOut.model_validate(patient, from_attributes=True)
+
+    @app.put("/api/v1/patients/{patient_id}/follow-up",
+             response_model=PatientOut)
+    def update_patient_follow_up(patient_id: str, data: FollowUpFlagIn,
+                                 user: User = Depends(current_user),
+                                 db: Session = Depends(get_db)):
+        dev_write_only()
+        patient = db.scalar(select(Patient).where(
+            Patient.id == patient_id, Patient.owner_user_id == user.id
+        ).with_for_update())
+        if patient is None:
+            raise HTTPException(status_code=404, detail="Dossier introuvable")
+        patient.follow_up = data.to_review
+        db.commit()
+        db.refresh(patient)
+        return PatientOut.model_validate(patient, from_attributes=True)
+
     # P2: all clinical operations are nested under an OWNED patient, or
     # select by ID + owner for updates. Caller-supplied owner is forbidden.
     @app.get("/api/v1/patients/{patient_id}/visits", response_model=list[VisitOut])
