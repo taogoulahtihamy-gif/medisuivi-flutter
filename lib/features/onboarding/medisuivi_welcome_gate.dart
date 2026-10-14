@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
+import '../auth/dev_auth_api.dart';
+import '../auth/dev_auth_screens.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
 /// Aucun mot de passe, jeton, document patient ou photo n'est envoyé au réseau.
@@ -56,25 +58,31 @@ class MediSuiviWelcomeGate extends StatefulWidget {
     super.key,
     required this.child,
     required this.isWebDemo,
+    this.developmentAuthApi,
   });
 
   final Widget child;
   final bool isWebDemo;
+  /// Optional injectable test API; otherwise enabled only by dart-define.
+  final DevAuthApi? developmentAuthApi;
 
   @override
   State<MediSuiviWelcomeGate> createState() => _MediSuiviWelcomeGateState();
 }
 
-enum _EntryStep { splash, introduction, access, signIn, profile, workspace }
+enum _EntryStep { splash, introduction, access, signIn, register, profile, workspace, authenticated }
 
 class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   final PractitionerPreview _practitioner = PractitionerPreview();
+  late final DevAuthApi? _authApi;
+  DevSession? _authenticatedSession;
   _EntryStep _step = _EntryStep.splash;
   Timer? _splashTimer;
 
   @override
   void initState() {
     super.initState();
+    _authApi = widget.developmentAuthApi ?? DevAuthApi.fromEnvironment();
     _splashTimer = Timer(const Duration(milliseconds: 2800), () {
       if (mounted && _step == _EntryStep.splash) {
         setState(() => _step = _EntryStep.introduction);
@@ -86,10 +94,23 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   void dispose() {
     _splashTimer?.cancel();
     _practitioner.dispose();
+    // The API owns no persisted token; close only client created by this gate.
+    if (widget.developmentAuthApi == null) _authApi?.close();
+    _authenticatedSession = null;
     super.dispose();
   }
 
   void _go(_EntryStep step) => setState(() => _step = step);
+
+  void _onAuthenticated(DevSession session) => setState(() {
+    _authenticatedSession = session;
+    _step = _EntryStep.authenticated;
+  });
+
+  void _onSignedOut() => setState(() {
+    _authenticatedSession = null;
+    _step = _EntryStep.access;
+  });
 
   @override
   Widget build(BuildContext context) => PractitionerPreviewScope(
@@ -108,15 +129,31 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
         _EntryStep.access => _AccessChoice(
           key: const ValueKey('welcome-access'),
           isWebDemo: widget.isWebDemo,
-          onCreate: () => _go(_EntryStep.profile),
+          onCreate: () => _go(
+            _authApi == null ? _EntryStep.profile : _EntryStep.register),
           onSignIn: () => _go(_EntryStep.signIn),
           onLocalAccess: () => _go(_EntryStep.workspace),
         ),
-        _EntryStep.signIn => _SignInPending(
-          key: const ValueKey('welcome-signin'),
-          isWebDemo: widget.isWebDemo,
+        _EntryStep.signIn => _authApi == null
+          ? _SignInPending(
+              key: const ValueKey('welcome-signin'),
+              isWebDemo: widget.isWebDemo,
+              onBack: () => _go(_EntryStep.access),
+              onLocalAccess: () => _go(_EntryStep.workspace),
+            )
+          : DevAuthScreen(
+              key: const ValueKey('dev-signin'),
+              api: _authApi!, isRegister: false,
+              onBack: () => _go(_EntryStep.access),
+              onToggle: () => _go(_EntryStep.register),
+              onAuthenticated: _onAuthenticated,
+            ),
+        _EntryStep.register => DevAuthScreen(
+          key: const ValueKey('dev-register'),
+          api: _authApi!, isRegister: true,
           onBack: () => _go(_EntryStep.access),
-          onLocalAccess: () => _go(_EntryStep.workspace),
+          onToggle: () => _go(_EntryStep.signIn),
+          onAuthenticated: _onAuthenticated,
         ),
         _EntryStep.profile => PractitionerPreviewForm(
           key: const ValueKey('welcome-profile'),
@@ -128,6 +165,12 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
         _EntryStep.workspace => KeyedSubtree(
           key: const ValueKey('welcome-workspace'),
           child: widget.child,
+        ),
+        _EntryStep.authenticated => DevConnectedWorkspace(
+          key: const ValueKey('dev-authenticated-workspace'),
+          api: _authApi!,
+          session: _authenticatedSession!,
+          onSignedOut: _onSignedOut,
         ),
       },
     ),
