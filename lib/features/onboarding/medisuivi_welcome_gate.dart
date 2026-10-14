@@ -327,7 +327,6 @@ abstract final class _WelcomePhotos {
   static const records = 'assets/images/onboarding/records.webp';
   static const followup = 'assets/images/onboarding/followup.webp';
   static const privacy = 'assets/images/onboarding/privacy.webp';
-  static const access = 'assets/images/onboarding/access.webp';
 }
 
 class _WelcomePhoto extends StatelessWidget {
@@ -753,11 +752,9 @@ class _OnboardPrimaryButton extends StatelessWidget {
 class _OnboardSecondaryButton extends StatelessWidget {
   const _OnboardSecondaryButton({
     super.key, required this.label, required this.onTap,
-    this.onPhoto = false,
   });
   final String label;
   final VoidCallback onTap;
-  final bool onPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -766,7 +763,7 @@ class _OnboardSecondaryButton extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 345),
         child: Material(
-          color: onPhoto ? Colors.white.withValues(alpha: .10) : p.surface,
+          color: p.surface,
           borderRadius: BorderRadius.circular(60),
           child: InkWell(
             onTap: onTap, borderRadius: BorderRadius.circular(60),
@@ -775,12 +772,12 @@ class _OnboardSecondaryButton extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(60),
                 border: Border.all(
-                  color: onPhoto ? Colors.white.withValues(alpha: .47) : p.border,
+                  color: p.border,
                   width: 1.15),
               ),
               alignment: Alignment.center,
               child: Text(label, style: TextStyle(
-                color: onPhoto ? Colors.white : p.ink,
+                color: p.ink,
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700)),
             ),
