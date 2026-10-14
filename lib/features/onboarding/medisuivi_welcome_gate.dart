@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
-import '../../core/assets/clinical_hero_photo.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
 /// Aucun mot de passe, jeton, document patient ou photo n'est envoyé au réseau.
@@ -137,12 +135,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
 }
 
 // Portrait clinique déjà embarqué dans MediSuivi : aucun appel réseau.
-abstract final class _ClinicalPhoto {
-  static final Uint8List bytes = base64Decode(clinicalHeroPhotoWebpBase64);
-}
-
-/// Splash éditorial : image clinique, ombre latérale et progression discrète.
-
+/// Photographies cliniques haute résolution embarquées.
 abstract final class _WelcomePhotos {
   // Images intégrées en WebP HD : aucun accès réseau pendant l'onboarding.
   static const splash = 'assets/images/onboarding/splash.webp';
