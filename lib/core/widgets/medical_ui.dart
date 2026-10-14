@@ -88,7 +88,7 @@ class ClinicalGroupedList extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     return Material(
-      color: p.surface.withValues(alpha: p.isDark ? .76 : .96),
+      color: p.surface.withValues(alpha: p.isDark ? .76 : 1.0),
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(19),
