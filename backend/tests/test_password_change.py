@@ -94,7 +94,7 @@ def test_password_change_respects_fail_closed_and_login_rate_limit(client, monke
     for i in range(5):
         response = change(client, auth(device), "wrong-current",
                           "fresh-password-that-is-long")
-        assert response.status_code == (429 if i == 4 else 401)
+        assert response.status_code == (429 if i == 4 else 400)
     correct = change(client, auth(device), "not-a-real-password-2026",
                      "fresh-password-that-is-long")
     assert correct.status_code == 429
