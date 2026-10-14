@@ -44,3 +44,14 @@ Les informations de prévisualisation, y compris la photo, sont conservées uniq
 - Licence et usages autorisés : https://www.pexels.com/license/ ; ne pas présenter les personnes photographiées comme des utilisateurs ni comme des partenaires ou professionnels affiliés à MediSuivi.
 - **Limite technique actuelle** : les nouvelles photographies sont chargées depuis des URLs publiques et exigent une connexion réseau. Si l'image distante ne charge pas, une photographie clinique de secours intégrée et un dégradé local sont affichés. Pour une véritable édition offline-first, figer et embarquer cinq photos optimisées dans `assets/` avant mise en production.
 - Aucune donnée médicale, aucun dossier et aucune identité de patient ne sont ajoutés aux URLs des images. Néanmoins, une requête d'image communique l'adresse IP de l'appareil au CDN tiers : cette dépendance sera supprimée avant tout usage réel avec des données sensibles.
+
+
+## Sprint 5L : images locales, lisibilité et cohérence des listes (2026-10-14)
+
+- Les cinq portraits Pexels sont maintenant **tous fournis dans le paquet Flutter** sous `assets/images/onboarding/*.webp` (et déclarés dans `pubspec.yaml`). Aucun `Image.network` ni appel CDN depuis l'introduction de l'application en exécution.
+- Les cinq originaux restent des scènes distinctes : splash, dossiers, suivi, espace personnel, accès ; une copie optimisée WebP HD est téléchargée par `tools/bundle_onboarding_images.py` avant packaging (script reproductible, utilisation selon https://www.pexels.com/license/).
+- Le splash reste visible environ **2,8 secondes** après le démarrage du parcours, avec barrette animée alignée sur cette durée, textes élargis et remontés. Cette barre est une animation de bienvenue et **ne mesure pas le chargement technique réel** de l'appareil.
+- `ClinicalGroupedList` et `ClinicalListRow` sont la base des listes Patients, Bilans, Suivi et Notifications : une surface par groupe, séparateurs discrets, densité réglable (compacte/confortable).
+- Dans les Paramètres supplémentaires : deux préférences visuelles fonctionnelles, réduction des animations et densité des listes, stockées localement via `flutter_secure_storage` (sans données médicales).
+- Les pages Données/Stockage, Synchronisation et Confidentialité présentent des informations locales vérifiables et donnent accès aux registres ou écrans existants. Les fonctions qui exigent un compte authentifié restent indisponibles.
+- **Limite actuelle** : l'avatar du praticien reste une prévisualisation en mémoire et ne persiste pas après redémarrage. Les photos de l'onboarding, elles, sont bien persistantes dans l'APK/l'application Web livrée. Le véritable compte et la sauvegarde sécurisée relèvent d'un futur sprint.
