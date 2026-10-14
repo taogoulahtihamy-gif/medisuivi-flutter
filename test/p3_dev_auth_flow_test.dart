@@ -141,6 +141,13 @@ void main() {
         matching: find.byType(Scrollable),
       ),
     );
+    // The original translucent dock overlaps the last ~75 px.
+    // Scroll the settings action above it before issuing the tap.
+    await tester.drag(
+      find.byKey(const Key('settings-page-list')),
+      const Offset(0, -220),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('settings-connected-signout')));
     await tester.pumpAndSettle();
     expect(revoked, isTrue);
