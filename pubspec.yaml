@@ -36,6 +36,7 @@ flutter:
   assets:
     - assets/illustrations/
     - assets/images/home_hero_hd.webp
+    - assets/images/onboarding/
 
 # Build hooks for SQLite3MultipleCiphers (encryption support)
 hooks:
