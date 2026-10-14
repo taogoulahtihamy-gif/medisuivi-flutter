@@ -36,7 +36,7 @@ void main() {
             key: const Key('consultation-action'),
             onPressed: () => count++,
             icon: const Icon(Icons.add_rounded),
-            label: const Text('Nouvelle consultation'),
+            label: const Text('Consultation'),
           ),
         ),
       ),
