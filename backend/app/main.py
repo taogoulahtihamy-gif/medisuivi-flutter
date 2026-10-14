@@ -7,6 +7,9 @@ No shared clinical credentials, no implicit team access, no PHI logging.
 from __future__ import annotations
 
 import os
+import hashlib
+import hmac
+import secrets
 from io import BytesIO
 from datetime import datetime, timedelta, timezone
 from typing import Literal
@@ -89,6 +92,23 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     patients: Mapped[list[Patient]] = relationship(back_populates="practitioner")
+
+
+class AuthSession(Base):
+    """A distinct revocable session for each sign-in (not shared across users)."""
+    __tablename__ = "auth_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey(
+        "practitioners.id", ondelete="RESTRICT"), nullable=False, index=True)
+    session_version: Mapped[int] = mapped_column(Integer, nullable=False)
+    refresh_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    previous_digest: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Patient(Base):
@@ -213,8 +233,13 @@ class UpdateProfileIn(StrictModel):
 
 class TokenOut(StrictModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     expires_in: int = TOKEN_TTL_MINUTES * 60
+
+
+class RefreshIn(StrictModel):
+    refresh_token: str = Field(min_length=60, max_length=200)
 
 
 class PatientIn(StrictModel):
@@ -323,41 +348,90 @@ def invalid_token() -> HTTPException:
     )
 
 
-def current_user(
+def utc(value: datetime) -> datetime:
+    # SQLite tests store UTC naive datetimes; PostgreSQL stores tz-aware.
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else (
+        value.astimezone(timezone.utc))
+
+
+def authenticated_principal(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer),
     db: Session = Depends(get_db),
-) -> User:
+) -> tuple[User, AuthSession]:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise invalid_token()
     try:
         claims = jwt.decode(
             credentials.credentials, settings.secret,
             algorithms=["HS256"], audience=AUDIENCE, issuer=ISSUER,
-            options={"require": ["sub", "sv", "exp", "iat", "jti", "aud", "iss"]},
+            options={"require": ["sub", "sv", "sid", "exp", "iat", "jti", "aud", "iss"]},
             leeway=0)
         user_id = claims["sub"]
         version = claims["sv"]
-        if not isinstance(user_id, str) or not isinstance(version, int):
+        session_id = claims["sid"]
+        if (not isinstance(user_id, str) or not isinstance(version, int)
+                or not isinstance(session_id, str)):
             raise invalid_token()
     except (jwt.PyJWTError, TypeError, ValueError, KeyError) as exc:
         raise invalid_token() from exc
 
     user = db.get(User, user_id)
-    if user is None or not user.active or user.session_version != version:
+    session = db.get(AuthSession, session_id)
+    if (user is None or not user.active or user.session_version != version
+            or session is None or session.user_id != user_id
+            or session.session_version != version or session.revoked_at is not None
+            or utc(session.expires_at) <= datetime.now(timezone.utc)):
         raise invalid_token()
-    return user
+    return (user, session)
 
 
-def issue_token(user: User) -> TokenOut:
+def current_user(
+    principal: tuple[User, AuthSession] = Depends(authenticated_principal),
+) -> User:
+    return principal[0]
+
+
+def current_session(
+    principal: tuple[User, AuthSession] = Depends(authenticated_principal),
+) -> AuthSession:
+    return principal[1]
+
+
+def _digest_refresh(raw: str) -> str:
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def _mint_refresh(session_id: str) -> str:
+    return f"{session_id}.{secrets.token_urlsafe(48)}"
+
+
+def issue_token(user: User, session_id: str, refresh_token: str) -> TokenOut:
     now = datetime.now(timezone.utc)
     payload = {
-        "sub": user.id,
+        "sub": user.id, "sid": session_id,
         "sv": user.session_version,
         "iss": ISSUER, "aud": AUDIENCE,
         "jti": str(uuid4()),
         "iat": now, "exp": now + timedelta(minutes=TOKEN_TTL_MINUTES),
     }
-    return TokenOut(access_token=jwt.encode(payload, settings.secret, algorithm="HS256"))
+    return TokenOut(
+        access_token=jwt.encode(payload, settings.secret, algorithm="HS256"),
+        refresh_token=refresh_token,
+    )
+
+
+def open_session(user: User, db: Session) -> TokenOut:
+    now = datetime.now(timezone.utc)
+    sid = str(uuid4())
+    raw = _mint_refresh(sid)
+    row = AuthSession(
+        id=sid, user_id=user.id, session_version=user.session_version,
+        refresh_digest=_digest_refresh(raw),
+        created_at=now, expires_at=now + timedelta(days=7),
+    )
+    db.add(row)
+    db.commit()
+    return issue_token(user, sid, raw)
 
 
 def api_app() -> FastAPI:
@@ -425,7 +499,7 @@ def api_app() -> FastAPI:
         except (VerificationError, ValueError) as exc:
             raise HTTPException(
                 status_code=401, detail="Identifiants invalides") from exc
-        return issue_token(user)
+        return open_session(user, db)
 
     @app.get("/api/v1/me", response_model=MeOut)
     def me(user: User = Depends(current_user)):
@@ -497,11 +571,49 @@ def api_app() -> FastAPI:
         user.avatar_webp = None
         db.commit()
 
+    @app.post("/api/v1/auth/refresh", response_model=TokenOut)
+    def refresh(data: RefreshIn, db: Session = Depends(get_db)):
+        # PostgreSQL SELECT FOR UPDATE prevents simultaneous rotation races.
+        sid = data.refresh_token.split(".", 1)[0]
+        row = db.scalar(select(AuthSession).where(
+            AuthSession.id == sid).with_for_update())
+        if row is None or row.revoked_at is not None:
+            raise invalid_token()
+        now = datetime.now(timezone.utc)
+        user = db.get(User, row.user_id)
+        if (user is None or not user.active or
+                row.session_version != user.session_version or
+                utc(row.expires_at) <= now):
+            raise invalid_token()
+
+        provided_digest = _digest_refresh(data.refresh_token)
+        if not hmac.compare_digest(row.refresh_digest, provided_digest):
+            if (row.previous_digest is not None and
+                    hmac.compare_digest(row.previous_digest, provided_digest)):
+                # Confirmed reuse of the last rotated credential revokes
+                # this device's session, without affecting other devices.
+                row.revoked_at = now
+                db.commit()
+            raise invalid_token()
+
+        raw = _mint_refresh(row.id)
+        row.previous_digest = row.refresh_digest
+        row.refresh_digest = _digest_refresh(raw)
+        db.commit()
+        return issue_token(user, row.id, raw)
+
     @app.post("/api/v1/auth/logout", status_code=204)
-    def logout(user: User = Depends(current_user), db: Session = Depends(get_db)):
-        # Revokes ALL tokens issued before this call for this user.
+    def logout(session: AuthSession = Depends(current_session),
+               db: Session = Depends(get_db)):
+        # Only the current device is revoked.
+        session.revoked_at = datetime.now(timezone.utc)
+        db.commit()
+
+    @app.post("/api/v1/auth/logout-all", status_code=204)
+    def logout_all(user: User = Depends(current_user),
+                   db: Session = Depends(get_db)):
+        # Changing the version also invalidates all outstanding refresh tokens.
         user.session_version += 1
-        db.add(user)
         db.commit()
 
     @app.get("/api/v1/patients", response_model=list[PatientOut])
