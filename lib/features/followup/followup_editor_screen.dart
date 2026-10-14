@@ -218,12 +218,15 @@ class _FollowUpEditorScreenState extends State<FollowUpEditorScreen> {
                   ]),
                 ),
                 const SizedBox(height: 22),
-                ElevatedButton.icon(
-                  onPressed: _saving ? null : save,
-                  icon: const Icon(Icons.check_rounded),
-                  label: Text(widget.plan == null
-                    ? 'Programmer le suivi' : 'Enregistrer la modification'),
-                ),
+                Center(child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: ElevatedButton.icon(
+                    onPressed: _saving ? null : save,
+                    icon: const Icon(Icons.check_rounded),
+                    label: Text(widget.plan == null
+                      ? 'Programmer le suivi' : 'Enregistrer la modification'),
+                  ),
+                )),
                 const SizedBox(height: 12),
                 Text(
                   'Les suivis restent temporaires et ne déclenchent pas '
