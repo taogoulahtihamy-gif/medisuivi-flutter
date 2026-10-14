@@ -229,10 +229,11 @@ class _WelcomeBrand extends StatelessWidget {
   Widget build(BuildContext context) => const Row(children: [
     Icon(Icons.medical_services_outlined, size: 22, color: Color(0xFF9CE5C4)),
     SizedBox(width: 9),
-    Text('MediSuivi', key: Key('welcome-brand'),
+    Flexible(child: Text('MediSuivi', key: Key('welcome-brand'),
+      maxLines: 1, overflow: TextOverflow.ellipsis,
       style: TextStyle(
         color: Colors.white, fontSize: 17, letterSpacing: -.4,
-        fontWeight: FontWeight.w700)),
+        fontWeight: FontWeight.w700))),
   ]);
 }
 
@@ -271,7 +272,7 @@ class _IntroSplash extends StatelessWidget {
                 style: TextStyle(color: Color(0xFFDCE6E0),
                   fontSize: 13, height: 1.5)),
               const SizedBox(height: 29),
-              Row(mainAxisSize: MainAxisSize.min, children: [
+              Row(children: [
                 TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: 1),
                   duration: reduced ? Duration.zero :
@@ -292,12 +293,14 @@ class _IntroSplash extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text('Préparation de votre espace',
+                const Expanded(child: Text('Préparation de votre espace',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Color(0xFFDCE6E0),
                     fontSize: 11.5,
                     fontWeight: FontWeight.w500,
-                  )),
+                  ))),
               ]),
               const Spacer(flex: 2),
             ],
