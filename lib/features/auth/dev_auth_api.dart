@@ -212,7 +212,7 @@ class DevAuthApi {
           await _refreshSession(session);
         }
         // Retry once only; cannot recurse into refresh again.
-        return _request(method, path, body: body, session: session);
+        return await _request(method, path, body: body, token: session.accessToken);
       }
       return response;
     } on TimeoutException {
