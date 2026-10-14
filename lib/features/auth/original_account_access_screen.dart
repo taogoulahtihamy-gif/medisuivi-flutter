@@ -37,6 +37,9 @@ class _OriginalAccountAccessScreenState
   final password = TextEditingController();
   final firstName = TextEditingController();
   final lastName = TextEditingController();
+  final invitation = TextEditingController();
+  static const remoteSandbox = bool.fromEnvironment(
+    'MEDISUIVI_REMOTE_SANDBOX', defaultValue: false);
   bool busy = false;
   bool showPassword = false;
   String? error;
@@ -47,6 +50,7 @@ class _OriginalAccountAccessScreenState
     password.dispose();
     firstName.dispose();
     lastName.dispose();
+    invitation.dispose();
     super.dispose();
   }
 
@@ -60,7 +64,8 @@ class _OriginalAccountAccessScreenState
       final session = widget.isRegister
           ? await widget.api.createAccount(
               email: email.text, password: password.text,
-              firstName: firstName.text, lastName: lastName.text)
+              firstName: firstName.text, lastName: lastName.text,
+              inviteCode: remoteSandbox ? invitation.text : '')
           : await widget.api.signIn(email.text, password.text);
       if (mounted) widget.onAuthenticated(session);
     } on DevVerificationRequired catch (exception) {
@@ -134,6 +139,16 @@ class _OriginalAccountAccessScreenState
                       : 'Retrouvez votre espace clinique.',
                     style: TextStyle(color: p.muted,
                       fontSize: 13.5, height: 1.5)),
+                  if (remoteSandbox) ...[
+                    const SizedBox(height: 10),
+                    Text('Bac à sable distant : comptes et dossiers '
+                      'strictement fictifs.',
+                      style: TextStyle(color: p.muted, fontSize: 12)),
+                    if (registering)
+                      Text('Utilisez demo-...@example.com et '
+                        'le code d’invitation privé.',
+                        style: TextStyle(color: p.muted, fontSize: 12)),
+                  ],
                   const SizedBox(height: 22),
                   Form(
                     key: form,
@@ -219,7 +234,24 @@ class _OriginalAccountAccessScreenState
                                   : 'Mot de passe obligatoire'
                                 : null,
                           ),
-                          if (!registering && widget.onForgotPassword != null)
+                          if (registering && remoteSandbox) ...[
+                            const SizedBox(height: 13),
+                            TextFormField(
+                              key: const Key('sandbox-invite-code'),
+                              controller: invitation,
+                              obscureText: true,
+                              enableSuggestions: false,
+                              autocorrect: false,
+                              decoration: const InputDecoration(
+                                labelText: 'Code d’invitation',
+                                prefixIcon: Icon(Icons.key_outlined)),
+                              validator: (value) =>
+                                  (value?.trim().length ?? 0) < 32
+                                    ? 'Code d’invitation requis'
+                                    : null,
+                            ),
+                          ],
+                          if (!registering && widget.onForgotPassword != null && !remoteSandbox)
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
@@ -260,7 +292,9 @@ class _OriginalAccountAccessScreenState
                         : 'Créer un compte praticien'),
                   ),
                   const SizedBox(height: 18),
-                  Text('Version de test · Données fictives uniquement',
+                  Text(remoteSandbox
+                    ? 'Sandbox en ligne · Aucune donnée médicale réelle'
+                    : 'Version de test · Données fictives uniquement',
                     key: const Key('dev-auth-warning'),
                     textAlign: TextAlign.center,
                     style: TextStyle(
