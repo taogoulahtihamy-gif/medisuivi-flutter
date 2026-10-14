@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show debugDumpRenderTree;
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,7 +141,10 @@ void main() {
       lessThan(tester.getTopLeft(name).dy));
     expect((tester.getCenter(avatar).dx - tester.getCenter(name).dx).abs(),
       lessThan(2));
-    expect(tester.takeException(), isNull);
+    // Temporary diagnostic for the 320px overflow found by CI.
+    final renderingIssue = tester.takeException();
+    if (renderingIssue != null) debugDumpRenderTree();
+    expect(renderingIssue, isNull);
   });
 
   testWidgets('Dossier médical complet sur écran étroit', (tester) async {
