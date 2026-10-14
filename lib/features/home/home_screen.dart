@@ -59,26 +59,26 @@ class HomeScreen extends StatelessWidget {
         ClinicalLayout(
           padding: const EdgeInsets.fromLTRB(
             ClinicalSpacing.screenPaddingHorizontal,
-            ClinicalSpacing.md,
+            8,
             ClinicalSpacing.screenPaddingHorizontal,
-            105,
+            86,
           ),
           child: ClinicalStaggered(
             children: [
               _buildHeader(context, p),
-              const SizedBox(height: ClinicalSpacing.xl),
+              const SizedBox(height: 12),
               _buildGreeting(context, p, today),
-              const SizedBox(height: ClinicalSpacing.xl),
+              const SizedBox(height: 12),
               _buildSignatureBanner(context, p, patients.length, onPatients, addPatient),
-              const SizedBox(height: ClinicalSpacing.xxl),
+              const SizedBox(height: 16),
               if (nextVisit != null) ...[
                 _buildNextVisit(context, p, store, nextVisit, onFollowup),
-                const SizedBox(height: ClinicalSpacing.xxl),
+                const SizedBox(height: 16),
               ],
               if (toReview > 0 || pending > 0) ...[
                 _buildAttentionRow(context, p, toReview, pending,
                   onFollowup, onExams),
-                const SizedBox(height: ClinicalSpacing.xxl),
+                const SizedBox(height: 16),
               ],
               _buildRecentSection(context, p, store, patients, onPatients),
             ],
@@ -182,7 +182,7 @@ class HomeScreen extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(ClinicalRadius.cardElevated),
       child: SizedBox(
-        height: 190,
+        height: 176,
         child: Stack(
           fit: StackFit.expand,
           children: [
@@ -317,11 +317,11 @@ class HomeScreen extends StatelessWidget {
           trailing: 'Calendrier',
           onTap: onFollowup,
         ),
-        const SizedBox(height: ClinicalSpacing.md),
+        const SizedBox(height: 8),
         ClinicalCard(
           variant: ClinicalCardVariant.elevated,
           onTap: onFollowup,
-          padding: const EdgeInsets.all(ClinicalSpacing.lg),
+          padding: const EdgeInsets.all(14),
           child: Row(
             children: [
               Container(
@@ -383,7 +383,7 @@ class HomeScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ClinicalSectionHeading(title: 'À consulter'),
-        const SizedBox(height: ClinicalSpacing.md),
+        const SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -428,7 +428,7 @@ class HomeScreen extends StatelessWidget {
           trailing: 'Voir tout',
           onTap: onPatients,
         ),
-        const SizedBox(height: ClinicalSpacing.md),
+        const SizedBox(height: 8),
         if (patients.isEmpty)
           const ClinicalEmptyState(
             title: 'Aucun patient',

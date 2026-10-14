@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
 
 void main() {
-  testWidgets('Barre basse : six actions accessibles à 320px',
+  testWidgets('Dock givré : cinq destinations et élévation de l’onglet actif à 320px',
       (tester) async {
     tester.view.physicalSize = const Size(320, 740);
     tester.view.devicePixelRatio = 1;
@@ -16,12 +16,20 @@ void main() {
     for (final label in ['Accueil', 'Patients', 'Bilans', 'Suivi', 'Réglages']) {
       expect(find.text(label), findsWidgets);
     }
-    expect(find.byKey(const Key('dock-create-patient')), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    expect(find.byKey(const Key('dock-create-patient')), findsNothing);
+    expect(find.byKey(const Key('clinical-dock-glass')), findsOneWidget);
+    final homeLift = tester.widget<AnimatedSlide>(
+      find.byKey(const Key('dock-lift-accueil')));
+    expect(homeLift.offset.dy, lessThan(0));
 
-    await tester.tap(find.byKey(const Key('dock-create-patient')));
+    await tester.tap(find.byKey(const Key('dock-patients')));
     await tester.pumpAndSettle();
-    expect(find.text('Ajouter le patient'), findsOneWidget);
+    final selectedLift = tester.widget<AnimatedSlide>(
+      find.byKey(const Key('dock-lift-patients')));
+    final inactiveLift = tester.widget<AnimatedSlide>(
+      find.byKey(const Key('dock-lift-accueil')));
+    expect(selectedLift.offset.dy, lessThan(0));
+    expect(inactiveLift.offset, Offset.zero);
     expect(tester.takeException(), isNull);
   });
 
@@ -79,4 +87,18 @@ void main() {
     expect(tester.getTopLeft(vitals).dy, lessThan(tester.getTopLeft(info).dy));
     expect(tester.takeException(), isNull);
   });
+  testWidgets('Sidebar desktop : surface givrée et paramètres accessibles',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MediSuiviApp(themeMode: ThemeMode.dark));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('clinical-sidebar-glass')), findsOneWidget);
+    expect(find.byKey(const Key('dock-create-patient')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
 }

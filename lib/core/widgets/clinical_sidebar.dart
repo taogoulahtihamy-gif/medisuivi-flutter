@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 /// Navigation latérale flottante Nocturne Clinique (tablette et desktop).
 ///
 /// Le NavigationRail reste présent pour les sémantiques et les tests existants.
@@ -38,12 +40,19 @@ class ClinicalSidebar extends StatelessWidget {
         curve: Curves.easeOutCubic,
         alignment: Alignment.centerLeft,
         clipBehavior: Clip.hardEdge,
-        child: Container(
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            key: const Key('clinical-sidebar-glass'),
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+            child: Container(
           width: panelWidth,
           decoration: BoxDecoration(
-            color: palette.surface,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: palette.border),
+            color: palette.surface.withValues(
+              alpha: palette.isDark ? .80 : .87),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(
+              color: palette.border.withValues(alpha: .76)),
             boxShadow: [
               BoxShadow(
                 color: palette.night.withValues(
@@ -55,7 +64,7 @@ class ClinicalSidebar extends StatelessWidget {
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(21),
+            borderRadius: BorderRadius.circular(27),
             child: Column(
               children: [
                 SizedBox(
@@ -121,7 +130,7 @@ class ClinicalSidebar extends StatelessWidget {
                     scrollable: true,
                     minWidth: 70,
                     minExtendedWidth: 248,
-                    backgroundColor: palette.surface,
+                    backgroundColor: Colors.transparent,
                     indicatorColor: palette.tealSoft,
                     selectedIconTheme: IconThemeData(
                       color: palette.forest, size: 23),
@@ -201,7 +210,7 @@ class ClinicalSidebar extends StatelessWidget {
                   child: Column(
                     children: [
                       _SidebarAction(
-                        icon: Icons.settings_outlined,
+                        icon: Icons.settings_suggest_outlined,
                         label: 'Paramètres',
                         expanded: expanded,
                         onPressed: onSettings,
@@ -223,6 +232,8 @@ class ClinicalSidebar extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
             ),
           ),
         ),
