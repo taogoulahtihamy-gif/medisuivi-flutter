@@ -154,8 +154,8 @@ class _MainShellState extends State<MainShell> {
                 palette.canvas,
                 palette.isDark
                     ? const Color(0xFF050907)
-                    : const Color(0xFFD9CBAF),
-                palette.isDark ? .15 : .23,
+                    : const Color(0xFFD4DDD3),
+                palette.isDark ? .15 : .20,
               )!,
               palette.canvas,
             ],
