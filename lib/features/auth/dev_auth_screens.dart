@@ -297,6 +297,13 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
             _avatar = bytes;
           });
         },
+        onPasswordChanged: () {
+          // Backend revoked every device; abandon profile & sensitive routes.
+          if (!mounted) return;
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          _avatar = null;
+          widget.onSignedOut();
+        },
       ),
     ));
   }
