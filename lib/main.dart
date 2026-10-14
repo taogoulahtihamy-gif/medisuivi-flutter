@@ -49,8 +49,9 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
     // Clinical data for such builds comes only from scoped API requests.
     // The optional demo remains synthetic/in-memory in this mode.
     if (kIsWeb || DevAuthApi.devBaseUrl.trim().isNotEmpty) {
-      // Web or connected-mode Android/iOS: in-memory synthetic demo only.
-      _demoStore = DemoStore();
+      // A connected account never creates or reads from DemoStore.
+      _demoStore = DevAuthApi.devBaseUrl.trim().isEmpty
+          ? DemoStore() : null;
       _initResult = DatabaseInitResult.notSupported;
       _isInitializing = false;
       if (mounted) setState(() {});
@@ -179,6 +180,23 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         home: _ErrorScreen(
           message: _errorMessage ?? 'Erreur inconnue',
           onRetry: _initializeApp,
+        ),
+      );
+    }
+
+    // Authenticated application: the ORIGINAL MainShell remains the only UI.
+    // RemoteClinicalGateway mounts its account-specific ClinicalStore after
+    // successful login. Never place DemoScope around a connected session.
+    if (DevAuthApi.devBaseUrl.trim().isNotEmpty) {
+      return MaterialApp(
+        title: 'MediSuivi',
+        debugShowCheckedModeBanner: false,
+        theme: ClinicalTheme.light(),
+        darkTheme: ClinicalTheme.dark(),
+        themeMode: _themeController.value,
+        home: const MediSuiviWelcomeGate(
+          isWebDemo: false,
+          child: MainShell(),
         ),
       );
     }
