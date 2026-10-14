@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import hashlib
 import hmac
+import math
 import secrets
 from io import BytesIO
 from datetime import datetime, timedelta, timezone
@@ -27,14 +28,22 @@ from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint,
     Integer, LargeBinary, String, Text, UniqueConstraint, create_engine, event, select, text,
 )
+from sqlalchemy.dialects.postgresql import insert as postgresql_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
 ISSUER = "medisuivi-development"
 AUDIENCE = "medisuivi-practitioners"
 TOKEN_TTL_MINUTES = 15
+LOGIN_FAILURE_LIMIT = 5
+LOGIN_WINDOW = timedelta(minutes=15)
+LOGIN_LOCKOUT = timedelta(minutes=15)
 bearer = HTTPBearer(auto_error=False)
 hasher = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
+# A genuine Argon2id verification also occurs for unregistered addresses.
+# This cannot replace external IP/risk-based rate limiting in production.
+_FAKE_PASSWORD_HASH = hasher.hash('nonexistent-synthetic-practitioner') 
 
 
 class Settings:
@@ -109,6 +118,22 @@ class AuthSession(Base):
     expires_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class LoginAttempt(Base):
+    """Pseudonymous login counter. Email, IP, password never persisted here."""
+
+    __tablename__ = "login_attempts"
+    __table_args__ = (
+        CheckConstraint("failed_count >= 0", name="ck_login_failed_count_positive"),
+    )
+
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    failed_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    window_started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False)
+    blocked_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True)
 
 
 class Patient(Base):
@@ -397,6 +422,55 @@ def current_session(
     return principal[1]
 
 
+def _login_key(normalized_email: str) -> str:
+    # HMAC key hides email identity even if the rate-limit table is disclosed.
+    return hmac.new(settings.secret.encode("utf-8"),
+                    ("login-guard:v1:" + normalized_email).encode("utf-8"),
+                    hashlib.sha256).hexdigest()
+
+
+def login_attempt_row(db: Session, normalized_email: str,
+                      now: datetime) -> LoginAttempt:
+    """Atomically get a keyed row and hold an account-scoped DB row lock.
+
+    PostgreSQL serializes concurrent attempts for the same email. SQLite
+    supports the conflict insert for lightweight synthetic CI testing.
+    """
+    key = _login_key(normalized_email)
+    payload = dict(key=key, failed_count=0, window_started_at=now)
+    dialect = db.get_bind().dialect.name
+    if dialect == "postgresql":
+        insert_statement = postgresql_insert(LoginAttempt)
+    elif dialect == "sqlite":
+        insert_statement = sqlite_insert(LoginAttempt)
+    else:
+        raise RuntimeError("Unsupported authentication storage dialect")
+    db.execute(insert_statement.values(**payload).on_conflict_do_nothing(
+        index_elements=["key"]))
+    row = db.scalar(select(LoginAttempt).where(
+        LoginAttempt.key == key).with_for_update())
+    if row is None:
+        raise RuntimeError("Unable to obtain login attempt lock")
+    active_lock = row.blocked_until is not None and utc(row.blocked_until) > now
+    # Do not reset an active 15-minute lock just because the original
+    # failure-counting window has expired.
+    if not active_lock and (row.blocked_until is not None or
+                            utc(row.window_started_at) + LOGIN_WINDOW <= now):
+        row.failed_count = 0
+        row.window_started_at = now
+        row.blocked_until = None
+    return row
+
+
+def throttled_login(blocked_until: datetime, now: datetime) -> HTTPException:
+    wait_seconds = max(1, math.ceil((utc(blocked_until) - now).total_seconds()))
+    # The same response is used for existing and nonexistent accounts.
+    return HTTPException(
+        status_code=429, detail="Trop de tentatives. Réessayez plus tard.",
+        headers={"Retry-After": str(wait_seconds)},
+    )
+
+
 def _digest_refresh(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
@@ -489,17 +563,32 @@ def api_app() -> FastAPI:
     @app.post("/api/v1/auth/login", response_model=TokenOut)
     def login(data: LoginIn, db: Session = Depends(get_db)):
         normalized = str(data.email).strip().lower()
+        now = datetime.now(timezone.utc)
+        attempt = login_attempt_row(db, normalized, now)
+        if attempt.blocked_until is not None and utc(attempt.blocked_until) > now:
+            raise throttled_login(attempt.blocked_until, now)
         user = db.scalar(select(User).where(User.email == normalized))
-        # Keep failure messages generic. Public deployment requires real
-        # rate limiting, email verification and a security review.
-        if user is None or not user.active:
-            raise HTTPException(status_code=401, detail="Identifiants invalides")
+        candidate_hash = (user.password_hash if user is not None and user.active
+                          else _FAKE_PASSWORD_HASH)
         try:
-            hasher.verify(user.password_hash, data.password)
-        except (VerificationError, ValueError) as exc:
-            raise HTTPException(
-                status_code=401, detail="Identifiants invalides") from exc
-        return open_session(user, db)
+            verified = bool(hasher.verify(candidate_hash, data.password))
+        except (VerificationError, ValueError):
+            verified = False
+        if verified and user is not None and user.active:
+            attempt.failed_count = 0
+            attempt.blocked_until = None
+            attempt.window_started_at = now
+            # open_session commits the reset and session in the same transaction.
+            return open_session(user, db)
+
+        attempt.failed_count += 1
+        if attempt.failed_count >= LOGIN_FAILURE_LIMIT:
+            attempt.blocked_until = now + LOGIN_LOCKOUT
+        db.commit()
+        if attempt.blocked_until is not None:
+            raise throttled_login(attempt.blocked_until, now)
+        # Explicitly identical for known and nonexistent emails.
+        raise HTTPException(status_code=401, detail="Identifiants invalides")
 
     @app.get("/api/v1/me", response_model=MeOut)
     def me(user: User = Depends(current_user)):
