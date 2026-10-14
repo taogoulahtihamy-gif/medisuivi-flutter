@@ -79,8 +79,9 @@ class PatientAvatar extends StatelessWidget {
   }
 }
 
-/// Registre ouvert : chaque ligne est indépendante, sans carte englobante.
-/// On garde le nom du composant pour ne pas casser les écrans existants.
+/// Registre légèrement structuré : une bordure fine autour de chaque
+/// entrée, sans panneau ou grande carte qui enferme toute la liste.
+/// Le même composant s'applique à Patients, Bilans, Suivi et alertes.
 class ClinicalGroupedList extends StatelessWidget {
   const ClinicalGroupedList({super.key, required this.children});
   final List<Widget> children;
@@ -93,18 +94,19 @@ class ClinicalGroupedList extends StatelessWidget {
       children: [
         for (var i = 0; i < children.length; i++) ...[
           Material(
-            type: MaterialType.transparency,
-            child: children[i],
-          ),
-          if (i < children.length - 1)
-            Padding(
-              padding: const EdgeInsets.only(left: 55, right: 4),
-              child: Divider(
-                height: 1,
-                thickness: .8,
-                color: p.border.withValues(alpha: p.isDark ? .65 : .88),
+            key: Key('clinical-list-outline-$i'),
+            color: p.surface.withValues(alpha: p.isDark ? .48 : .78),
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+              side: BorderSide(
+                width: .85,
+                color: p.border.withValues(alpha: p.isDark ? .66 : .76),
               ),
             ),
+            child: children[i],
+          ),
+          if (i < children.length - 1) const SizedBox(height: 9),
         ],
       ],
     );
