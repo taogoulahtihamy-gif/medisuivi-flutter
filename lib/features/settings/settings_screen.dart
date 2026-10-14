@@ -546,22 +546,28 @@ class _MoreSettingsPage extends StatelessWidget {
               fontWeight: FontWeight.w700, letterSpacing: .7)),
             const SizedBox(height: 10),
             _SettingsGroup(children: [
-              SwitchListTile.adaptive(
+              Material(
+                color: Colors.transparent,
+                child: SwitchListTile.adaptive(
                 key: const Key('settings-reduce-motion'),
                 title: const Text('Réduire les animations'),
                 subtitle: const Text('Transitions plus discrètes dans MediSuivi'),
                 value: display?.value.reduceMotion ?? false,
                 onChanged: display == null
                     ? null : (enabled) => display.setReduceMotion(enabled),
+                ),
               ),
               Divider(height: 1, color: p.border),
-              SwitchListTile.adaptive(
+              Material(
+                color: Colors.transparent,
+                child: SwitchListTile.adaptive(
                 key: const Key('settings-compact-lists'),
                 title: const Text('Listes compactes'),
                 subtitle: const Text('Lignes resserrées ou plus espacées'),
                 value: display?.value.compactLists ?? true,
                 onChanged: display == null
                     ? null : (enabled) => display.setCompactLists(enabled),
+                ),
               ),
             ]),
             const SizedBox(height: 24),
