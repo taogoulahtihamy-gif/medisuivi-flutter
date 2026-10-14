@@ -95,7 +95,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     MaterialPageRoute<void>(builder: (_) =>
                       NewConsultationScreen(patient: patient))),
                   icon: const Icon(Icons.add_rounded, size: 19),
-                  label: const Text('Nouvelle consultation'),
+                  label: const Text('Consultation'),
                 ),
                 SizedBox(width: 46, height: 46, child: IconButton.outlined(
                   tooltip: 'Prescrire un bilan',
