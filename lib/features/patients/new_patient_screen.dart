@@ -127,7 +127,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                         controller: name,
                         textCapitalization: TextCapitalization.words,
                         decoration: InputDecoration(
-                          hintText: context.store is ConnectedClinicalStore
+                          hintText: context.dependOnInheritedWidgetOfExactType<ConnectedClinicalScope>() != null
                               ? 'Ex. PATIENT FICTIF A' : 'Ex. Aminata Diallo',
                         ),
                         validator: (v) => (v?.trim().length ?? 0) < 2
@@ -217,7 +217,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
 
                 const SizedBox(height: 12),
                 Text(
-                  context.store is ConnectedClinicalStore
+                  context.dependOnInheritedWidgetOfExactType<ConnectedClinicalScope>() != null
                     ? 'Dossier de test enregistré dans le compte serveur. Utilisez uniquement des identités fictives.'
                     : kIsWeb ? 'Version Web : données fictives temporaires.'
                     : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
