@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
-import 'package:medisuivi/app/theme.dart';
 import 'package:medisuivi/core/widgets/medical_ui.dart';
 
 void main() {
