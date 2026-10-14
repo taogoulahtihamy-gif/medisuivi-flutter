@@ -37,7 +37,7 @@ def _get(client, path, headers):
 def test_clinical_records_survive_relogin_and_remain_strictly_private(monkeypatch):
     assert engine.dialect.name == "postgresql"
     with engine.connect() as connection:
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0005"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0006"
     monkeypatch.setattr(settings, "environment", "development")
     monkeypatch.setattr(settings, "allow_registration", True)
     monkeypatch.setattr(settings, "email_auth_enabled", False)
