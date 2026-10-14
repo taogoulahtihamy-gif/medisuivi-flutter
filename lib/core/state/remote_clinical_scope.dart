@@ -155,7 +155,16 @@ class _RemoteClinicalGatewayState extends State<RemoteClinicalGateway> {
       session: widget.session,
       api: widget.api,
       signOut: _signOut,
-      child: const MainShell(key: Key('original-connected-shell')),
+      // A nested navigator keeps pushed patient, exam and settings routes
+      // UNDER the account scope. Without it, a pushed MaterialPageRoute
+      // would be a sibling of the scope and could resolve DemoStore instead.
+      child: Navigator(
+        key: ValueKey('account-navigator-${widget.session.practitioner.id}'),
+        onGenerateRoute: (_) => MaterialPageRoute<void>(
+          builder: (_) =>
+            const MainShell(key: Key('original-connected-shell')),
+        ),
+      ),
     );
   }
 }
