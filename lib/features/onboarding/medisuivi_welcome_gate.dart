@@ -805,76 +805,116 @@ class _AccessChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final viewport = MediaQuery.sizeOf(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF070F0D),
-      body: Stack(fit: StackFit.expand, children: [
-        const _WelcomePhoto(
-          imageUrl: _WelcomePhotos.access,
-          imageKey: Key('welcome-access-photo'),
-          alignment: Alignment(0, -.6),
-        ),
-        const _WelcomePhotoShade(),
-        SafeArea(child: Center(child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 510),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 19, 25, 21),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _WelcomeBrand(),
-                const Spacer(),
-                const Text('Votre espace de soin.\nRien qu’à vous.',
-                  style: TextStyle(
-                    color: Colors.white, fontSize: 29,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -.7, height: 1.15,
-                  )),
-                const SizedBox(height: 12),
-                const Text(
-                  'Un praticien, un espace personnel pour organiser ses dossiers.',
-                  style: TextStyle(color: Color(0xFFDCE7E0),
-                    fontSize: 13, height: 1.45),
-                ),
-                const SizedBox(height: 25),
-                _OnboardPrimaryButton(
-                  key: const Key('welcome-create'),
-                  label: 'Créer un compte',
-                  onTap: onCreate,
-                ),
-                const SizedBox(height: 12),
-                _OnboardSecondaryButton(
-                  key: const Key('welcome-login'),
-                  label: 'Se connecter',
-                  onTap: onSignIn,
-                  onPhoto: true,
-                ),
-                if (allowLocalAccess) ...[
-                const SizedBox(height: 13),
-                Center(child: TextButton(
-                  key: const Key('welcome-demo'),
-                  onPressed: onLocalAccess,
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFFE3EDE8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8)),
-                  child: Text(isWebDemo
-                    ? 'Explorer la démonstration'
-                    : 'Accéder aux dossiers locaux'),
-                )),
-                const SizedBox(height: 5),
-                Text(isWebDemo
-                  ? 'Démonstration avec patients fictifs. Aucun compte réel créé.'
-                  : 'Dossiers locaux uniquement. Aucun compte distant connecté.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFC3CEC8), fontSize: 10.5,
-                    height: 1.35),
-                ),
+      backgroundColor: p.canvas,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(23, 20, 23, 26),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 470),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: [
+                    Container(
+                      key: const Key('welcome-access-brand'),
+                      height: 46, width: 46,
+                      decoration: BoxDecoration(
+                        color: p.tealSoft,
+                        border: Border.all(color: p.border),
+                        borderRadius: BorderRadius.circular(15)),
+                      child: Icon(Icons.health_and_safety_outlined,
+                        color: p.forest, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('MediSuivi', style: TextStyle(
+                          color: p.ink, fontSize: 20,
+                          fontWeight: FontWeight.w700, letterSpacing: -.5)),
+                        const SizedBox(height: 2),
+                        Text('ESPACE PRATICIEN', style: TextStyle(
+                          color: p.muted, fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.1)),
+                      ],
+                    ),
+                  ]),
+                  SizedBox(height: viewport.height < 690 ? 32 : 56),
+                  Text('Votre espace clinique',
+                    style: TextStyle(
+                      color: p.ink, fontSize: 29, height: 1.18,
+                      letterSpacing: -.8, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 11),
+                  Text('Organisez vos dossiers, consultations et suivis '
+                      'dans un espace personnel.',
+                    style: TextStyle(
+                      color: p.muted, fontSize: 14, height: 1.5)),
+                  const SizedBox(height: 27),
+                  Container(
+                    padding: const EdgeInsets.all(19),
+                    decoration: BoxDecoration(
+                      color: p.surface,
+                      border: Border.all(color: p.border),
+                      borderRadius: BorderRadius.circular(22)),
+                    child: Column(children: [
+                      Row(children: [
+                        Icon(Icons.folder_copy_outlined,
+                          color: p.forest, size: 21),
+                        const SizedBox(width: 13),
+                        Expanded(child: Text('Dossiers patients',
+                          style: TextStyle(color: p.ink,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600))),
+                      ]),
+                      const SizedBox(height: 17),
+                      Divider(height: 1, color: p.border),
+                      const SizedBox(height: 17),
+                      Row(children: [
+                        Icon(Icons.event_note_outlined,
+                          color: p.forest, size: 21),
+                        const SizedBox(width: 13),
+                        Expanded(child: Text('Consultations et suivis',
+                          style: TextStyle(color: p.ink,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w600))),
+                      ]),
+                    ]),
+                  ),
+                  const SizedBox(height: 29),
+                  SizedBox(height: 49, child: FilledButton(
+                    key: const Key('welcome-login'),
+                    onPressed: onSignIn,
+                    child: const Text('Se connecter'))),
+                  const SizedBox(height: 12),
+                  SizedBox(height: 49, child: OutlinedButton(
+                    key: const Key('welcome-create'),
+                    onPressed: onCreate,
+                    child: const Text('Créer un compte'))),
+                  if (allowLocalAccess) ...[
+                    const SizedBox(height: 14),
+                    TextButton(
+                      key: const Key('welcome-demo'),
+                      onPressed: onLocalAccess,
+                      child: Text(isWebDemo
+                        ? 'Explorer la démonstration'
+                        : 'Accéder aux dossiers locaux'),
+                    ),
+                  ],
+                  const SizedBox(height: 19),
+                  Text('Version de test · Données fictives uniquement',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: p.muted, fontSize: 11.5)),
                 ],
-              ],
+              ),
             ),
           ),
-        ))),
-      ]),
+        ),
+      ),
     );
   }
 }
