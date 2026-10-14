@@ -9,7 +9,7 @@ import '../../app/design_tokens.dart';
 import '../auth/dev_auth_api.dart';
 import 'original_account_form.dart';
 import '../../core/state/remote_clinical_scope.dart';
-import '../auth/dev_email_flows.dart';
+import 'original_account_recovery.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
 /// Aucun mot de passe, jeton, document patient ou photo n'est envoyé au réseau.
@@ -303,14 +303,14 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
           onVerificationRequired: _verifyEmail,
           onAuthenticated: _onAuthenticated,
         ),
-        _EntryStep.verifyEmail => DevEmailVerificationScreen(
+        _EntryStep.verifyEmail => OriginalEmailVerificationForm(
           key: const ValueKey('dev-email-verification'),
           api: _authApi!,
           email: _emailPendingVerification!,
           onVerified: () => _go(_EntryStep.signIn),
           onBack: () => _go(_EntryStep.signIn),
         ),
-        _EntryStep.recoverPassword => DevPasswordRecoveryScreen(
+        _EntryStep.recoverPassword => OriginalPasswordRecoveryForm(
           key: const ValueKey('dev-password-recovery'),
           api: _authApi!,
           onFinished: () => _go(_EntryStep.signIn),
