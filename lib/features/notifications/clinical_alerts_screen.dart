@@ -44,6 +44,7 @@ class ClinicalAlertsScreen extends StatelessWidget {
                   ClinicalGroupedList(children: [
                     if (exams > 0)
                       ClinicalListRow(
+                        key: const Key('alerts-pending-exams'),
                         title: '$exams examen(s) en attente',
                         subtitle: 'Consultez les bilans pour les traiter.',
                         leading: Icon(Icons.biotech_outlined, color: p.forest),
@@ -56,6 +57,7 @@ class ClinicalAlertsScreen extends StatelessWidget {
                       ),
                     if (overdue > 0)
                       ClinicalListRow(
+                        key: const Key('alerts-overdue-followups'),
                         title: '$overdue suivi(s) en retard',
                         subtitle: 'Consultez votre planning de suivi.',
                         leading: Icon(Icons.event_busy_outlined, color: p.forest),
