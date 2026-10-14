@@ -36,22 +36,22 @@ void main() {
       expect(find.byKey(const Key('onboarding-clinical-image-0')), findsOneWidget);
       expect(find.byKey(const Key('onboarding-title-0')), findsOneWidget);
       final photo0 = tester.widget<Image>(
-        find.byKey(const Key('onboarding-clinical-image-0'))).image;
+        find.byKey(const Key('onboarding-clinical-image-0'))).image as NetworkImage;
       expect(photo0, isA<NetworkImage>());
       await tester.tap(find.byKey(const Key('onboarding-next')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('onboarding-title-1')), findsOneWidget);
       final photo1 = tester.widget<Image>(
-        find.byKey(const Key('onboarding-clinical-image-1'))).image;
+        find.byKey(const Key('onboarding-clinical-image-1'))).image as NetworkImage;
       expect(photo1, isA<NetworkImage>());
-      expect((photo0 as NetworkImage).url, isNot((photo1 as NetworkImage).url));
+      expect(photo0.url, isNot(photo1.url));
       await tester.tap(find.byKey(const Key('onboarding-next')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('onboarding-title-2')), findsOneWidget);
       final photo2 = tester.widget<Image>(
-        find.byKey(const Key('onboarding-clinical-image-2'))).image;
+        find.byKey(const Key('onboarding-clinical-image-2'))).image as NetworkImage;
       expect(photo2, isA<NetworkImage>());
-      expect((photo1 as NetworkImage).url, isNot((photo2 as NetworkImage).url));
+      expect(photo1.url, isNot(photo2.url));
       await tester.tap(find.byKey(const Key('onboarding-skip')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('welcome-create')), findsOneWidget);
