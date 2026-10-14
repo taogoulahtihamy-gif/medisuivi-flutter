@@ -241,9 +241,16 @@ LazyDatabase _openConnection() {
 }
 
 /// Fabrique pour ouvrir la base avec une clé de chiffrement
-Future<AppDatabase> openEncryptedDatabase(String encryptionKey) async {
-  final dbFolder = await getApplicationDocumentsDirectory();
-  final file = File('${dbFolder.path}/medisuivi.db');
+Future<AppDatabase> openEncryptedDatabase(
+  String encryptionKey, {File? databaseFile}
+) async {
+  // SQL never receives an arbitrary interpolated value for PRAGMA key.
+  if (!RegExp(r'^[0-9a-fA-F]{64}$').hasMatch(encryptionKey)) {
+    throw ArgumentError('Invalid SQLCipher encryption key');
+  }
+  // Keep legacy medisuivi.db unchanged. Only new vaults pass another file.
+  final file = databaseFile ?? File(
+    '${(await getApplicationDocumentsDirectory()).path}/medisuivi.db');
 
   final executor = NativeDatabase.createInBackground(
     file,
