@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import 'dev_auth_api.dart';
 import 'dev_profile_editor.dart';
+import 'dev_patient_detail.dart';
 
 /// These screens never use DemoScope/PersistentScope. Remote patients
 /// originate only from the signed-in API session.
@@ -386,23 +387,42 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 return Column(children: [
                   for (final patient in patients)
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Container(
-                        padding: const EdgeInsets.all(13),
-                        decoration: BoxDecoration(
-                          color: p.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: p.border),
+                      padding: const EdgeInsets.only(bottom: 9),
+                      child: Material(
+                        color: p.surface.withValues(alpha: .70),
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          side: BorderSide(color: p.border, width: .8),
                         ),
-                        child: Row(children: [
-                          Icon(Icons.folder_shared_outlined, color: p.forest),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(patient.displayName,
-                            maxLines: 2, overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: p.ink, fontSize: 14))),
-                          Text('${patient.age} ans',
-                            style: TextStyle(color: p.muted, fontSize: 12)),
-                        ]),
+                        child: InkWell(
+                          key: Key('dev-open-patient-${patient.id}'),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute<void>(builder: (_) =>
+                              DevPatientDetail(
+                                api: widget.api,
+                                session: widget.session,
+                                patient: patient,
+                              ))),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 13, vertical: 16),
+                            child: Row(children: [
+                              Icon(Icons.folder_shared_outlined,
+                                color: p.forest, size: 19),
+                              const SizedBox(width: 12),
+                              Expanded(child: Text(patient.displayName,
+                                maxLines: 2, overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: p.ink,
+                                  fontSize: 14.5, fontWeight: FontWeight.w600))),
+                              Text('${patient.age} ans',
+                                style: TextStyle(color: p.muted, fontSize: 12.5)),
+                              const SizedBox(width: 5),
+                              Icon(Icons.chevron_right_rounded,
+                                color: p.muted, size: 19),
+                            ]),
+                          ),
+                        ),
                       ),
                     ),
                 ]);

@@ -107,8 +107,10 @@ class _DevProfileEditorState extends State<DevProfileEditor> {
       setState(() => _avatar = null);
       widget.onChanged(DevPractitioner(
         id: widget.initial.id, email: widget.initial.email,
-        firstName: _first.text.trim(), lastName: _last.text.trim(),
-        phone: _phone.text.trim(), specialty: _specialty.text.trim(),
+        firstName: widget.initial.firstName,
+        lastName: widget.initial.lastName,
+        phone: widget.initial.phone,
+        specialty: widget.initial.specialty,
         hasAvatar: false,
       ), null);
     } on DevApiException catch (error) {
