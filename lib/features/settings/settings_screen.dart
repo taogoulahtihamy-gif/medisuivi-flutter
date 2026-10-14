@@ -474,14 +474,13 @@ class _AppearanceOptions extends StatelessWidget {
 class _SettingsDetailPage extends StatelessWidget {
   const _SettingsDetailPage({
     required this.title, required this.icon, required this.heading,
-    required this.description, this.extra,
+    required this.description,
   });
 
   final String title;
   final IconData icon;
   final String heading;
   final String description;
-  final Widget? extra;
 
   @override
   Widget build(BuildContext context) {
@@ -501,10 +500,6 @@ class _SettingsDetailPage extends StatelessWidget {
             const SizedBox(height: 12),
             Text(description, style: TextStyle(
               fontSize: 14, height: 1.6, color: p.muted)),
-            if (extra != null) ...[
-              const SizedBox(height: 21),
-              extra!,
-            ],
           ],
         ),
       ))),
