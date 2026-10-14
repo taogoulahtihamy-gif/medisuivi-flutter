@@ -8,6 +8,7 @@ import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
 import '../auth/dev_auth_api.dart';
 import '../auth/dev_auth_screens.dart';
+import '../auth/original_connected_clinical_gate.dart';
 import '../auth/dev_email_flows.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
@@ -308,11 +309,12 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
           key: const ValueKey('welcome-workspace'),
           child: widget.child,
         ),
-        _EntryStep.authenticated => DevConnectedWorkspace(
-          key: const ValueKey('dev-authenticated-workspace'),
+        _EntryStep.authenticated => OriginalConnectedClinicalGate(
+          key: const ValueKey('original-authenticated-workspace'),
           api: _authApi!,
           session: _authenticatedSession!,
           onSignedOut: _onSignedOut,
+          child: widget.child,
         ),
       },
     ),
