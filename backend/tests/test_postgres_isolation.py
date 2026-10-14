@@ -129,3 +129,36 @@ def test_postgres_rate_limit_survives_new_sessions_and_keeps_other_accounts_open
         assert guard is not None and guard.failed_count == 5
         assert guard.blocked_until is not None
         assert db.get(LoginAttempt, _login_key(neighbor)).failed_count == 0
+
+
+def test_concurrent_bad_passwords_cannot_exceed_postgres_guard():
+    """A row lock should serialize simultaneous attempts for one identity."""
+    from concurrent.futures import ThreadPoolExecutor
+    from app.main import LoginAttempt, _login_key
+    email = "concurrent-guard@medisuvi-ci.org"
+    with TestClient(app) as client:
+        signup = client.post("/api/v1/auth/register", json={
+            "email": email, "password": "synthetic-strong-password-123",
+            "first_name": "Test", "last_name": "Parallel",
+        })
+        assert signup.status_code == 201, signup.text
+        for _ in range(4):
+            result = client.post("/api/v1/auth/login", json={
+                "email": email, "password": "wrong",
+            })
+            assert result.status_code == 401
+
+    def send_bad_attempt(_):
+        # Separate clients/connections simulate independent devices.
+        with TestClient(app) as client:
+            return client.post("/api/v1/auth/login", json={
+                "email": email, "password": "wrong",
+            }).status_code
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        outcomes = list(executor.map(send_bad_attempt, range(3)))
+    assert outcomes == [429, 429, 429], outcomes
+    with SessionLocal() as db:
+        guard = db.get(LoginAttempt, _login_key(email))
+        assert guard.failed_count == 5
+        assert guard.blocked_until is not None
