@@ -117,7 +117,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('welcome-login')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('dev-auth-warning')), findsOneWidget);
+    expect(find.byKey(const Key('original-account-test-warning')), findsOneWidget);
     await tester.enterText(
       find.byKey(const Key('dev-auth-email')), 'alpha@medisuvi-ci.org');
     await tester.enterText(
@@ -126,21 +126,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('dev-authenticated-workspace')), findsOneWidget);
-    expect(find.text('Awa Test'), findsOneWidget);
+    expect(find.byKey(const Key('original-connected-shell')), findsOneWidget);
+    expect(find.byKey(const ValueKey('medisuivi-home')), findsOneWidget);
+    expect(find.byKey(const Key('clinical-bottom-dock')), findsOneWidget);
     expect(find.text('DEMO STORE MUST NEVER BE SHOWN'), findsNothing);
-    expect(find.byKey(const Key('dev-patients-empty')), findsOneWidget);
 
-    await tester.ensureVisible(find.byKey(const Key('dev-add-synthetic-patient')));
-    await tester.tap(find.byKey(const Key('dev-add-synthetic-patient')));
+    await tester.tap(find.byKey(const Key('dock-réglages')));
     await tester.pumpAndSettle();
-    expect(find.text('PATIENT FICTIF 1234'), findsOneWidget);
-    expect(fakePatientCreated, isTrue);
-
-    await tester.tap(find.byKey(const Key('dev-workspace-logout')));
+    expect(find.byKey(const Key('settings-connected-signout')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('settings-connected-signout')));
     await tester.pumpAndSettle();
     expect(revoked, isTrue);
     expect(find.byKey(const Key('welcome-login')), findsOneWidget);
-    expect(find.text('PATIENT FICTIF 1234'), findsNothing);
+    expect(find.byKey(const Key('medisuivi-home')), findsNothing);
     expect(tester.takeException(), isNull);
     api.close();
   });
