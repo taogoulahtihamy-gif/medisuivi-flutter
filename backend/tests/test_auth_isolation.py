@@ -57,42 +57,42 @@ def test_health_and_ready(client):
 
 
 def test_signup_and_hash_are_not_plaintext(client):
-    practitioner = register(client, "praticien@example.test")
+    practitioner = register(client, "praticien@medisuvi-ci.org")
     with SessionLocal() as db:
         row = db.get(User, practitioner["id"])
         assert row is not None
         assert row.password_hash != "not-a-real-password-2026"
         assert row.password_hash.startswith("$argon2id$")
         assert hasher.verify(row.password_hash, "not-a-real-password-2026")
-    headers = login(client, "praticien@example.test")
+    headers = login(client, "praticien@medisuvi-ci.org")
     response = client.get("/api/v1/me", headers=headers)
     assert response.status_code == 200
-    assert response.json()["email"] == "praticien@example.test"
+    assert response.json()["email"] == "praticien@medisuvi-ci.org"
     assert "password_hash" not in response.json()
 
 
 def test_registration_is_explicitly_disabled_by_default(client, monkeypatch):
     monkeypatch.setattr(settings, "allow_registration", False)
     assert client.post("/api/v1/auth/register", json={
-        "email": "blocked@example.test", "password": "long-good-password",
+        "email": "blocked@medisuvi-ci.org", "password": "long-good-password",
         "first_name": "Non", "last_name": "Permis",
     }).status_code == 403
 
 
 def test_authentication_rejects_bad_password_and_missing_token(client):
-    register(client, "medecin@example.test")
+    register(client, "medecin@medisuvi-ci.org")
     assert client.post("/api/v1/auth/login", json={
-        "email": "medecin@example.test", "password": "wrong",
+        "email": "medecin@medisuvi-ci.org", "password": "wrong",
     }).status_code == 401
     assert client.get("/api/v1/me").status_code == 401
     assert client.get("/api/v1/patients").status_code == 401
 
 
 def test_two_accounts_have_strictly_isolated_patients(client):
-    register(client, "alpha@example.test")
-    register(client, "beta@example.test")
-    a = login(client, "alpha@example.test")
-    b = login(client, "beta@example.test")
+    register(client, "alpha@medisuvi-ci.org")
+    register(client, "beta@medisuvi-ci.org")
+    a = login(client, "alpha@medisuvi-ci.org")
+    b = login(client, "beta@medisuvi-ci.org")
     created = client.post("/api/v1/patients", headers=a, json={
         "display_name": "PATIENT FICTIF A", "age": 30,
     })
@@ -112,20 +112,20 @@ def test_two_accounts_have_strictly_isolated_patients(client):
 
 
 def test_logout_revokes_previous_access_tokens(client):
-    register(client, "logout@example.test")
-    token = login(client, "logout@example.test")
+    register(client, "logout@medisuvi-ci.org")
+    token = login(client, "logout@medisuvi-ci.org")
     assert client.get("/api/v1/me", headers=token).status_code == 200
     assert client.post("/api/v1/auth/logout", headers=token).status_code == 204
     assert client.get("/api/v1/me", headers=token).status_code == 401
-    assert client.get("/api/v1/me", headers=login(client, "logout@example.test")).status_code == 200
+    assert client.get("/api/v1/me", headers=login(client, "logout@medisuvi-ci.org")).status_code == 200
 
 
 def test_staging_rejects_registration_and_patient_writes(client, monkeypatch):
-    register(client, "staging@example.test")
-    token = login(client, "staging@example.test")
+    register(client, "staging@medisuvi-ci.org")
+    token = login(client, "staging@medisuvi-ci.org")
     monkeypatch.setattr(settings, "environment", "staging")
     assert client.post("/api/v1/auth/register", json={
-        "email": "extra@example.test", "password": "long-good-password",
+        "email": "extra@medisuvi-ci.org", "password": "long-good-password",
         "first_name": "No", "last_name": "No",
     }).status_code == 403
     assert client.post("/api/v1/patients", headers=token, json={
