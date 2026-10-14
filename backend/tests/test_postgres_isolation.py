@@ -20,9 +20,9 @@ from app.main import (
 def validate_postgres_migrations():
     assert engine.dialect.name == "postgresql"
     with engine.connect() as connection:
-        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0003"
+        assert connection.execute(text("SELECT version_num FROM alembic_version")).scalar() == "0004"
     tables = set(inspect(engine).get_table_names())
-    assert {"patients", "practitioners", "visits", "exams", "followups"} <= tables
+    assert {"patients", "practitioners", "visits", "exams", "followups", "login_attempts"} <= tables
     settings.environment = "development"
     settings.allow_registration = True
     yield
