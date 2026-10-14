@@ -115,4 +115,31 @@ void main() {
     expect(tester.takeException(), isNull);
     api.close();
   });
+
+  testWidgets('P3.7: offline logout still wipes credentials and leaves workspace',
+      (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final api = DevAuthApi(Uri.parse('http://127.0.0.1:8027'),
+      client: MockClient((request) async {
+        if (request.url.path == '/api/v1/patients') {
+          return http.Response('[]', 200);
+        }
+        // Represents backend or network not completing the revocation.
+        return http.Response('{"detail":"temporarily unavailable"}', 503);
+      }));
+    final current = session();
+    var signedOut = false;
+    await pumpAuthenticated(tester, api, current, onSignedOut: () {
+      signedOut = true;
+    });
+    await tester.tap(find.byKey(const Key('dev-workspace-logout')));
+    await tester.pumpAndSettle();
+    expect(signedOut, isTrue);
+    expect(current.accessToken, isEmpty);
+    expect(current.refreshToken, isEmpty);
+    expect(tester.takeException(), isNull);
+    api.close();
+  });
+
 }
