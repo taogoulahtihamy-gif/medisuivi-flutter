@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../app/theme.dart';
+import '../../app/design_tokens.dart';
+import '../../core/assets/clinical_hero_photo.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
 /// Aucun mot de passe, jeton, document patient ou photo n'est envoyé au réseau.
@@ -133,59 +136,112 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   );
 }
 
+// Portrait clinique déjà embarqué dans MediSuivi : aucun appel réseau.
+abstract final class _ClinicalPhoto {
+  static final Uint8List bytes = base64Decode(clinicalHeroPhotoWebpBase64);
+}
+
+/// Splash éditorial : image clinique, ombre latérale et progression discrète.
 class _IntroSplash extends StatelessWidget {
   const _IntroSplash({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final palette = Palette.of(context);
     final reduced = MediaQuery.disableAnimationsOf(context);
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(28),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 300),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Container(
-                  width: 78, height: 78,
-                  decoration: BoxDecoration(
-                    color: palette.tealSoft,
-                    borderRadius: BorderRadius.circular(26),
-                  ),
-                  child: Icon(Icons.medical_services_outlined,
-                    size: 39, color: palette.forest),
-                ),
-                const SizedBox(height: 22),
-                Text('MediSuivi', key: const Key('welcome-brand'),
-                  style: TextStyle(color: palette.ink, fontSize: 28,
-                    fontWeight: FontWeight.w700, letterSpacing: -.8)),
-                const SizedBox(height: 8),
-                Text('Votre espace de suivi clinique',
-                  style: TextStyle(color: palette.muted, fontSize: 13)),
-                const SizedBox(height: 38),
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: 1),
-                  duration: reduced
-                      ? Duration.zero : const Duration(milliseconds: 1050),
-                  curve: Curves.easeInOutCubic,
-                  builder: (context, progress, _) => ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: LinearProgressIndicator(
-                      key: const Key('welcome-progress'),
-                      value: progress,
-                      minHeight: 4,
-                      backgroundColor: palette.border,
-                      valueColor: AlwaysStoppedAnimation<Color>(palette.forest),
-                    ),
-                  ),
-                ),
-              ]),
+      backgroundColor: const Color(0xFF07120F),
+      body: Stack(fit: StackFit.expand, children: [
+        Image.memory(
+          _ClinicalPhoto.bytes,
+          key: const Key('welcome-splash-photo'),
+          fit: BoxFit.cover,
+          alignment: Alignment.centerRight,
+          filterQuality: FilterQuality.medium,
+          excludeFromSemantics: true,
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [
+                Color(0xF0061411),
+                Color(0xC90A1A16),
+                Color(0x710B1513),
+              ],
+              stops: [0, .50, 1],
             ),
           ),
         ),
-      ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0x1805100C),
+                Color(0x5105100D),
+                Color(0xEB05100D),
+              ],
+              stops: [0, .55, 1],
+            ),
+          ),
+        ),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(28, 27, 28, 57),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const Icon(Icons.medical_services_outlined,
+                    color: Color(0xFF8DDCC3), size: 24),
+                  const SizedBox(width: 10),
+                  Text('MediSuivi', key: const Key('welcome-brand'),
+                    style: const TextStyle(
+                      color: Colors.white, fontSize: 19,
+                      fontWeight: FontWeight.w700, letterSpacing: -.45)),
+                ]),
+                const Spacer(),
+                const Text('Votre pratique.\nVos dossiers.\nUn seul espace.',
+                  style: TextStyle(
+                    color: Colors.white, fontSize: 31, height: 1.13,
+                    fontWeight: FontWeight.w700, letterSpacing: -.95)),
+                const SizedBox(height: 13),
+                const Text('Le suivi clinique, pensé pour le quotidien.',
+                  style: TextStyle(
+                    color: Color(0xFFD6E1DC), height: 1.5, fontSize: 13.5)),
+                const SizedBox(height: 36),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 1),
+                    duration: reduced ? Duration.zero
+                        : const Duration(milliseconds: 1080),
+                    curve: Curves.easeInOutCubic,
+                    builder: (context, progress, _) => ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: LinearProgressIndicator(
+                        key: const Key('welcome-progress'),
+                        value: progress,
+                        minHeight: 4,
+                        backgroundColor: const Color(0x50E5ECE8),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF80D4B5)),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text('Ouverture de MediSuivi',
+                  style: TextStyle(
+                    color: Color(0xFFE0EAE4),
+                    fontSize: 11.5, letterSpacing: .15)),
+              ],
+            ),
+          ),
+        ),
+      ]),
     );
   }
 }
@@ -202,13 +258,28 @@ class _IntroductionState extends State<_Introduction> {
   final PageController _pages = PageController();
   int _index = 0;
 
-  static const _slides = <(IconData, String, String)>[
-    (Icons.folder_shared_outlined, 'Chaque dossier, à sa place.',
-      'Retrouvez vos patients et leur historique clinique dans un seul espace.'),
-    (Icons.monitor_heart_outlined, 'Suivre avec précision.',
-      'Consultations, bilans et rendez-vous organisés autour de chaque patient.'),
-    (Icons.verified_user_outlined, 'Un espace personnel.',
-      'Vos dossiers restent sur cet appareil tant que la synchronisation sécurisée n’est pas disponible.'),
+  static const _slides = <_OnboardSlide>[
+    _OnboardSlide(
+      label: 'DOSSIERS PATIENTS',
+      icon: Icons.folder_open_outlined,
+      imageCaption: 'Une vue sur chaque dossier',
+      title: 'Retrouvez l’essentiel, immédiatement.',
+      description: 'Identité, consultations et informations médicales : chaque dossier reste facile à parcourir.',
+    ),
+    _OnboardSlide(
+      label: 'CONTINUITÉ DES SOINS',
+      icon: Icons.monitor_heart_outlined,
+      imageCaption: 'Du premier bilan au suivi',
+      title: 'Un suivi plus clair, jour après jour.',
+      description: 'Bilans, résultats et prochaines visites restent liés à l’histoire de chaque patient.',
+    ),
+    _OnboardSlide(
+      label: 'ESPACE PERSONNEL',
+      icon: Icons.lock_outline_rounded,
+      imageCaption: 'Vos dossiers, sur cet appareil',
+      title: 'Votre espace clinique, à votre rythme.',
+      description: 'Les dossiers restent locaux tant que la synchronisation sécurisée n’est pas disponible.',
+    ),
   ];
 
   @override
@@ -222,92 +293,330 @@ class _IntroductionState extends State<_Introduction> {
     final p = Palette.of(context);
     final reduced = MediaQuery.disableAnimationsOf(context);
     return Scaffold(
-      body: SafeArea(child: Center(child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 510),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 18, 24, 30),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
-              Icon(Icons.medical_services_outlined, color: p.forest, size: 23),
-              const SizedBox(width: 9),
-              Expanded(child: Text('MediSuivi',
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: p.ink,
-                  fontSize: 17, fontWeight: FontWeight.w700))),
-              TextButton(
-                key: const Key('onboarding-skip'),
-                onPressed: widget.onFinished,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 10)),
-                child: const Text('Passer')),
-            ]),
-            const SizedBox(height: 20),
-            Expanded(child: PageView.builder(
-              key: const Key('onboarding-pages'),
-              controller: _pages,
-              itemCount: _slides.length,
-              onPageChanged: (i) => setState(() => _index = i),
-              itemBuilder: (context, index) {
-                final slide = _slides[index];
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(child: Container(
-                      height: 205, width: 205,
-                      decoration: BoxDecoration(
-                        color: p.tealSoft,
-                        borderRadius: BorderRadius.circular(55),
-                        border: Border.all(color: p.border),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 515),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(23, 10, 23, 25),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(children: [
+                    Icon(Icons.medical_services_outlined, color: p.forest, size: 21),
+                    const SizedBox(width: 9),
+                    Expanded(child: Text('MediSuivi',
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: p.ink, fontSize: 16.5,
+                        fontWeight: FontWeight.w700, letterSpacing: -.4))),
+                    TextButton(
+                      key: const Key('onboarding-skip'),
+                      onPressed: widget.onFinished,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
                       ),
-                      child: Icon(slide.$1, size: 94, color: p.forest),
-                    )),
-                    const SizedBox(height: 42),
-                    Text(slide.$2, style: TextStyle(
-                      fontSize: 27, height: 1.15, letterSpacing: -.5,
-                      fontWeight: FontWeight.w700, color: p.ink)),
-                    const SizedBox(height: 13),
-                    Text(slide.$3, style: TextStyle(
-                      fontSize: 15, height: 1.5, color: p.muted)),
-                  ],
-                );
-              },
-            )),
-            Row(children: [
-              for (var i = 0; i < _slides.length; i++) ...[
-                AnimatedContainer(
-                  key: Key('onboarding-dot-$i'),
-                  duration: reduced ? Duration.zero : const Duration(milliseconds: 260),
-                  width: i == _index ? 26 : 7,
-                  height: 7,
-                  decoration: BoxDecoration(
-                    color: i == _index ? p.forest : p.border,
-                    borderRadius: BorderRadius.circular(6)),
-                ),
-                const SizedBox(width: 6),
-              ],
-              const Spacer(),
-              Text('${_index + 1} / ${_slides.length}',
-                style: TextStyle(color: p.muted, fontSize: 12)),
-            ]),
-            const SizedBox(height: 24),
-            FilledButton(
-              key: const Key('onboarding-next'),
-              onPressed: () {
-                if (_index == _slides.length - 1) {
-                  widget.onFinished();
-                } else {
-                  _pages.nextPage(
-                    duration: reduced ? Duration.zero : const Duration(milliseconds: 360),
-                    curve: Curves.easeInOutCubic,
-                  );
-                }
-              },
-              child: Text(_index == _slides.length - 1 ? 'Continuer' : 'Suivant'),
+                      child: const Text('Passer'),
+                    ),
+                  ]),
+                  const SizedBox(height: 13),
+                  Expanded(
+                    child: PageView.builder(
+                      key: const Key('onboarding-pages'),
+                      controller: _pages,
+                      itemCount: _slides.length,
+                      onPageChanged: (i) => setState(() => _index = i),
+                      itemBuilder: (context, index) => _OnboardPage(
+                        slide: _slides[index], index: index,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  Row(children: [
+                    for (var i = 0; i < _slides.length; i++) ...[
+                      AnimatedContainer(
+                        key: Key('onboarding-dot-$i'),
+                        duration: reduced
+                            ? Duration.zero : const Duration(milliseconds: 270),
+                        curve: Curves.easeOutCubic,
+                        width: i == _index ? 29 : 7,
+                        height: 7,
+                        decoration: BoxDecoration(
+                          color: i == _index ? p.forest : p.border,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    const Spacer(),
+                    Text('${(_index + 1).toString().padLeft(2, '0')} / 03',
+                      style: TextStyle(color: p.muted, fontSize: 12,
+                        fontWeight: FontWeight.w600, letterSpacing: .4)),
+                  ]),
+                  const SizedBox(height: 17),
+                  _OnboardPrimaryButton(
+                    key: const Key('onboarding-next'),
+                    label: _index == _slides.length - 1 ? 'Continuer' : 'Suivant',
+                    onTap: () {
+                      if (_index == _slides.length - 1) {
+                        widget.onFinished();
+                      } else {
+                        _pages.nextPage(
+                          duration: reduced ? Duration.zero
+                              : const Duration(milliseconds: 390),
+                          curve: Curves.easeInOutCubic,
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OnboardSlide {
+  const _OnboardSlide({
+    required this.label,
+    required this.icon,
+    required this.imageCaption,
+    required this.title,
+    required this.description,
+  });
+
+  final String label;
+  final IconData icon;
+  final String imageCaption;
+  final String title;
+  final String description;
+}
+
+class _OnboardPage extends StatelessWidget {
+  const _OnboardPage({required this.slide, required this.index});
+  final _OnboardSlide slide;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final narrow = MediaQuery.sizeOf(context).width < 350;
+    return LayoutBuilder(builder: (context, bounds) {
+      final heroHeight = (bounds.maxHeight * .64).clamp(215.0, 375.0);
+      return SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SizedBox(height: 4),
+          SizedBox(
+            height: heroHeight,
+            width: double.infinity,
+            child: _OnboardPhotoScene(slide: slide, index: index),
+          ),
+          const SizedBox(height: 23),
+          Text(slide.title,
+            key: Key('onboarding-title-$index'),
+            style: TextStyle(
+              fontSize: narrow ? 24 : 27,
+              fontWeight: FontWeight.w700,
+              height: 1.16,
+              letterSpacing: -.72,
+              color: p.ink,
+            ),
+          ),
+          const SizedBox(height: 11),
+          Text(slide.description,
+            key: Key('onboarding-description-$index'),
+            style: TextStyle(
+              fontSize: narrow ? 13 : 13.5,
+              height: 1.48, color: p.muted,
+            ),
+          ),
+          const SizedBox(height: 12),
+        ]),
+      );
+    });
+  }
+}
+
+class _OnboardPhotoScene extends StatelessWidget {
+  const _OnboardPhotoScene({required this.slide, required this.index});
+  final _OnboardSlide slide;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(29),
+      child: Stack(fit: StackFit.expand, children: [
+        Image.memory(
+          _ClinicalPhoto.bytes,
+          key: Key('onboarding-clinical-image-$index'),
+          fit: BoxFit.cover,
+          alignment: Alignment.centerRight,
+          filterQuality: FilterQuality.medium,
+          excludeFromSemantics: true,
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              stops: [0, .5, 1],
+              colors: [
+                Color(0xEB071914),
+                Color(0xAF0A231B),
+                Color(0x2D07140F),
+              ],
+            ),
+          ),
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0x05040B09),
+                Color(0x30040E0A),
+                Color(0xBA06120D),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          left: 21, top: 23, right: 16,
+          child: Text(slide.label,
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Color(0xFFE4F4EA),
+              fontSize: 10.5, fontWeight: FontWeight.w700,
+              letterSpacing: 1.1,
+            )),
+        ),
+        Positioned(
+          left: 21, bottom: 22, right: 18,
+          child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Container(
+              width: 42, height: 42,
+              decoration: BoxDecoration(
+                color: const Color(0x44D3F0E1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0x55FFFFFF)),
+              ),
+              child: Icon(slide.icon, size: 23,
+                color: const Color(0xFFCEFFEA)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(slide.imageCaption,
+              maxLines: 2, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white, fontSize: 15,
+                fontWeight: FontWeight.w600, height: 1.3),
+            )),
           ]),
         ),
-      ))),
+      ]),
+    );
+  }
+}
+
+/// CTA compact à forme pilule, dégradé discret et flèche latérale.
+class _OnboardPrimaryButton extends StatelessWidget {
+  const _OnboardPrimaryButton({
+    super.key, required this.label, required this.onTap,
+  });
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final base = p.isDark
+        ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill;
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 345),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(60),
+          elevation: 3,
+          shadowColor: base.withValues(alpha: .24),
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(60),
+              gradient: LinearGradient(colors: [
+                base,
+                Color.lerp(base, const Color(0xFF091D17), .19)!,
+              ]),
+            ),
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(60),
+              child: SizedBox(
+                width: double.infinity, height: 54,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 48, right: 13),
+                  child: Row(children: [
+                    Expanded(child: Text(label,
+                      textAlign: TextAlign.center,
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: ClinicalColors.actionOnDarkFill,
+                        fontWeight: FontWeight.w700, fontSize: 14))),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 31, height: 31,
+                      decoration: const BoxDecoration(
+                        color: Color(0x20FFFFFF), shape: BoxShape.circle),
+                      child: const Icon(Icons.arrow_forward_rounded,
+                        size: 17, color: ClinicalColors.actionOnDarkFill),
+                    ),
+                  ]),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _OnboardSecondaryButton extends StatelessWidget {
+  const _OnboardSecondaryButton({
+    super.key, required this.label, required this.onTap,
+  });
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 345),
+        child: Material(
+          color: p.surface,
+          borderRadius: BorderRadius.circular(60),
+          child: InkWell(
+            onTap: onTap, borderRadius: BorderRadius.circular(60),
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(60),
+                border: Border.all(color: p.border, width: 1.15),
+              ),
+              alignment: Alignment.center,
+              child: Text(label, style: TextStyle(
+                color: p.ink, fontSize: 13.5,
+                fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
