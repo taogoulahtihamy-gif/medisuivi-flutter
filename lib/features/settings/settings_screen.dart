@@ -77,6 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final practitioner = PractitionerPreviewScope.maybeOf(context);
+    final connected = context.store is ConnectedClinicalStore;
 
     return Scaffold(
       appBar: AppBar(
@@ -130,7 +131,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     key: const Key('settings-data'),
                     icon: Icons.folder_copy_outlined,
                     title: 'Données et stockage',
-                    subtitle: kIsWeb ? 'Dossiers fictifs du navigateur'
+                    subtitle: connected
+                      ? 'Dossiers fictifs du compte connecté'
+                      : kIsWeb ? 'Dossiers fictifs du navigateur'
                         : 'Dossiers sur cet appareil',
                     onTap: _openStorage,
                   ),
@@ -138,7 +141,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     key: const Key('settings-synchronization'),
                     icon: Icons.cloud_off_outlined,
                     title: 'Synchronisation',
-                    subtitle: 'Non disponible pour le moment',
+                    subtitle: connected
+                      ? 'Serveur connecté · Mode hors ligne non activé'
+                      : 'Non disponible pour le moment',
                     onTap: _openSync,
                     last: true,
                   ),
@@ -176,9 +181,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ]),
                 const SizedBox(height: 24),
                 Center(child: Text(
-                  kIsWeb
-                    ? 'Profil de démonstration · Aucun compte distant'
-                    : 'Profil local de prévisualisation · Aucun compte distant',
+                  connected
+                    ? 'Compte praticien connecté · Dossiers fictifs uniquement'
+                    : kIsWeb
+                      ? 'Profil de démonstration · Aucun compte distant'
+                      : 'Profil local de prévisualisation · Aucun compte distant',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: p.muted, fontSize: 11.5),
                 )),
