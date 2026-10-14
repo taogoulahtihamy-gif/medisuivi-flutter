@@ -241,9 +241,62 @@ LazyDatabase _openConnection() {
 }
 
 /// Fabrique pour ouvrir la base avec une clé de chiffrement
-Future<AppDatabase> openEncryptedDatabase(String encryptionKey) async {
+Future<AppDatabase> openEncryptedDatabase(
+  String encryptionKey, {File? databaseFile}
+) async {
+  // SQL never receives an interpolated arbitrary value for PRAGMA key.
+  if (!RegExp(r'^[0-9a-fA-F]{64} = NativeDatabase.createInBackground(
+    file,
+    setup: (db) {
+      // Vérifier que le chiffrement est disponible (debug only)
+      assert(_debugCheckHasCipher(db), 'SQLite3MultipleCiphers non disponible - vérifiez les build hooks');
+      
+      // Appliquer la clé de chiffrement
+      // La clé est déjà dérivée (64 caractères hex) par EncryptionService
+      // Syntaxe SQLite3MultipleCiphers: PRAGMA key = "x'hex_key'"
+      db.execute('PRAGMA key = "x\'$encryptionKey\'";');
+      db.execute('PRAGMA cipher_page_size = 4096;');
+      db.execute('PRAGMA kdf_iter = 256000;');
+      db.execute('PRAGMA cipher_hmac_algorithm = HMAC_SHA256;');
+      db.execute('PRAGMA cipher_kdf_algorithm = PBKDF2_HMAC_SHA256;');
+      db.execute('PRAGMA journal_mode = WAL;');
+      db.execute('PRAGMA synchronous = NORMAL;');
+    },
+  );
+
+  AppDatabase.instanceSetter = AppDatabase._internal(executor);
+  return AppDatabase.instance;
+}
+
+/// Génère un nouvel UUID v4
+String generateId() => const Uuid().v4();
+
+/// Vérifie si la base de données existe et est accessible
+Future<bool> databaseExists() async {
   final dbFolder = await getApplicationDocumentsDirectory();
   final file = File('${dbFolder.path}/medisuivi.db');
+  return file.existsSync();
+}
+
+/// Supprime la base de données (pour reset complet)
+Future<void> deleteDatabase() async {
+  final dbFolder = await getApplicationDocumentsDirectory();
+  final file = File('${dbFolder.path}/medisuivi.db');
+  if (file.existsSync()) {
+    await file.delete();
+  }
+  // Supprimer aussi les fichiers WAL/SHM
+  final walFile = File('${dbFolder.path}/medisuivi.db-wal');
+  final shmFile = File('${dbFolder.path}/medisuivi.db-shm');
+  if (walFile.existsSync()) await walFile.delete();
+  if (shmFile.existsSync()) await shmFile.delete();
+}).hasMatch(encryptionKey)) {
+    throw ArgumentError('Invalid SQLCipher encryption key');
+  }
+  // Preserve the legacy path exactly; new account vaults pass an explicit
+  // account-scoped path instead of reading or moving medisuivi.db.
+  final file = databaseFile ?? File(
+    '${(await getApplicationDocumentsDirectory()).path}/medisuivi.db');
 
   final executor = NativeDatabase.createInBackground(
     file,
