@@ -450,14 +450,14 @@ class _AppearanceOptions extends StatelessWidget {
     final p = Palette.of(context);
     return Column(children: [
       for (final option in _themeModes)
-        RadioListTile<ThemeMode>(
+        ListTile(
           key: Key('appearance-option-${option.$1.name}'),
+          leading: Icon(option.$3, color: p.forest),
           title: Text(option.$2),
-          secondary: Icon(option.$3, color: p.forest),
-          value: option.$1,
-          groupValue: controller?.value ?? ThemeMode.system,
-          onChanged: controller == null ? null
-              : (value) { if (value != null) controller.choose(value); },
+          trailing: (controller?.value ?? ThemeMode.system) == option.$1
+              ? Icon(Icons.check_circle_rounded, color: p.forest) : null,
+          onTap: controller == null ? null
+              : () => controller.choose(option.$1),
         ),
     ]);
   }
