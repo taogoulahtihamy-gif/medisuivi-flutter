@@ -57,7 +57,8 @@ void main() {
       expect(find.byKey(const Key('welcome-create')), findsOneWidget);
       expect(find.byKey(const Key('welcome-login')), findsOneWidget);
       expect(find.byKey(const Key('welcome-demo')), findsOneWidget);
-      expect(find.byKey(const Key('welcome-access-photo')), findsOneWidget);
+      expect(find.byKey(const Key('welcome-access-photo')), findsNothing);
+      expect(find.byKey(const Key('welcome-clinical-brand')), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       await tester.tap(find.byKey(const Key('welcome-login')));
