@@ -354,13 +354,15 @@ class _PatientProfileHeader extends StatelessWidget {
             style: TextStyle(color: palette.muted, fontSize: 11.5)),
           if (patient.followUp) ...[
             const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 5,
               children: [
                 Icon(Icons.event_repeat_rounded, size: 15,
                   color: palette.forest),
-                const SizedBox(width: 5),
                 Text('Visite de suivi à prévoir',
+                  textAlign: TextAlign.center,
                   style: TextStyle(color: palette.forest,
                     fontSize: 12, fontWeight: FontWeight.w600)),
               ],
