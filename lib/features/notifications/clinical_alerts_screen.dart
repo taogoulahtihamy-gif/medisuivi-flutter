@@ -4,6 +4,7 @@ import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
+import '../../core/widgets/clinical_tab_route.dart';
 import '../exams/exams_screen.dart';
 import '../followup/followup_screen.dart';
 
@@ -45,7 +46,10 @@ class ClinicalAlertsScreen extends StatelessWidget {
                         leading: Icon(Icons.biotech_outlined, color: p.forest),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => const ExamsScreen())),
+                            builder: (_) => const ClinicalTabRoute(
+                              title: 'Bilans médicaux',
+                              child: ExamsScreen(),
+                            ))),
                       ),
                     if (overdue > 0)
                       ClinicalListRow(
@@ -54,7 +58,10 @@ class ClinicalAlertsScreen extends StatelessWidget {
                         leading: Icon(Icons.event_busy_outlined, color: p.forest),
                         onTap: () => Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => const FollowupScreen())),
+                            builder: (_) => const ClinicalTabRoute(
+                              title: 'Suivis',
+                              child: FollowupScreen(),
+                            ))),
                       ),
                   ])
                 else
