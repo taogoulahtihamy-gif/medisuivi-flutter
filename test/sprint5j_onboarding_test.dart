@@ -32,7 +32,12 @@ void main() {
       expect(find.byKey(const Key('welcome-create')), findsOneWidget);
       expect(find.byKey(const Key('welcome-login')), findsOneWidget);
       expect(find.byKey(const Key('welcome-demo')), findsOneWidget);
-      expect(tester.takeException(), isNull);
+      final layoutError = tester.takeException();
+      if (layoutError is FlutterError) {
+        // Aide au diagnostic précis d'un débordement sur petits écrans.
+        debugPrint(layoutError.toStringDeep());
+      }
+      expect(layoutError, isNull);
 
       await tester.tap(find.byKey(const Key('welcome-login')));
       await tester.pumpAndSettle();
