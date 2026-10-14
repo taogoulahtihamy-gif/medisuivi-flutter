@@ -121,6 +121,20 @@ jobs:
           set -euo pipefail
           python3 scripts/check_remote_api_url.py "$MEDISUIVI_API_BASE_URL"
           flutter pub get
+      - name: Enable KVM acceleration for the GitHub-hosted emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -e /dev/kvm ]; then
+            echo "::error::/dev/kvm is unavailable: Android emulator cannot use hardware acceleration."
+            exit 1
+          fi
+          # GitHub ubuntu-latest runner has /dev/kvm but the runner account
+          # does not belong to the device's group by default.
+          sudo chmod a+rw /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          ls -l /dev/kvm
+
       - name: Boot Android, install APK and call real Vercel API from device
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -129,14 +143,35 @@ jobs:
           target: google_apis
           profile: pixel_5
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu swiftshader_indirect -accel on -no-snapshot -noaudio -no-boot-anim
           script: |
             # android-emulator-runner executes this block with /bin/sh (dash).
             # pipefail is a Bash-specific option: use portable POSIX flags.
             set -eu
             test -s downloaded-apk/app-debug.apk
+            adb wait-for-device
             adb shell getprop ro.build.version.release
-            adb install -r downloaded-apk/app-debug.apk
+            # sys.boot_completed can be 1 before Android's package manager
+            # is responsive, especially on cold API 35 emulator startup.
+            package_ready=0
+            attempt=0
+            while [ "$attempt" -lt 40 ]; do
+              attempt=$((attempt + 1))
+              if adb shell 'cmd package list packages android' 2>/dev/null | grep -q 'package:android'; then
+                package_ready=1
+                break
+              fi
+              echo "Waiting for Android package manager ($attempt/40)"
+              sleep 3
+            done
+            if [ "$package_ready" -ne 1 ]; then
+              echo "ERROR: Android package manager did not become ready"
+              adb devices -l || true
+              exit 1
+            fi
+            # Non-streaming install is more stable after cold emulator boot.
+            adb install --no-streaming -r downloaded-apk/app-debug.apk
+            adb shell pm path com.example.medisuivi.sandbox
             adb shell am start -W -n \
               com.example.medisuivi.sandbox/com.example.medisuivi.MainActivity
             adb shell pidof com.example.medisuivi.sandbox
