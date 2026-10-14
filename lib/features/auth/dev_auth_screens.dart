@@ -374,10 +374,10 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
 
   void _onSessionAction(String action) {
     if (action == 'all') {
-      _confirmSignOutEverywhere();
+      unawaited(_confirmSignOutEverywhere());
     } else if (action == 'switch') {
       // Explicit account switch: revoke the current device first.
-      _signOut();
+      unawaited(_signOut());
     }
   }
 
