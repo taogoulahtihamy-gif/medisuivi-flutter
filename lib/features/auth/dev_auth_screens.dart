@@ -83,45 +83,73 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
         ),
         title: const Text('MediSuivi'),
       ),
-      body: SafeArea(child: Center(child: ConstrainedBox(
+      body: Stack(children: [
+        Positioned(
+          top: 0, left: 0, right: 0, height: 240,
+          child: Stack(fit: StackFit.expand, children: [
+            Image.asset(
+              widget.isRegister
+                ? 'assets/images/onboarding/records.webp'
+                : 'assets/images/onboarding/privacy.webp',
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.high,
+              alignment: Alignment.topCenter,
+              excludeFromSemantics: true,
+            ),
+            DecoratedBox(decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0, .25, .60, .88, 1],
+                colors: [
+                  p.canvas.withValues(alpha: .12),
+                  p.canvas.withValues(alpha: .04),
+                  p.canvas.withValues(alpha: .52),
+                  p.canvas.withValues(alpha: .95),
+                  p.canvas,
+                ],
+              ),
+            )),
+          ]),
+        ),
+        SafeArea(child: Center(child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 440),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
+          padding: const EdgeInsets.fromLTRB(24, 175, 24, 40),
           child: Form(
             key: _key,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.medical_information_outlined,
-                  size: 39, color: p.forest),
+                Text('ESPACE PRATICIEN',
+                  style: TextStyle(color: p.forest,
+                    fontSize: 11.5, letterSpacing: 1.1,
+                    fontWeight: FontWeight.w700)),
+                const SizedBox(height: 10),
+                Text(widget.isRegister
+                    ? 'Créer votre compte' : 'Se connecter',
+                  style: TextStyle(color: p.ink, fontSize: 28,
+                    letterSpacing: -.45, height: 1.15,
+                    fontWeight: FontWeight.w700)),
+                const SizedBox(height: 10),
+                Text(widget.isRegister
+                    ? 'Votre espace personnel commence ici.'
+                    : 'Retrouvez votre espace et vos dossiers personnels.',
+                  style: TextStyle(color: p.muted,
+                    fontSize: 14, height: 1.48)),
                 const SizedBox(height: 22),
-                Text(widget.isRegister
-                    ? 'Créer mon compte' : 'Bienvenue sur MediSuivi',
-                  style: TextStyle(color: p.ink, fontSize: 25,
-                    height: 1.2, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
-                Text(widget.isRegister
-                    ? 'Inscription au serveur local de développement.'
-                    : 'Connectez-vous à votre espace de test privé.',
-                  style: TextStyle(color: p.muted, fontSize: 14,
-                    height: 1.45)),
-                const SizedBox(height: 18),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: p.tealSoft.withValues(alpha: .55),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text(
-                    'ENVIRONNEMENT DE DÉVELOPPEMENT. '
-                    'Comptes et patients fictifs uniquement. '
-                    'N’entrez aucune donnée médicale réelle.',
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Icon(Icons.info_outline_rounded, color: p.forest, size: 17),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(
+                    'Version de développement : comptes et patients fictifs '
+                    'uniquement. Ne saisissez aucune donnée médicale réelle.',
                     key: const Key('dev-auth-warning'),
-                    style: TextStyle(color: p.ink, fontSize: 12.5,
-                      height: 1.4, fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(height: 20),
+                    style: TextStyle(color: p.muted, fontSize: 12.5,
+                      height: 1.38),
+                  )),
+                ]),
+                const SizedBox(height: 21),
                 if (widget.isRegister) ...[
                   TextFormField(
                     key: const Key('dev-register-first-name'),
@@ -213,6 +241,7 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
           ),
         ),
       ))),
+      ]),
     );
   }
 }
