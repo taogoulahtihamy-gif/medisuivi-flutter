@@ -572,9 +572,11 @@ class _OnboardPrimaryButton extends StatelessWidget {
 class _OnboardSecondaryButton extends StatelessWidget {
   const _OnboardSecondaryButton({
     super.key, required this.label, required this.onTap,
+    this.onPhoto = false,
   });
   final String label;
   final VoidCallback onTap;
+  final bool onPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -583,7 +585,7 @@ class _OnboardSecondaryButton extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 345),
         child: Material(
-          color: p.surface,
+          color: onPhoto ? Colors.white.withValues(alpha: .10) : p.surface,
           borderRadius: BorderRadius.circular(60),
           child: InkWell(
             onTap: onTap, borderRadius: BorderRadius.circular(60),
@@ -591,11 +593,14 @@ class _OnboardSecondaryButton extends StatelessWidget {
               height: 52,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(60),
-                border: Border.all(color: p.border, width: 1.15),
+                border: Border.all(
+                  color: onPhoto ? Colors.white.withValues(alpha: .47) : p.border,
+                  width: 1.15),
               ),
               alignment: Alignment.center,
               child: Text(label, style: TextStyle(
-                color: p.ink, fontSize: 13.5,
+                color: onPhoto ? Colors.white : p.ink,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w700)),
             ),
           ),
@@ -605,10 +610,12 @@ class _OnboardSecondaryButton extends StatelessWidget {
   }
 }
 
+
 class _AccessChoice extends StatelessWidget {
   const _AccessChoice({super.key, required this.isWebDemo,
     required this.onCreate, required this.onSignIn,
     required this.onLocalAccess});
+
   final bool isWebDemo;
   final VoidCallback onCreate;
   final VoidCallback onSignIn;
@@ -616,46 +623,73 @@ class _AccessChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
-    return _WelcomePage(
-      title: 'Un espace clinique personnel.',
-      subtitle: 'Un compte par praticien. Vos patients ne seront pas partagés entre plusieurs comptes.',
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: p.surface, borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: p.border)),
-          child: Row(children: [
-            Icon(Icons.person_outline_rounded, color: p.forest, size: 30),
-            const SizedBox(width: 13),
-            Expanded(child: Text(
-              'Identité, coordonnées et photo du praticien.',
-              style: TextStyle(color: p.ink, fontSize: 14))),
-          ]),
+    return Scaffold(
+      backgroundColor: const Color(0xFF070F0D),
+      body: Stack(fit: StackFit.expand, children: [
+        const _WelcomePhoto(
+          imageUrl: _WelcomePhotos.access,
+          imageKey: Key('welcome-access-photo'),
+          alignment: Alignment(0, -.6),
         ),
-        const SizedBox(height: 24),
-        _OnboardPrimaryButton(
-          key: const Key('welcome-create'),
-          label: 'Créer un compte',
-          onTap: onCreate,
-        ),
-        const SizedBox(height: 12),
-        _OnboardSecondaryButton(
-          key: const Key('welcome-login'),
-          label: 'Se connecter',
-          onTap: onSignIn,
-        ),
-        const SizedBox(height: 18),
-        TextButton(key: const Key('welcome-demo'),
-          onPressed: onLocalAccess,
-          child: Text(isWebDemo ? 'Explorer la démonstration' : 'Accéder aux dossiers locaux')),
-        const SizedBox(height: 13),
-        Text(isWebDemo
-          ? 'Démo Web : patients fictifs, aucune création de compte.'
-          : 'Accès local sur cet appareil seulement. Aucun compte ni synchronisation distante.',
-          textAlign: TextAlign.center, style: TextStyle(
-            color: p.muted, height: 1.4, fontSize: 12)),
+        const _WelcomePhotoShade(),
+        SafeArea(child: Center(child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 510),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(25, 19, 25, 21),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _WelcomeBrand(),
+                const Spacer(),
+                const Text('Votre espace de soin.\nRien qu’à vous.',
+                  style: TextStyle(
+                    color: Colors.white, fontSize: 29,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -.7, height: 1.15,
+                  )),
+                const SizedBox(height: 12),
+                const Text(
+                  'Un praticien, un espace personnel pour organiser ses dossiers.',
+                  style: TextStyle(color: Color(0xFFDCE7E0),
+                    fontSize: 13, height: 1.45),
+                ),
+                const SizedBox(height: 25),
+                _OnboardPrimaryButton(
+                  key: const Key('welcome-create'),
+                  label: 'Créer un compte',
+                  onTap: onCreate,
+                ),
+                const SizedBox(height: 12),
+                _OnboardSecondaryButton(
+                  key: const Key('welcome-login'),
+                  label: 'Se connecter',
+                  onTap: onSignIn,
+                  onPhoto: true,
+                ),
+                const SizedBox(height: 13),
+                Center(child: TextButton(
+                  key: const Key('welcome-demo'),
+                  onPressed: onLocalAccess,
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFE3EDE8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8)),
+                  child: Text(isWebDemo
+                    ? 'Explorer la démonstration'
+                    : 'Accéder aux dossiers locaux'),
+                )),
+                const SizedBox(height: 5),
+                Text(isWebDemo
+                  ? 'Démonstration avec patients fictifs. Aucun compte réel créé.'
+                  : 'Dossiers locaux uniquement. Aucun compte distant connecté.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFC3CEC8), fontSize: 10.5,
+                    height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ))),
       ]),
     );
   }
