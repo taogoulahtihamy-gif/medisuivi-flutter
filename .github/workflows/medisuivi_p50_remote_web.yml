@@ -38,6 +38,8 @@ jobs:
           flutter-version: "3.47.7"
           channel: stable
           cache: true
+      - name: Test private invitation on public Web build
+        run: flutter test test/p50_remote_signup_test.dart --dart-define=MEDISUIVI_REMOTE_SANDBOX=true
       - name: Build exact public web bundle used by Render
         run: bash scripts/build_render_web.sh
       - name: Check bundle and reject development HTTP endpoints
