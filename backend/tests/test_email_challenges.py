@@ -127,8 +127,8 @@ def test_reset_password_revokes_all_devices_and_rejects_reuse(client, mailer):
     assert posted(client, "email/verify", {
         "email": email, "code": last_code(mailer, "verify_email")
     }).status_code == 204
-    device_a = credentials(client, email, password="not-a-real-password-2026")
-    device_b = credentials(client, email, password="not-a-real-password-2026")
+    device_a = credentials(client, email)
+    device_b = credentials(client, email)
 
     known = posted(client, "password/forgot", {"email": email})
     missing = posted(client, "password/forgot",
