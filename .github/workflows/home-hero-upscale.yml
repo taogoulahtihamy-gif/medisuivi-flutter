@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   upscale:
-    if: ${{ github.event.head_commit.message != 'assets: generate upgraded offline home photo' }}
     name: Generate bundled image from original
     runs-on: ubuntu-latest
     timeout-minutes: 12
