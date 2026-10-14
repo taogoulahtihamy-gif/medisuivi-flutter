@@ -52,6 +52,48 @@ class DevPatient {
         age: json['age'] as int);
 }
 
+/// Data returned by the authenticated backend, never by DemoStore.
+class DevVisit {
+  const DevVisit({required this.id, required this.reason, required this.createdAt});
+  final String id;
+  final String reason;
+  final DateTime createdAt;
+  factory DevVisit.fromJson(Map<String, dynamic> data) => DevVisit(
+    id: data['id'] as String, reason: data['reason'] as String,
+    createdAt: DateTime.parse(data['created_at'] as String));
+}
+
+class DevExam {
+  const DevExam({required this.id, required this.title, required this.status});
+  final String id;
+  final String title;
+  final String status;
+  factory DevExam.fromJson(Map<String, dynamic> data) => DevExam(
+    id: data['id'] as String, title: data['title'] as String,
+    status: data['status'] as String);
+}
+
+class DevFollowUp {
+  const DevFollowUp({required this.id, required this.reason,
+    required this.status, required this.scheduledAt});
+  final String id;
+  final String reason;
+  final String status;
+  final DateTime scheduledAt;
+  factory DevFollowUp.fromJson(Map<String, dynamic> data) => DevFollowUp(
+    id: data['id'] as String, reason: data['reason'] as String,
+    status: data['status'] as String,
+    scheduledAt: DateTime.parse(data['scheduled_at'] as String));
+}
+
+class DevClinicalBundle {
+  const DevClinicalBundle({required this.visits,
+      required this.exams, required this.followUps});
+  final List<DevVisit> visits;
+  final List<DevExam> exams;
+  final List<DevFollowUp> followUps;
+}
+
 class DevApiException implements Exception {
   const DevApiException(this.message);
   final String message;
@@ -251,6 +293,74 @@ class DevAuthApi {
       body: {'display_name': 'PATIENT FICTIF $stamp', 'age': 30});
     _ensureSuccess(result, expected: 201);
     return DevPatient.fromJson(_map(result));
+  }
+
+  Future<List<Map<String, dynamic>>> _clinicalList(
+      DevSession session, String path) async {
+    final response = await _request('GET', path, token: session.accessToken);
+    _ensureSuccess(response);
+    return (jsonDecode(response.body) as List<dynamic>)
+      .map((data) => data as Map<String, dynamic>).toList(growable: false);
+  }
+
+  String _patientPath(DevPatient patient, String kind) =>
+      '/api/v1/patients/${Uri.encodeComponent(patient.id)}/$kind';
+
+  Future<DevClinicalBundle> getPatientClinical(
+    DevSession session, DevPatient patient,
+  ) async {
+    // Each query is independently checked against the JWT on the server.
+    final visits = await _clinicalList(session, _patientPath(patient, 'visits'));
+    final exams = await _clinicalList(session, _patientPath(patient, 'exams'));
+    final followUps = await _clinicalList(
+        session, _patientPath(patient, 'followups'));
+    return DevClinicalBundle(
+      visits: visits.map(DevVisit.fromJson).toList(growable: false),
+      exams: exams.map(DevExam.fromJson).toList(growable: false),
+      followUps: followUps.map(DevFollowUp.fromJson).toList(growable: false),
+    );
+  }
+
+  /// Synthetic actions ONLY. No free text that could accidentally carry PHI.
+  Future<void> createSyntheticVisit(DevSession session, DevPatient patient) async {
+    final response = await _request('POST', _patientPath(patient, 'visits'),
+      token: session.accessToken,
+      body: {'reason':'Consultation de démonstration',
+             'notes':'Donnée entièrement fictive'});
+    _ensureSuccess(response, expected: 201);
+  }
+
+  Future<void> createSyntheticExam(DevSession session, DevPatient patient) async {
+    final response = await _request('POST', _patientPath(patient, 'exams'),
+      token: session.accessToken,
+      body: {'title':'Examen de démonstration'});
+    _ensureSuccess(response, expected: 201);
+  }
+
+  Future<void> recordSyntheticExamResult(DevSession session, DevExam exam) async {
+    final response = await _request('PUT',
+      '/api/v1/exams/${Uri.encodeComponent(exam.id)}/result',
+      token: session.accessToken,
+      body: {'result':'Résultat de démonstration sans valeur médicale'});
+    _ensureSuccess(response);
+  }
+
+  Future<void> createSyntheticFollowUp(DevSession session, DevPatient patient) async {
+    final when = DateTime.now().toUtc().add(const Duration(days: 7));
+    final response = await _request('POST', _patientPath(patient, 'followups'),
+      token: session.accessToken, body: {
+        'scheduled_at': when.toIso8601String(),
+        'reason': 'Contrôle fictif',
+      });
+    _ensureSuccess(response, expected: 201);
+  }
+
+  Future<void> closeSyntheticFollowUp(
+      DevSession session, DevFollowUp followUp) async {
+    final response = await _request('PUT',
+      '/api/v1/followups/${Uri.encodeComponent(followUp.id)}/close',
+      token: session.accessToken, body: {'completed':true});
+    _ensureSuccess(response);
   }
 
   Future<void> signOut(DevSession session) async {
