@@ -1,0 +1,36 @@
+name: Bundle offline onboarding photos
+
+on:
+  push:
+    branches:
+      - feat/medisuivi-sprint5l-ui-coherence-offline
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    name: Bundle five clinical portraits
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Pillow
+        run: pip install pillow==11.3.0
+      - name: Download and validate Pexels images
+        run: python tools/bundle_onboarding_images.py
+      - name: Commit packaged portraits
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/images/onboarding
+          if git diff --cached --quiet; then
+            echo "No image changes"
+          else
+            git commit -m "assets: bundle five offline clinical portraits"
+            git push origin HEAD:feat/medisuivi-sprint5l-ui-coherence-offline
+          fi
