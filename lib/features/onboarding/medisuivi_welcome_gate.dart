@@ -979,12 +979,16 @@ class PractitionerPreviewForm extends StatefulWidget {
     required this.onSaved,
     required this.isWebDemo,
     this.onBack,
+    this.connectedAccount = false,
+    this.onPersist,
   });
 
   final PractitionerPreview controller;
   final VoidCallback onSaved;
   final VoidCallback? onBack;
   final bool isWebDemo;
+  final bool connectedAccount;
+  final Future<void> Function(PractitionerPreview draft)? onPersist;
 
   @override
   State<PractitionerPreviewForm> createState() => _PractitionerPreviewFormState();
@@ -999,6 +1003,7 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
   late final TextEditingController _specialty;
   Uint8List? _photo;
   bool _picking = false;
+  bool _savingRemote = false;
 
   @override
   void initState() {
@@ -1043,14 +1048,36 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
     }
   }
 
-  void _save() {
-    if (!(_form.currentState?.validate() ?? false)) return;
-    widget.controller.update(
+  Future<void> _save() async {
+    if (_savingRemote || !(_form.currentState?.validate() ?? false)) return;
+    setState(() => _savingRemote = true);
+    final draft = PractitionerPreview();
+    draft.update(
       firstName: _first.text, lastName: _last.text,
       email: _email.text, phone: _phone.text,
       specialty: _specialty.text, photo: _photo,
     );
-    widget.onSaved();
+    try {
+      if (widget.onPersist != null) {
+        await widget.onPersist!(draft);
+      }
+      if (!mounted) return;
+      widget.controller.update(
+        firstName: draft.firstName, lastName: draft.lastName,
+        email: draft.email, phone: draft.phone,
+        specialty: draft.specialty, photo: draft.photo,
+      );
+      widget.onSaved();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Modification non enregistrée sur le serveur.'),
+        ));
+      }
+    } finally {
+      draft.dispose();
+      if (mounted) setState(() => _savingRemote = false);
+    }
   }
 
   @override
@@ -1072,7 +1099,9 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
               Text('Votre identité professionnelle', style: TextStyle(
                 color: p.ink, fontSize: 23, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
-              Text('Prévisualisation locale uniquement. Aucun compte n’est créé.',
+              Text(widget.connectedAccount
+                  ? 'Informations enregistrées dans votre compte.'
+                  : 'Prévisualisation locale uniquement. Aucun compte n’est créé.',
                 style: TextStyle(color: p.muted, fontSize: 12.5, height: 1.4)),
               const SizedBox(height: 21),
               Center(child: Column(children: [
@@ -1085,13 +1114,13 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
                     ? Icon(Icons.person_rounded, size: 39, color: p.forest) : null,
                 ),
                 const SizedBox(height: 10),
-                TextButton.icon(
+                if (!widget.connectedAccount) TextButton.icon(
                   key: const Key('practitioner-pick-photo'),
                   onPressed: _picking ? null : _pickPhoto,
                   icon: const Icon(Icons.add_a_photo_outlined, size: 19),
                   label: const Text('Ajouter une photo'),
                 ),
-                if (_photo != null) TextButton(
+                if (_photo != null && !widget.connectedAccount) TextButton(
                   key: const Key('practitioner-remove-photo'),
                   onPressed: () => setState(() => _photo = null),
                   child: const Text('Retirer la photo')),
@@ -1113,6 +1142,7 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
               const SizedBox(height: 13),
               TextFormField(
                 controller: _email, keyboardType: TextInputType.emailAddress,
+                enabled: !widget.connectedAccount,
                 decoration: const InputDecoration(labelText: 'Adresse e-mail'),
                 validator: (v) => v != null && v.trim().isNotEmpty &&
                     !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim())
@@ -1128,14 +1158,18 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
               const SizedBox(height: 22),
               _OnboardPrimaryButton(
                 key: const Key('practitioner-save-preview'),
-                onTap: _save,
-                label: widget.isWebDemo
-                  ? 'Voir mon espace de démonstration'
-                  : 'Continuer vers mon espace local'),
+                onTap: _savingRemote ? () {} : _save,
+                label: _savingRemote ? 'Enregistrement…'
+                  : widget.connectedAccount ? 'Enregistrer les modifications'
+                  : widget.isWebDemo
+                      ? 'Voir mon espace de démonstration'
+                      : 'Continuer vers mon espace local'),
               const SizedBox(height: 12),
-              Text(widget.isWebDemo
-                ? 'Ces informations et votre photo restent en mémoire jusqu’à la fermeture.'
-                : 'Ces informations ne constituent pas un compte et ne sont pas synchronisées.',
+              Text(widget.connectedAccount
+                ? 'Ces informations sont rattachées à votre session.'
+                : widget.isWebDemo
+                  ? 'Ces informations et votre photo restent en mémoire jusqu’à la fermeture.'
+                  : 'Ces informations ne constituent pas un compte et ne sont pas synchronisées.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: p.muted, fontSize: 12, height: 1.4)),
             ]),
