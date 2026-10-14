@@ -66,8 +66,7 @@ void main() {
     await tester.tap(find.byKey(const Key('about-photo-credits')));
     await tester.pumpAndSettle();
     expect(find.byType(AboutDialog), findsOneWidget);
-    await tester.tap(find.text('Fermer').last);
-    await tester.pumpAndSettle();
+    await back();
     await tester.tap(find.byKey(const Key('about-licenses')));
     await tester.pumpAndSettle();
     expect(find.byType(LicensePage), findsOneWidget);
