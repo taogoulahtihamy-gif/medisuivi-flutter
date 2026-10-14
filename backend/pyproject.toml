@@ -1,0 +1,7 @@
+[tool.vercel]
+entrypoint = "index:app"
+
+[tool.vercel.scripts]
+# The build fails rather than publishing an API with a missing schema.
+# Only the empty, dedicated Neon medisuivi_sandbox database is allowed.
+build = "python scripts/prepare_vercel_sandbox.py"
