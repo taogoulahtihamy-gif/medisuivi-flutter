@@ -4,6 +4,7 @@ import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
+import '../../core/widgets/clinical_tab_route.dart';
 import '../patients/patients_screen.dart';
 import '../exams/exams_screen.dart';
 
@@ -64,7 +65,11 @@ class _SettingsDataPageState extends State<SettingsDataPage> {
               title: 'Consulter les patients',
               subtitle: '$patients dossiers dans cet espace',
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const PatientsScreen())),
+                MaterialPageRoute<void>(builder: (_) =>
+                  const ClinicalTabRoute(
+                    title: 'Mes patients',
+                    child: PatientsScreen(),
+                  ))),
             ),
             ClinicalListRow(
               key: const Key('data-view-exams'),
@@ -72,7 +77,11 @@ class _SettingsDataPageState extends State<SettingsDataPage> {
               title: 'Consulter les bilans',
               subtitle: '$pending en attente de résultat',
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const ExamsScreen())),
+                MaterialPageRoute<void>(builder: (_) =>
+                  const ClinicalTabRoute(
+                    title: 'Bilans médicaux',
+                    child: ExamsScreen(),
+                  ))),
             ),
           ]),
           const SizedBox(height: 23),
