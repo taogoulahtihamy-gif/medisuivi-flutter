@@ -122,7 +122,16 @@ class _OriginalConnectedClinicalGateState
         return ConnectedClinicalScope(
           store: _store,
           child: Stack(children: [
-            widget.child,
+            // Nested Navigator is essential: original patient/detail/profile
+            // screens use Navigator.push. Those routes must inherit the
+            // account-only ClinicalStore, never a shared DemoScope.
+            Navigator(
+              key: ObjectKey(widget.session),
+              onGenerateRoute: (settings) => MaterialPageRoute<void>(
+                settings: settings,
+                builder: (_) => widget.child,
+              ),
+            ),
             Positioned(
               top: MediaQuery.paddingOf(context).top + 6,
               right: 3,

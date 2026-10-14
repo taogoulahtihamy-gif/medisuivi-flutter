@@ -27,7 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint,
-    Integer, LargeBinary, String, Text, UniqueConstraint, create_engine, event, select, text,
+    Integer, JSON, LargeBinary, String, Text, UniqueConstraint, create_engine, event, select, text,
 )
 from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
@@ -181,6 +181,12 @@ class Patient(Base):
         nullable=False, index=True)
     display_name: Mapped[str] = mapped_column(String(180), nullable=False)
     age: Mapped[int] = mapped_column(Integer, nullable=False)
+    sex: Mapped[str] = mapped_column(String(1), nullable=False, default='N')
+    phone: Mapped[str] = mapped_column(String(25), nullable=False, default='')
+    allergies: Mapped[str] = mapped_column(String(1000), nullable=False, default='')
+    medical_history: Mapped[str] = mapped_column(String(4000), nullable=False, default='')
+    follow_up: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    profile: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     practitioner: Mapped[User] = relationship(back_populates="patients")
@@ -218,6 +224,7 @@ class Visit(ClinicalChild):
     pulse: Mapped[int | None] = mapped_column(Integer)
     spo2: Mapped[int | None] = mapped_column(Integer)
     notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    intake: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
 
 
 class LabExam(ClinicalChild):
@@ -328,10 +335,28 @@ class RefreshIn(StrictModel):
 class PatientIn(StrictModel):
     display_name: str = Field(min_length=1, max_length=180)
     age: int = Field(ge=0, le=125)
+    sex: Literal["F", "M", "N"] = "N"
+    phone: str = Field(default="", max_length=25)
+    profile: dict[str, str] = Field(default_factory=dict)
 
 
 class PatientOut(PatientIn):
     id: str
+    created_at: datetime
+    allergies: str
+    medical_history: str
+    follow_up: bool
+
+
+class UpdatePatientIn(StrictModel):
+    phone: str = Field(max_length=25)
+    allergies: str = Field(max_length=1000)
+    medical_history: str = Field(max_length=4000)
+    profile: dict[str, str] = Field(default_factory=dict)
+
+
+class FollowUpFlagIn(StrictModel):
+    to_review: bool
 
 
 class VisitIn(StrictModel):
@@ -342,6 +367,7 @@ class VisitIn(StrictModel):
     pulse: int | None = Field(default=None, ge=20, le=250)
     spo2: int | None = Field(default=None, ge=50, le=100)
     notes: str = Field(default="", max_length=4000)
+    intake: dict[str, object] = Field(default_factory=dict)
 
 
 class VisitOut(VisitIn):
@@ -978,7 +1004,8 @@ def api_app() -> FastAPI:
         if settings.environment != "development":
             raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
         patient = Patient(
-            owner_user_id=user.id, display_name=data.display_name.strip(), age=data.age)
+            owner_user_id=user.id, display_name=data.display_name.strip(),
+            age=data.age, sex=data.sex, phone=data.phone, profile=data.profile)
         if not patient.display_name:
             raise HTTPException(status_code=422, detail="Nom du patient obligatoire")
         db.add(patient)
@@ -994,6 +1021,40 @@ def api_app() -> FastAPI:
             Patient.id == patient_id, Patient.owner_user_id == user.id))
         if patient is None:
             raise HTTPException(status_code=404, detail="Dossier introuvable")
+        return PatientOut.model_validate(patient, from_attributes=True)
+
+    @app.put("/api/v1/patients/{patient_id}", response_model=PatientOut)
+    def update_patient(patient_id: str, data: UpdatePatientIn,
+                       user: User = Depends(current_user),
+                       db: Session = Depends(get_db)):
+        dev_write_only()
+        patient = db.scalar(select(Patient).where(
+            Patient.id == patient_id, Patient.owner_user_id == user.id
+        ).with_for_update())
+        if patient is None:
+            raise HTTPException(status_code=404, detail="Dossier introuvable")
+        patient.phone = data.phone
+        patient.allergies = data.allergies
+        patient.medical_history = data.medical_history
+        patient.profile = data.profile
+        db.commit()
+        db.refresh(patient)
+        return PatientOut.model_validate(patient, from_attributes=True)
+
+    @app.put("/api/v1/patients/{patient_id}/follow-up",
+             response_model=PatientOut)
+    def update_patient_follow_up(patient_id: str, data: FollowUpFlagIn,
+                                 user: User = Depends(current_user),
+                                 db: Session = Depends(get_db)):
+        dev_write_only()
+        patient = db.scalar(select(Patient).where(
+            Patient.id == patient_id, Patient.owner_user_id == user.id
+        ).with_for_update())
+        if patient is None:
+            raise HTTPException(status_code=404, detail="Dossier introuvable")
+        patient.follow_up = data.to_review
+        db.commit()
+        db.refresh(patient)
         return PatientOut.model_validate(patient, from_attributes=True)
 
     # P2: all clinical operations are nested under an OWNED patient, or

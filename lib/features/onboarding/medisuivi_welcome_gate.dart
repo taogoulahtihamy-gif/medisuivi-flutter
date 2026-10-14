@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
 import '../auth/dev_auth_api.dart';
-import '../auth/dev_auth_screens.dart';
+import '../auth/original_account_access_screen.dart';
 import '../auth/original_connected_clinical_gate.dart';
 import '../auth/dev_email_flows.dart';
 
@@ -288,7 +288,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
               onBack: () => _go(_EntryStep.access),
               onLocalAccess: () => _go(_EntryStep.workspace),
             )
-          : DevAuthScreen(
+          : OriginalAccountAccessScreen(
               key: const ValueKey('dev-signin'),
               api: _authApi, isRegister: false,
               onBack: () => _go(_EntryStep.access),
@@ -297,7 +297,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
               onForgotPassword: () => _go(_EntryStep.recoverPassword),
               onAuthenticated: _onAuthenticated,
             ),
-        _EntryStep.register => DevAuthScreen(
+        _EntryStep.register => OriginalAccountAccessScreen(
           key: const ValueKey('dev-register'),
           api: _authApi!, isRegister: true,
           onBack: () => _go(_EntryStep.access),
@@ -349,7 +349,6 @@ abstract final class _WelcomePhotos {
   static const records = 'assets/images/onboarding/records.webp';
   static const followup = 'assets/images/onboarding/followup.webp';
   static const privacy = 'assets/images/onboarding/privacy.webp';
-  static const access = 'assets/images/onboarding/access.webp';
 }
 
 class _WelcomePhoto extends StatelessWidget {
@@ -775,11 +774,9 @@ class _OnboardPrimaryButton extends StatelessWidget {
 class _OnboardSecondaryButton extends StatelessWidget {
   const _OnboardSecondaryButton({
     super.key, required this.label, required this.onTap,
-    this.onPhoto = false,
   });
   final String label;
   final VoidCallback onTap;
-  final bool onPhoto;
 
   @override
   Widget build(BuildContext context) {
@@ -788,7 +785,7 @@ class _OnboardSecondaryButton extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 345),
         child: Material(
-          color: onPhoto ? Colors.white.withValues(alpha: .10) : p.surface,
+          color: p.surface,
           borderRadius: BorderRadius.circular(60),
           child: InkWell(
             onTap: onTap, borderRadius: BorderRadius.circular(60),
@@ -797,12 +794,12 @@ class _OnboardSecondaryButton extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(60),
                 border: Border.all(
-                  color: onPhoto ? Colors.white.withValues(alpha: .47) : p.border,
+                  color: p.border,
                   width: 1.15),
               ),
               alignment: Alignment.center,
               child: Text(label, style: TextStyle(
-                color: onPhoto ? Colors.white : p.ink,
+                color: p.ink,
                 fontSize: 13.5,
                 fontWeight: FontWeight.w700)),
             ),
@@ -827,76 +824,75 @@ class _AccessChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = Palette.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF070F0D),
-      body: Stack(fit: StackFit.expand, children: [
-        const _WelcomePhoto(
-          imageUrl: _WelcomePhotos.access,
-          imageKey: Key('welcome-access-photo'),
-          alignment: Alignment(0, -.6),
-        ),
-        const _WelcomePhotoShade(),
-        SafeArea(child: Center(child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 510),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 19, 25, 21),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _WelcomeBrand(),
-                const Spacer(),
-                const Text('Votre espace de soin.\nRien qu’à vous.',
-                  style: TextStyle(
-                    color: Colors.white, fontSize: 29,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -.7, height: 1.15,
-                  )),
-                const SizedBox(height: 12),
-                const Text(
-                  'Un praticien, un espace personnel pour organiser ses dossiers.',
-                  style: TextStyle(color: Color(0xFFDCE7E0),
-                    fontSize: 13, height: 1.45),
+      backgroundColor: p.canvas,
+      body: SafeArea(child: Center(child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(23, 28, 23, 36),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 470),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(children: [
+                Container(
+                  key: const Key('welcome-clinical-brand'),
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    color: p.tealSoft,
+                    borderRadius: BorderRadius.circular(15)),
+                  child: Icon(Icons.health_and_safety_outlined,
+                    color: p.forest, size: 25),
                 ),
-                const SizedBox(height: 25),
-                _OnboardPrimaryButton(
-                  key: const Key('welcome-create'),
-                  label: 'Créer un compte',
-                  onTap: onCreate,
-                ),
-                const SizedBox(height: 12),
-                _OnboardSecondaryButton(
-                  key: const Key('welcome-login'),
-                  label: 'Se connecter',
-                  onTap: onSignIn,
-                  onPhoto: true,
-                ),
-                if (allowLocalAccess) ...[
-                const SizedBox(height: 13),
-                Center(child: TextButton(
+                const SizedBox(width: 14),
+                Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('MediSuivi', style: TextStyle(
+                      color: p.ink, fontSize: 21,
+                      fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 3),
+                    Text('ESPACE PRATICIEN', style: TextStyle(
+                      color: p.muted, fontSize: 10,
+                      fontWeight: FontWeight.w700, letterSpacing: 1.15)),
+                  ]),
+              ]),
+              const SizedBox(height: 53),
+              Text('Vos dossiers,\nau même endroit.',
+                style: TextStyle(color: p.ink, fontSize: 30,
+                  height: 1.19, letterSpacing: -.7,
+                  fontWeight: FontWeight.w700)),
+              const SizedBox(height: 14),
+              Text('Accédez à votre espace clinique personnel.',
+                style: TextStyle(color: p.muted,
+                  fontSize: 14, height: 1.55)),
+              const SizedBox(height: 34),
+              SizedBox(height: 49, child: FilledButton(
+                key: const Key('welcome-login'),
+                onPressed: onSignIn,
+                child: const Text('Se connecter'))),
+              const SizedBox(height: 13),
+              SizedBox(height: 49, child: OutlinedButton(
+                key: const Key('welcome-create'),
+                onPressed: onCreate,
+                child: const Text('Créer un compte'))),
+              if (allowLocalAccess) ...[
+                const SizedBox(height: 16),
+                TextButton(
                   key: const Key('welcome-demo'),
                   onPressed: onLocalAccess,
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFFE3EDE8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8)),
                   child: Text(isWebDemo
-                    ? 'Explorer la démonstration'
-                    : 'Accéder aux dossiers locaux'),
-                )),
-                const SizedBox(height: 5),
-                Text(isWebDemo
-                  ? 'Démonstration avec patients fictifs. Aucun compte réel créé.'
-                  : 'Dossiers locaux uniquement. Aucun compte distant connecté.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFC3CEC8), fontSize: 10.5,
-                    height: 1.35),
+                      ? 'Explorer la démonstration'
+                      : 'Ouvrir les dossiers locaux'),
                 ),
-                ],
               ],
-            ),
+              const SizedBox(height: 31),
+              Text('Environnement de test · Données fictives uniquement',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: p.muted, fontSize: 11.5)),
+            ],
           ),
-        ))),
-      ]),
+        ),
+      ))),
     );
   }
 }
@@ -983,12 +979,16 @@ class PractitionerPreviewForm extends StatefulWidget {
     required this.onSaved,
     required this.isWebDemo,
     this.onBack,
+    this.connectedAccount = false,
+    this.onPersist,
   });
 
   final PractitionerPreview controller;
   final VoidCallback onSaved;
   final VoidCallback? onBack;
   final bool isWebDemo;
+  final bool connectedAccount;
+  final Future<void> Function(PractitionerPreview draft)? onPersist;
 
   @override
   State<PractitionerPreviewForm> createState() => _PractitionerPreviewFormState();
@@ -1003,6 +1003,7 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
   late final TextEditingController _specialty;
   Uint8List? _photo;
   bool _picking = false;
+  bool _savingRemote = false;
 
   @override
   void initState() {
@@ -1047,14 +1048,36 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
     }
   }
 
-  void _save() {
-    if (!(_form.currentState?.validate() ?? false)) return;
-    widget.controller.update(
+  Future<void> _save() async {
+    if (_savingRemote || !(_form.currentState?.validate() ?? false)) return;
+    setState(() => _savingRemote = true);
+    final draft = PractitionerPreview();
+    draft.update(
       firstName: _first.text, lastName: _last.text,
       email: _email.text, phone: _phone.text,
       specialty: _specialty.text, photo: _photo,
     );
-    widget.onSaved();
+    try {
+      if (widget.onPersist != null) {
+        await widget.onPersist!(draft);
+      }
+      if (!mounted) return;
+      widget.controller.update(
+        firstName: draft.firstName, lastName: draft.lastName,
+        email: draft.email, phone: draft.phone,
+        specialty: draft.specialty, photo: draft.photo,
+      );
+      widget.onSaved();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Modification non enregistrée sur le serveur.'),
+        ));
+      }
+    } finally {
+      draft.dispose();
+      if (mounted) setState(() => _savingRemote = false);
+    }
   }
 
   @override
@@ -1076,7 +1099,9 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
               Text('Votre identité professionnelle', style: TextStyle(
                 color: p.ink, fontSize: 23, fontWeight: FontWeight.w700)),
               const SizedBox(height: 8),
-              Text('Prévisualisation locale uniquement. Aucun compte n’est créé.',
+              Text(widget.connectedAccount
+                  ? 'Informations enregistrées dans votre compte.'
+                  : 'Prévisualisation locale uniquement. Aucun compte n’est créé.',
                 style: TextStyle(color: p.muted, fontSize: 12.5, height: 1.4)),
               const SizedBox(height: 21),
               Center(child: Column(children: [
@@ -1089,13 +1114,13 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
                     ? Icon(Icons.person_rounded, size: 39, color: p.forest) : null,
                 ),
                 const SizedBox(height: 10),
-                TextButton.icon(
+                if (!widget.connectedAccount) TextButton.icon(
                   key: const Key('practitioner-pick-photo'),
                   onPressed: _picking ? null : _pickPhoto,
                   icon: const Icon(Icons.add_a_photo_outlined, size: 19),
                   label: const Text('Ajouter une photo'),
                 ),
-                if (_photo != null) TextButton(
+                if (_photo != null && !widget.connectedAccount) TextButton(
                   key: const Key('practitioner-remove-photo'),
                   onPressed: () => setState(() => _photo = null),
                   child: const Text('Retirer la photo')),
@@ -1117,6 +1142,7 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
               const SizedBox(height: 13),
               TextFormField(
                 controller: _email, keyboardType: TextInputType.emailAddress,
+                enabled: !widget.connectedAccount,
                 decoration: const InputDecoration(labelText: 'Adresse e-mail'),
                 validator: (v) => v != null && v.trim().isNotEmpty &&
                     !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(v.trim())
@@ -1132,14 +1158,18 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
               const SizedBox(height: 22),
               _OnboardPrimaryButton(
                 key: const Key('practitioner-save-preview'),
-                onTap: _save,
-                label: widget.isWebDemo
-                  ? 'Voir mon espace de démonstration'
-                  : 'Continuer vers mon espace local'),
+                onTap: _savingRemote ? () {} : _save,
+                label: _savingRemote ? 'Enregistrement…'
+                  : widget.connectedAccount ? 'Enregistrer les modifications'
+                  : widget.isWebDemo
+                      ? 'Voir mon espace de démonstration'
+                      : 'Continuer vers mon espace local'),
               const SizedBox(height: 12),
-              Text(widget.isWebDemo
-                ? 'Ces informations et votre photo restent en mémoire jusqu’à la fermeture.'
-                : 'Ces informations ne constituent pas un compte et ne sont pas synchronisées.',
+              Text(widget.connectedAccount
+                ? 'Ces informations sont rattachées à votre session.'
+                : widget.isWebDemo
+                  ? 'Ces informations et votre photo restent en mémoire jusqu’à la fermeture.'
+                  : 'Ces informations ne constituent pas un compte et ne sont pas synchronisées.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: p.muted, fontSize: 12, height: 1.4)),
             ]),

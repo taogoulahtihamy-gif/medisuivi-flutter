@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
 import '../../core/models/clinical_intake.dart';
 import '../../core/state/store_context.dart';
+import '../../core/state/connected_clinical_store.dart';
+import '../auth/dev_auth_api.dart';
 import '../../core/widgets/medical_ui.dart';
 
 class NewPatientScreen extends StatefulWidget {
@@ -61,11 +63,12 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
       );
       if (!mounted) return;
       Navigator.pop(context);
-    } catch (_) {
+    } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Enregistrement impossible. Réessayez.'),
-        ));
+        final message = error is DevApiException
+            ? error.message : 'Enregistrement impossible. Réessayez.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -123,8 +126,9 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                       TextFormField(
                         controller: name,
                         textCapitalization: TextCapitalization.words,
-                        decoration: const InputDecoration(
-                          hintText: 'Ex. Aminata Diallo',
+                        decoration: InputDecoration(
+                          hintText: context.dependOnInheritedWidgetOfExactType<ConnectedClinicalScope>() != null
+                              ? 'Ex. PATIENT FICTIF A' : 'Ex. Aminata Diallo',
                         ),
                         validator: (v) => (v?.trim().length ?? 0) < 2
                           ? 'Saisissez au moins deux caractères.' : null,
@@ -213,7 +217,10 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
 
                 const SizedBox(height: 12),
                 Text(
-                  kIsWeb ? 'Version Web : données fictives temporaires.' : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
+                  context.dependOnInheritedWidgetOfExactType<ConnectedClinicalScope>() != null
+                    ? 'Dossier de test enregistré dans le compte serveur. Utilisez uniquement des identités fictives.'
+                    : kIsWeb ? 'Version Web : données fictives temporaires.'
+                    : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 13, color: Palette.of(context).laserMuted),
                 ),

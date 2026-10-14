@@ -22,7 +22,7 @@ def test_staging_refuses_registration_and_patient_writes():
     assert settings.allow_registration is False
     assert settings.email_auth_enabled is False
     with engine.connect() as db:
-        assert db.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "0005"
+        assert db.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "0006"
 
     address = f"p47-synthetic-{uuid4().hex}@medisuvi-ci.org"
     password = "P47-only-synthetic-secret-with-no-real-user"
