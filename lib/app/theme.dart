@@ -190,38 +190,47 @@ abstract final class MediTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: p.forest,
-          foregroundColor: p.white,
+          backgroundColor: p.isDark
+              ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill,
+          foregroundColor: ClinicalColors.actionOnDarkFill,
           elevation: 0,
-          minimumSize: const Size(0, 50),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15)),
+          minimumSize: const Size(0, 46),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+          shape: const StadiumBorder(),
           textStyle: const TextStyle(
             fontSize: 13.5, fontWeight: FontWeight.w600),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: p.forest,
-          foregroundColor: p.white,
-          minimumSize: const Size(0, 48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15)),
+          backgroundColor: p.isDark
+              ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill,
+          foregroundColor: ClinicalColors.actionOnDarkFill,
+          minimumSize: const Size(0, 46),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+          shape: const StadiumBorder(),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: p.forest,
+          foregroundColor: p.ink,
           side: BorderSide(color: p.border),
-          minimumSize: const Size(0, 48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15)),
+          minimumSize: const Size(0, 46),
+          padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 11),
+          shape: const StadiumBorder(),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: p.forest,
+          foregroundColor: p.ink,
+          shape: const StadiumBorder(),
           textStyle: const TextStyle(fontWeight: FontWeight.w600)),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: p.ink,
+          shape: const CircleBorder(),
+        ),
       ),
       iconTheme: IconThemeData(color: p.ink),
       dividerColor: p.border,
