@@ -8,7 +8,7 @@ void main() {
   for (final size in [const Size(320, 640), const Size(390, 850)]) {
     for (final mode in [ThemeMode.light, ThemeMode.dark]) {
       for (final isRegister in [false, true]) {
-        testWidgets('P3.4 login/register photo and layout ${size.width}/'
+        testWidgets('P4.8 compact clinical authentication layout ${size.width}/'
             '${mode.name}/${isRegister ? "register" : "login"}',
             (tester) async {
           tester.view.physicalSize = size;
@@ -28,13 +28,10 @@ void main() {
           ));
           await tester.pumpAndSettle();
           expect(find.byKey(const Key('dev-auth-warning')), findsOneWidget);
-          expect(find.byType(Image), findsWidgets);
-          final photos = tester.widgetList<Image>(find.byType(Image));
-          expect(photos.any((image) => image.image is AssetImage &&
-            (image.image as AssetImage).assetName ==
-              (isRegister
-                ? 'assets/images/onboarding/records.webp'
-                : 'assets/images/onboarding/privacy.webp')), isTrue);
+          expect(find.byKey(const Key('dev-auth-surface')), findsOneWidget);
+          expect(find.byKey(const Key('dev-auth-brand-icon')), findsOneWidget);
+          expect(find.byType(Image), findsNothing,
+            reason: 'Les formulaires professionnels sont sans photo.');
           expect(find.byKey(const Key('dev-auth-email')), findsOneWidget);
           expect(find.byKey(const Key('dev-auth-password')), findsOneWidget);
           if (isRegister) {
