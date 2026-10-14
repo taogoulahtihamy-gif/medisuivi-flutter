@@ -7,7 +7,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
 import '../auth/dev_auth_api.dart';
-import '../auth/dev_auth_screens.dart';
+import 'original_account_form.dart';
+import '../../core/state/remote_clinical_scope.dart';
 import '../auth/dev_email_flows.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
@@ -94,6 +95,13 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
     setState(() {
       if (_resumeSession != null) {
         _authenticatedSession = _resumeSession;
+        _practitioner.update(
+          firstName: _resumeSession!.practitioner.firstName,
+          lastName: _resumeSession!.practitioner.lastName,
+          email: _resumeSession!.practitioner.email,
+          phone: _resumeSession!.practitioner.phone,
+          specialty: _resumeSession!.practitioner.specialty,
+        );
         _resumeSession = null;
         _step = _EntryStep.authenticated;
       } else if (_resumeError != null) {
@@ -187,12 +195,23 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
     _resumeAttempt++;
     _authenticatedSession?.clear();
     _authenticatedSession = session;
+    _practitioner.update(
+      firstName: session.practitioner.firstName,
+      lastName: session.practitioner.lastName,
+      email: session.practitioner.email,
+      phone: session.practitioner.phone,
+      specialty: session.practitioner.specialty,
+    );
     _step = _EntryStep.authenticated;
   });
 
   void _onSignedOut() => setState(() {
     _authenticatedSession?.clear();
     _authenticatedSession = null;
+    _practitioner.update(
+      firstName: '', lastName: '', email: '', phone: '',
+      specialty: '',
+    );
     _step = _EntryStep.access;
   });
 
@@ -267,7 +286,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
               onBack: () => _go(_EntryStep.access),
               onLocalAccess: () => _go(_EntryStep.workspace),
             )
-          : DevAuthScreen(
+          : OriginalAccountForm(
               key: const ValueKey('dev-signin'),
               api: _authApi, isRegister: false,
               onBack: () => _go(_EntryStep.access),
@@ -276,7 +295,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
               onForgotPassword: () => _go(_EntryStep.recoverPassword),
               onAuthenticated: _onAuthenticated,
             ),
-        _EntryStep.register => DevAuthScreen(
+        _EntryStep.register => OriginalAccountForm(
           key: const ValueKey('dev-register'),
           api: _authApi!, isRegister: true,
           onBack: () => _go(_EntryStep.access),
@@ -308,7 +327,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
           key: const ValueKey('welcome-workspace'),
           child: widget.child,
         ),
-        _EntryStep.authenticated => DevConnectedWorkspace(
+        _EntryStep.authenticated => RemoteClinicalGateway(
           key: const ValueKey('dev-authenticated-workspace'),
           api: _authApi!,
           session: _authenticatedSession!,
