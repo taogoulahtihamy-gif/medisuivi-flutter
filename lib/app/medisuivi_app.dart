@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../core/state/demo_store.dart';
 import '../core/widgets/clinical_sidebar.dart';
 import '../core/widgets/clinical_bottom_dock.dart';
-import '../features/patients/new_patient_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/exams/exams_screen.dart';
 import '../features/followup/followup_screen.dart';
@@ -127,7 +126,25 @@ class _MainShellState extends State<MainShell> {
     );
 
     return Scaffold(
-      body: showRail
+      extendBody: true,
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color.lerp(
+                palette.canvas,
+                palette.isDark
+                    ? const Color(0xFF050907)
+                    : const Color(0xFFDDD8D0),
+                palette.isDark ? .15 : .23,
+              )!,
+              palette.canvas,
+            ],
+          ),
+        ),
+        child: showRail
           ? SafeArea(
               child: Row(children: [
                 ClinicalSidebar(
@@ -145,14 +162,10 @@ class _MainShellState extends State<MainShell> {
               ]),
             )
           : content,
+      ),
       bottomNavigationBar: showRail ? null : ClinicalBottomDock(
         selectedIndex: selected,
         onSelected: _select,
-        onCreate: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => const NewPatientScreen(),
-          ),
-        ),
       ),
     );
   }
