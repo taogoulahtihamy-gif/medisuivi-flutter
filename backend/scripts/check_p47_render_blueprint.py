@@ -23,11 +23,14 @@ def check():
         "plan": "free",
         "rootDir": "backend",
         "branch": "feat/medisuivi-p47-render-neon-staging",
-        "autoDeployTrigger": "off",
         "healthCheckPath": "/ready",
     }.items():
         assert service.get(key) == expected, key
 
+    # Render uses the string "off". PyYAML (YAML 1.1) parses it as False.
+    assert service.get("autoDeployTrigger") in ("off", False), (
+        "Staging auto deploy must be disabled"
+    )
     assert service.get("buildCommand") == "pip install -r requirements.txt"
     command = service.get("startCommand", "")
     assert command.startswith("python -m alembic upgrade head && ")
