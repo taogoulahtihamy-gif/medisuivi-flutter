@@ -133,7 +133,14 @@ void main() {
 
     await tester.tap(find.byKey(const Key('dock-réglages')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('settings-connected-signout')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-connected-signout')),
+      250,
+      scrollable: find.descendant(
+        of: find.byKey(const Key('settings-page-list')),
+        matching: find.byType(Scrollable),
+      ),
+    );
     await tester.tap(find.byKey(const Key('settings-connected-signout')));
     await tester.pumpAndSettle();
     expect(revoked, isTrue);
