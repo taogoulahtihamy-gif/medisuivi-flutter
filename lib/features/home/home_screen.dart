@@ -149,23 +149,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _buildGreeting(BuildContext context, ClinicalPalette p, DateTime today) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(shortDate(today),
-          style: ClinicalTypography.bodySmall.copyWith(
-            color: p.inkMuted)),
-        const SizedBox(height: ClinicalSpacing.xs),
-        Text('Vos dossiers',
-          style: ClinicalTypography.headlineLarge.copyWith(
-            color: p.ink, fontWeight: FontWeight.w600,
-            letterSpacing: -0.6)),
-        const SizedBox(height: ClinicalSpacing.xs),
-        Text('Vos prochaines actions cliniques.',
-          style: ClinicalTypography.bodyMedium.copyWith(
-            color: p.inkMuted)),
-      ],
-    );
+    return _HomeSearchAndGreeting(palette: p, date: today);
   }
 
   /// Bandeau signature — photo de la professionnelle de santé,
@@ -579,5 +563,181 @@ class _RecentPatient extends StatelessWidget {
     return brightness == Brightness.dark
         ? ClinicalTheme.darkPalette()
         : ClinicalTheme.lightPalette();
+  }
+}
+
+/// Recherche immédiate dans les dossiers locaux, sans requête réseau.
+/// Le bloc titre/date est positionné à droite, y compris sur petit écran.
+class _HomeSearchAndGreeting extends StatefulWidget {
+  const _HomeSearchAndGreeting({required this.palette, required this.date});
+
+  final ClinicalPalette palette;
+  final DateTime date;
+
+  @override
+  State<_HomeSearchAndGreeting> createState() => _HomeSearchAndGreetingState();
+}
+
+class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
+  final TextEditingController _controller = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final p = widget.palette;
+    final term = _query.trim().toLowerCase();
+    final matches = term.isEmpty
+        ? <Patient>[]
+        : context.store.patients.where((patient) =>
+            patient.name.toLowerCase().contains(term) ||
+            patient.id.toLowerCase().contains(term)).take(4).toList();
+
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      LayoutBuilder(builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 390;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              flex: narrow ? 5 : 6,
+              child: Semantics(
+                textField: true,
+                label: 'Rechercher un patient',
+                child: Container(
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: p.surface.withValues(alpha: p.isDark ? .86 : .94),
+                    borderRadius: BorderRadius.circular(23),
+                    border: Border.all(color: p.border.withValues(alpha: .80)),
+                  ),
+                  child: TextField(
+                    key: const Key('home-patient-search'),
+                    controller: _controller,
+                    onChanged: (value) => setState(() => _query = value),
+                    textInputAction: TextInputAction.search,
+                    maxLines: 1,
+                    style: TextStyle(color: p.ink, fontSize: 12.5),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      hintText: narrow ? 'Patient…' : 'Chercher un patient',
+                      hintStyle: TextStyle(
+                        color: p.inkMuted, fontSize: narrow ? 11 : 12),
+                      prefixIcon: Icon(Icons.search_rounded,
+                        size: 19, color: p.inkMuted),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 34, minHeight: 40),
+                      contentPadding: const EdgeInsets.only(
+                        top: 12, bottom: 12, right: 8),
+                      suffixIcon: _query.isEmpty ? null : IconButton(
+                        key: const Key('home-clear-search'),
+                        tooltip: 'Effacer la recherche',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32, minHeight: 40),
+                        onPressed: () {
+                          _controller.clear();
+                          setState(() => _query = '');
+                        },
+                        icon: Icon(Icons.close_rounded, size: 16, color: p.inkMuted),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              flex: narrow ? 6 : 5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(shortDate(widget.date),
+                    key: const Key('home-greeting-date'),
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: p.inkMuted,
+                      fontSize: narrow ? 10 : 11,
+                    )),
+                  const SizedBox(height: 3),
+                  Text('Vos dossiers',
+                    key: const Key('home-greeting-title'),
+                    maxLines: 1,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: p.ink,
+                      fontSize: narrow ? 19 : 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -.45,
+                    )),
+                  const SizedBox(height: 3),
+                  Text('Vos prochaines actions cliniques.',
+                    maxLines: 2,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: p.inkMuted,
+                      fontSize: narrow ? 10.5 : 12,
+                      height: 1.25,
+                    )),
+                ],
+              ),
+            ),
+          ],
+        );
+      }),
+      if (term.isNotEmpty) ...[
+        const SizedBox(height: 8),
+        Container(
+          key: const Key('home-search-results'),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: p.surfaceElevated,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: p.border),
+          ),
+          child: matches.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(9),
+                  child: Text('Aucun patient trouvé',
+                    style: TextStyle(color: p.inkMuted, fontSize: 12)),
+                )
+              : Column(
+                  children: [
+                    for (final patient in matches)
+                      ListTile(
+                        key: Key('home-result-${patient.id}'),
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 7),
+                        leading: Icon(Icons.person_outline_rounded,
+                          color: p.brandPrimary, size: 20),
+                        title: Text(patient.name,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: p.ink, fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                        subtitle: Text(patient.id,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: p.inkMuted, fontSize: 11)),
+                        trailing: Icon(Icons.chevron_right_rounded,
+                          color: p.inkMuted, size: 19),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                              PatientDetailScreen(patientId: patient.id))),
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    ]);
   }
 }
