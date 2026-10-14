@@ -143,7 +143,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
             )
           : DevAuthScreen(
               key: const ValueKey('dev-signin'),
-              api: _authApi!, isRegister: false,
+              api: _authApi, isRegister: false,
               onBack: () => _go(_EntryStep.access),
               onToggle: () => _go(_EntryStep.register),
               onAuthenticated: _onAuthenticated,
