@@ -4,6 +4,7 @@ WORKDIR /srv
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
+COPY scripts ./scripts
 RUN addgroup --system app && adduser --system --ingroup app app
 USER app
 EXPOSE 8000
