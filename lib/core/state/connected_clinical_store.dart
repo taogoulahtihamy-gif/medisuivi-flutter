@@ -19,6 +19,8 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
   final List<Visit> _visits = [];
   final List<LabExam> _exams = [];
   final List<FollowUpPlan> _followUps = [];
+  final Map<String, PatientProfileSupplement> _profiles = {};
+  final Map<String, ClinicalIntake> _intakes = {};
   int _epoch = 0;
   bool _disposed = false;
   bool _loaded = false;
@@ -41,6 +43,8 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
     _visits.clear();
     _exams.clear();
     _followUps.clear();
+    _profiles.clear();
+    _intakes.clear();
     _loaded = false;
     _loadError = null;
     _notify();
@@ -78,15 +82,27 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
       final visits = <Visit>[];
       final exams = <LabExam>[];
       final followUps = <FollowUpPlan>[];
+      final profiles = <String, PatientProfileSupplement>{};
+      final intakes = <String, ClinicalIntake>{};
       for (var index = 0; index < remotePatients.length; index++) {
         final patient = remotePatients[index];
         final bundle = bundles[index];
         patients.add(Patient(
           id: patient.id, name: patient.displayName, age: patient.age,
-          sex: '', phone: '', createdAt: patient.createdAt ?? DateTime.now(),
-          followUp: bundle.followUps.any((f) => f.status == 'planned'),
+          sex: patient.sex, phone: patient.phone,
+          allergies: patient.allergies, medicalHistory: patient.medicalHistory,
+          createdAt: patient.createdAt ?? DateTime.now(),
+          followUp: patient.followUp ||
+              bundle.followUps.any((f) => f.status == 'planned'),
         ));
+        if (patient.profile.isNotEmpty) {
+          profiles[patient.id] =
+            PatientProfileSupplement.fromJson(patient.profile);
+        }
         for (final v in bundle.visits) {
+          if (v.intake.isNotEmpty) {
+            intakes[v.id] = ClinicalIntake.fromJson(v.intake);
+          }
           visits.add(Visit(
             id: v.id, patientId: patient.id, date: v.createdAt,
             reason: v.reason, temperature: v.temperature,
@@ -123,6 +139,8 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
       _visits.addAll(visits);
       _exams.addAll(exams);
       _followUps.addAll(followUps);
+      _profiles.addAll(profiles);
+      _intakes.addAll(intakes);
       _loaded = true;
       _notify();
     } catch (error) {
@@ -239,48 +257,52 @@ class ConnectedClinicalStore extends ChangeNotifier implements ClinicalStore {
     required String name, required int age, required String sex,
     required String phone, PatientProfileSupplement? profile,
   }) async {
-    if (sex.trim().isNotEmpty || phone.trim().isNotEmpty || profile != null) {
-      throw UnsupportedError(
-        'Le backend ne gère pas encore les informations complémentaires.');
-    }
     await _commit(() async {
-      await api.createClinicalPatient(session, name, age);
+      await api.createClinicalPatient(session, name, age,
+        sex: sex, phone: phone, profile: profile?.toJson() ?? const {});
     });
   }
 
   @override
   Future<PatientProfileSupplement?> patientProfile(String id) async {
     if (!active) throw StateError('Session fermée.');
-    return null; // API patient profile not available. Never synthesize data.
+    return _profiles[id];
   }
   @override
   Future<ClinicalIntake?> visitIntake(String id) async {
     if (!active) throw StateError('Session fermée.');
-    return null;
+    return _intakes[id];
   }
   @override
   Future<void> updatePatientInfo({
     required String patientId, required String phone,
     required String allergies, required String medicalHistory,
     PatientProfileSupplement? profile,
-  }) => Future<void>.error(UnsupportedError(
-    'Modification du dossier indisponible tant que l’API ne la prend pas en charge.'));
+  }) => _commit(() async {
+    await api.updateClinicalPatient(session, patientId,
+      phone: phone, allergies: allergies,
+      medicalHistory: medicalHistory,
+      profile: profile?.toJson() ?? _profiles[patientId]?.toJson() ?? const {});
+  });
   @override
   Future<void> setFollowUp(String id, {required bool toReview}) =>
-    Future<void>.error(UnsupportedError(
-      'Le drapeau de suivi devra être ajouté au backend.'));
+    _commit(() async {
+      await api.updateClinicalFollowUpFlag(session, id, toReview);
+    });
   @override
   Future<void> addVisit({
     required String patientId, required String reason,
     double? temperature, int? systolic, int? diastolic, int? pulse,
     int? spo2, String notes = '', ClinicalIntake? intake,
   }) async {
-    if (intake != null) throw UnsupportedError(
-      'Les compléments cliniques nécessitent une API dédiée.');
+    if (intake != null && intake.validate().isNotEmpty) {
+      throw ArgumentError('Bilan clinique invalide.');
+    }
     await _commit(() async {
       await api.createClinicalVisit(session, patientId,
         reason: reason, temperature: temperature, systolic: systolic,
-        diastolic: diastolic, pulse: pulse, spo2: spo2, notes: notes);
+        diastolic: diastolic, pulse: pulse, spo2: spo2, notes: notes,
+        intake: intake?.toJson() ?? const {});
     });
   }
   @override
