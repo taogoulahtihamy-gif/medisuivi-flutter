@@ -93,6 +93,7 @@ abstract final class ClinicalTheme {
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: ClinicalTypography.fontFamilyUI,
       colorScheme: scheme,
       scaffoldBackgroundColor: p.background,
       shadowColor: p.shadow,
