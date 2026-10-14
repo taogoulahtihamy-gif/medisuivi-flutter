@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
 import '../../app/design_tokens.dart';
 import '../../app/theme_v2.dart';
-import '../../core/assets/clinical_hero_photo.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/clinical_components.dart';
@@ -34,9 +32,6 @@ class HomeScreen extends StatelessWidget {
   final VoidCallback onPatients;
   final VoidCallback onExams;
   final VoidCallback onFollowup;
-
-  // Décompression unique de la photo fictive embarquée, y compris hors ligne.
-  static final _photoBytes = base64Decode(clinicalHeroPhotoWebpBase64);
 
   @override
   Widget build(BuildContext context) {
@@ -183,11 +178,12 @@ class HomeScreen extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             // Photo signature — cadrage d'origine conservé
-            Image.memory(
-              _photoBytes,
+            Image.asset(
+              'assets/images/home_hero_hd.webp',
+              key: const Key('home-hero-hd-photo'),
               fit: BoxFit.cover,
               alignment: Alignment.centerRight,
-              filterQuality: FilterQuality.medium,
+              filterQuality: FilterQuality.high,
               excludeFromSemantics: true,
               color: isDark ? Colors.black.withValues(alpha: 0.35) : null,
               colorBlendMode: isDark ? BlendMode.darken : null,
