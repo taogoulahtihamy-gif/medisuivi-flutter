@@ -39,9 +39,10 @@ Une sauvegarde par `pg_dump` évite de copier les fichiers PostgreSQL pendant qu
 ```bash
 cd /mnt/chak/medisuivi-flutter/backend || exit 1
 umask 077
-mkdir -p ../local-backups
-docker exec backend-postgres-1 pg_dump -U medisuivi -d medisuivi -Fc > ../local-backups/medisuivi-before-p44-compose.dump
-test -s ../local-backups/medisuivi-before-p44-compose.dump || exit 1
+mkdir -p /mnt/chak/medisuivi-local-backups
+chmod 700 /mnt/chak/medisuivi-local-backups
+docker exec backend-postgres-1 pg_dump -U medisuivi -d medisuivi -Fc > /mnt/chak/medisuivi-local-backups/medisuivi-before-p44-compose.dump
+test -s /mnt/chak/medisuivi-local-backups/medisuivi-before-p44-compose.dump || exit 1
 ```
 
 **Garder cette sauvegarde hors Git et avec des permissions privées.** Vérifier sa validité et sa possibilité de restauration avant une migration définitive. Ne jamais télécharger ni partager le dump dans le chat.
