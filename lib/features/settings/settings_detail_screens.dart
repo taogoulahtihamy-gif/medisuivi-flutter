@@ -175,6 +175,7 @@ class SettingsSyncPage extends StatelessWidget {
           const SizedBox(height: 22),
           ClinicalGroupedList(children: [
             ClinicalListRow(
+              key: const Key('settings-sync-local-data'),
               leading: Icon(Icons.phonelink_lock_outlined, color: p.forest),
               title: 'Données sur cet appareil',
               subtitle: connected
@@ -186,6 +187,7 @@ class SettingsSyncPage extends StatelessWidget {
                   builder: (_) => const SettingsDataPage())),
             ),
             ClinicalListRow(
+              key: const Key('settings-sync-server-info'),
               leading: Icon(Icons.cloud_off_outlined, color: p.forest),
               title: 'Compte et serveur',
               subtitle: connected
@@ -238,6 +240,7 @@ class SettingsPrivacyPage extends StatelessWidget {
           const SizedBox(height: 23),
           ClinicalGroupedList(children: [
             ClinicalListRow(
+              key: const Key('settings-privacy-local-data'),
               leading: Icon(Icons.storage_rounded, color: p.forest),
               title: 'Mes données locales',
               subtitle: connected
@@ -247,6 +250,7 @@ class SettingsPrivacyPage extends StatelessWidget {
                 MaterialPageRoute<void>(builder: (_) => const SettingsDataPage())),
             ),
             ClinicalListRow(
+              key: const Key('settings-privacy-connections'),
               leading: Icon(Icons.cloud_off_outlined, color: p.forest),
               title: 'Connexions distantes',
               subtitle: connected
@@ -294,6 +298,7 @@ class SettingsAboutPage extends StatelessWidget {
                 context: context, applicationName: 'MediSuivi'),
             ),
             ClinicalListRow(
+              key: const Key('about-photo-credits'),
               leading: Icon(Icons.image_outlined, color: p.forest),
               title: 'Crédits photographiques',
               subtitle: 'Photographies cliniques Pexels intégrées hors ligne',
