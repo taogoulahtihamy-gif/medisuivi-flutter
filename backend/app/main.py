@@ -62,8 +62,35 @@ class Settings:
         self.allow_registration = (
             os.environ.get("APP_ALLOW_DEVELOPMENT_REGISTRATION", "false").lower() == "true"
         )
+        self.sandbox_writes_enabled = (
+            os.environ.get("APP_SANDBOX_WRITES_ENABLED", "false").lower() == "true"
+        )
+        self.sandbox_registration_enabled = (
+            os.environ.get("APP_SANDBOX_REGISTRATION_ENABLED", "false").lower() == "true"
+        )
+        self.sandbox_invite_code = os.environ.get("APP_SANDBOX_INVITE_CODE", "")
+        self.public_web_origin = os.environ.get("APP_PUBLIC_WEB_ORIGIN", "").rstrip("/")
+        if self.environment == "sandbox":
+            from urllib.parse import urlsplit
+            origin = urlsplit(self.public_web_origin)
+            if (origin.scheme != "https" or not origin.hostname
+                    or origin.username or origin.password or origin.path
+                    or origin.query or origin.fragment
+                    or origin.hostname in {"localhost", "127.0.0.1"}):
+                raise RuntimeError("Sandbox needs one explicit HTTPS web origin")
+            if (self.sandbox_registration_enabled and
+                    len(self.sandbox_invite_code.encode("utf-8")) < 32):
+                raise RuntimeError("Sandbox invitation secret must be >=32 bytes")
+            if not self.database_url.startswith("postgresql+psycopg://"):
+                raise RuntimeError("Sandbox requires a dedicated PostgreSQL database")
+            from urllib.parse import parse_qs
+            database = urlsplit(self.database_url)
+            if database.hostname not in {"localhost", "127.0.0.1"}:
+                sslmode = parse_qs(database.query).get("sslmode", [""])[0]
+                if sslmode not in {"require", "verify-ca", "verify-full"}:
+                    raise RuntimeError("Remote sandbox PostgreSQL must require TLS")
         # This foundation explicitly REFUSES production traffic.
-        if self.environment not in {"development", "test", "staging"}:
+        if self.environment not in {"development", "test", "staging", "sandbox"}:
             raise RuntimeError("Prototype API: production prohibited until security approval")
         if not self.database_url:
             raise RuntimeError("APP_DATABASE_URL must be provided")
@@ -438,8 +465,11 @@ def owned_patient(db: Session, user: User, patient_id: str) -> Patient:
 
 
 def dev_write_only() -> None:
-    if settings.environment != "development":
-        raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
+    if settings.environment == "development":
+        return
+    if settings.environment == "sandbox" and settings.sandbox_writes_enabled:
+        return
+    raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
 
 
 def clean_text(value: str) -> str:
@@ -667,13 +697,18 @@ def api_app() -> FastAPI:
 
     # Exact local development origins. No wildcard and no credentials/cookies.
     # Do NOT enable public origins until the production security review.
-    if settings.environment == "development":
+    if settings.environment in {"development", "sandbox"}:
+        # Authentication uses Bearer tokens, never permissive wildcard origins.
+        allowed = (["http://127.0.0.1:8080", "http://localhost:8080"]
+                   if settings.environment == "development"
+                   else [settings.public_web_origin])
         app.add_middleware(
             CORSMiddleware,
-            allow_origins=["http://127.0.0.1:8080", "http://localhost:8080"],
+            allow_origins=allowed,
             allow_credentials=False,
             allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-            allow_headers=["Authorization", "Content-Type"],
+            allow_headers=["Authorization", "Content-Type",
+                           "X-MediSuivi-Sandbox-Invite"],
             max_age=600,
         )
 
@@ -690,8 +725,21 @@ def api_app() -> FastAPI:
         return {"ready": True}
 
     @app.post("/api/v1/auth/register", response_model=RegisterOut, status_code=201)
-    def register(data: RegisterIn, db: Session = Depends(get_db)):
-        if settings.environment != "development" or not settings.allow_registration:
+    def register(data: RegisterIn, request: Request,
+                 db: Session = Depends(get_db)):
+        if settings.environment == "sandbox":
+            provided = request.headers.get("X-MediSuivi-Sandbox-Invite", "")
+            if (not settings.sandbox_registration_enabled
+                    or not settings.sandbox_invite_code
+                    or not hmac.compare_digest(
+                        provided.encode("utf-8"),
+                        settings.sandbox_invite_code.encode("utf-8"))):
+                raise HTTPException(status_code=403, detail="Invitation requise")
+            if not (str(data.email).lower().startswith("demo-")
+                    and str(data.email).lower().endswith("@example.com")):
+                raise HTTPException(status_code=422,
+                    detail="Compte fictif demo-...@example.com requis")
+        elif settings.environment != "development" or not settings.allow_registration:
             raise HTTPException(status_code=403, detail="Inscription indisponible")
         if settings.email_auth_enabled:
             _email_flow_enabled()
@@ -1000,9 +1048,11 @@ def api_app() -> FastAPI:
     @app.post("/api/v1/patients", response_model=PatientOut, status_code=201)
     def create_patient(data: PatientIn, user: User = Depends(current_user),
                        db: Session = Depends(get_db)):
-        # All clinical writes are deliberately restricted to development.
-        if settings.environment != "development":
-            raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
+        dev_write_only()
+        if (settings.environment == "sandbox" and not
+                data.display_name.strip().upper().startswith("PATIENT FICTIF")):
+            raise HTTPException(status_code=422,
+                detail="Uniquement des patients fictifs dans la sandbox")
         patient = Patient(
             owner_user_id=user.id, display_name=data.display_name.strip(),
             age=data.age, sex=data.sex, phone=data.phone, profile=data.profile)

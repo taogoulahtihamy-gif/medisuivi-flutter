@@ -30,6 +30,9 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.medisuivi"
+        manifestPlaceholders["medisuiviAppLabel"] = if (
+            System.getenv("MEDISUIVI_REMOTE_SANDBOX_APK") == "true"
+        ) "MediSuivi Test" else "MediSuivi"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -54,6 +57,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Install the public-HTTPS sandbox alongside an existing MediSuivi
+            // rather than replacing a different signed or offline build.
+            if (System.getenv("MEDISUIVI_REMOTE_SANDBOX_APK") == "true") {
+                applicationIdSuffix = ".sandbox"
+                versionNameSuffix = "-sandbox"
+            }
+        }
         release {
             // Never silently sign a distributable release with a debug key.
             // Dedicated CI enforces pinned cert and refuses missing secrets.

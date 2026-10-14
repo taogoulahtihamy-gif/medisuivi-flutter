@@ -364,6 +364,7 @@ class DevAuthApi {
     Map<String, Object?>? body,
     String? token,
     DevSession? session,
+    Map<String, String> extraHeaders = const {},
   }) async {
     final revision = session?.revision;
     if (session != null) _assertSession(session, revision!);
@@ -373,6 +374,7 @@ class DevAuthApi {
       if (body != null) 'Content-Type': 'application/json',
       if (effectiveToken != null && effectiveToken.isNotEmpty)
         'Authorization': 'Bearer $effectiveToken',
+      ...extraHeaders,
     };
     try {
       final url = _url(path);
@@ -404,7 +406,7 @@ class DevAuthApi {
         _assertSession(session, revision!);
         // Retry once only; then check that sign-out did not occur in-flight.
         final retried = await _request(method, path, body: body,
-          token: session.accessToken);
+          token: session.accessToken, extraHeaders: extraHeaders);
         _assertSession(session, revision);
         return retried;
       }
@@ -413,7 +415,7 @@ class DevAuthApi {
       throw const DevApiException('Le serveur ne répond pas. Réessayez.');
     } on http.ClientException {
       throw const DevApiException(
-        'Impossible de joindre l’API. Vérifiez le serveur local.');
+        'Impossible de joindre l’API HTTPS. Vérifiez votre connexion réseau.');
     }
   }
 
@@ -430,7 +432,7 @@ class DevAuthApi {
           'Trop de tentatives. Patientez quelques minutes avant de réessayer.');
       case 403:
         throw const DevApiException(
-          'Cette opération est désactivée sur le serveur de développement.');
+          'Accès refusé. Vérifiez l’invitation et les droits du compte.');
       case 404:
         throw const DevApiException('Ressource introuvable pour ce compte.');
       case 409:
@@ -477,11 +479,14 @@ class DevAuthApi {
     required String lastName,
     required String email,
     required String password,
+    String inviteCode = '',
   }) async {
     final response = await _request('POST', '/api/v1/auth/register', body: {
       'first_name': firstName.trim(), 'last_name': lastName.trim(),
       'email': email.trim(), 'password': password,
-    });
+    }, extraHeaders: inviteCode.trim().isEmpty
+        ? const {}
+        : {'X-MediSuivi-Sandbox-Invite': inviteCode.trim()});
     _ensureSuccess(response, expected: 201);
     final payload = _map(response);
     if (payload['email_verification_required'] == true) {
