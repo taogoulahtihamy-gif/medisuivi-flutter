@@ -16,6 +16,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint,
@@ -346,6 +347,18 @@ def api_app() -> FastAPI:
         docs_url="/docs" if settings.environment == "development" else None,
         redoc_url=None,
     )
+
+    # Exact local development origins. No wildcard and no credentials/cookies.
+    # Do NOT enable public origins until the production security review.
+    if settings.environment == "development":
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://127.0.0.1:8080", "http://localhost:8080"],
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+            allow_headers=["Authorization", "Content-Type"],
+            max_age=600,
+        )
 
     @app.get("/health")
     def health():
