@@ -50,6 +50,9 @@ void main() {
       await tester.scrollUntilVisible(
         find.byKey(const Key('settings-more')), 140,
         scrollable: find.byType(Scrollable).first);
+      await tester.drag(find.byKey(const Key('settings-page-list')),
+          const Offset(0, -160));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('settings-more')));
       await tester.pumpAndSettle();
       expect(find.text('Préférences de l’application'), findsOneWidget);
@@ -103,6 +106,9 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const Key('settings-privacy')), 150,
       scrollable: find.byType(Scrollable).first);
+    await tester.drag(find.byKey(const Key('settings-page-list')),
+        const Offset(0, -150));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('settings-privacy')));
     await tester.pumpAndSettle();
     expect(find.text('La confidentialité avant tout'), findsOneWidget);
