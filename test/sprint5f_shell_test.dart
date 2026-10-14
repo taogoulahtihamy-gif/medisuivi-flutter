@@ -87,4 +87,18 @@ void main() {
     expect(tester.getTopLeft(vitals).dy, lessThan(tester.getTopLeft(info).dy));
     expect(tester.takeException(), isNull);
   });
+  testWidgets('Sidebar desktop : surface givrée et paramètres accessibles',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MediSuiviApp(themeMode: ThemeMode.dark));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('clinical-sidebar-glass')), findsOneWidget);
+    expect(find.byKey(const Key('dock-create-patient')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
 }
