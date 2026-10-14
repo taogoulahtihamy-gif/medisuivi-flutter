@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../app/theme.dart';
 import 'dev_auth_api.dart';
+import 'dev_change_password.dart';
 
 /// Private development profile. No access to the shared demo clinical store.
 class DevProfileEditor extends StatefulWidget {
@@ -15,6 +16,7 @@ class DevProfileEditor extends StatefulWidget {
     required this.initial,
     required this.avatar,
     required this.onChanged,
+    this.onPasswordChanged,
   });
 
   final DevAuthApi api;
@@ -22,6 +24,7 @@ class DevProfileEditor extends StatefulWidget {
   final DevPractitioner initial;
   final Uint8List? avatar;
   final void Function(DevPractitioner, Uint8List?) onChanged;
+  final VoidCallback? onPasswordChanged;
 
   @override
   State<DevProfileEditor> createState() => _DevProfileEditorState();
@@ -235,6 +238,27 @@ class _DevProfileEditorState extends State<DevProfileEditor> {
                   onPressed: _busy ? null : _save,
                   child: Text(_busy
                     ? 'Enregistrement…' : 'Enregistrer les modifications'),
+                ),
+                const SizedBox(height: 25),
+                Text('Sécurité du compte',
+                  style: TextStyle(color: p.ink, fontSize: 17,
+                    fontWeight: FontWeight.w700)),
+                const SizedBox(height: 8),
+                ListTile(
+                  key: const Key('dev-profile-change-password'),
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.lock_outline_rounded, color: p.forest),
+                  title: const Text('Modifier le mot de passe'),
+                  subtitle: const Text('Déconnecte aussi les autres appareils'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: _busy ? null : () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) =>
+                      DevChangePasswordScreen(
+                        api: widget.api,
+                        session: widget.session,
+                        onPasswordChanged: widget.onPasswordChanged ??
+                          () => Navigator.of(context).pop(),
+                      ))),
                 ),
                 const SizedBox(height: 18),
                 Text('Profil personnel de développement. '

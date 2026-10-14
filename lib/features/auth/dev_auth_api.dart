@@ -255,6 +255,8 @@ class DevAuthApi {
     final code = response.statusCode;
     if (expected != null ? code == expected : code >= 200 && code < 300) return;
     switch (code) {
+      case 400:
+        throw const DevApiException('Mot de passe actuel incorrect.');
       case 401:
         throw const DevApiException('Identifiants invalides ou session expirée.');
       case 429:
@@ -463,6 +465,27 @@ class DevAuthApi {
       '/api/v1/followups/${Uri.encodeComponent(followUp.id)}/close',
       session: session, body: {'completed':true});
     _ensureSuccess(response);
+  }
+
+  /// Changes the current practitioner's password on the server.
+  /// A successful change invalidates ALL of their devices immediately.
+  /// Nothing is persisted in browser storage.
+  Future<void> changePassword(DevSession session, {
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (newPassword.length < 12 || newPassword.length > 128 ||
+        currentPassword.isEmpty || currentPassword.length > 128) {
+      throw const DevApiException('Mot de passe invalide (12 caractères minimum).');
+    }
+    final response = await _request('PUT', '/api/v1/me/password',
+        session: session, body: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        });
+    _ensureSuccess(response, expected: 204);
+    session.clear();
+    _refreshing.remove(session);
   }
 
   Future<void> signOut(DevSession session) async {
