@@ -734,7 +734,9 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
               : Column(
                   children: [
                     for (final patient in matches)
-                      ListTile(
+                      Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
                         key: Key('home-result-${patient.id}'),
                         dense: true,
                         visualDensity: VisualDensity.compact,
@@ -754,6 +756,7 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                           MaterialPageRoute<void>(
                             builder: (_) =>
                               PatientDetailScreen(patientId: patient.id))),
+                        ),
                       ),
                   ],
                 ),
