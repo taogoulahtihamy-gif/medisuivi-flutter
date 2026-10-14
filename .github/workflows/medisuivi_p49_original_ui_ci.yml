@@ -1,0 +1,39 @@
+name: MediSuivi P4.9 original UI connected
+
+on:
+  push:
+    branches:
+      - feat/medisuivi-p49-original-ui-api-store
+    paths:
+      - "lib/**"
+      - "test/**"
+      - ".github/workflows/medisuivi_p49_original_ui_ci.yml"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+  pull_request:
+    paths:
+      - "lib/**"
+      - "test/**"
+      - ".github/workflows/medisuivi_p49_original_ui_ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  original-ui:
+    name: Original clinical UI on authenticated API store
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Analyze connected adapter and original gate
+        run: dart analyze lib/core/state/connected_clinical_store.dart lib/core/state/store_context.dart lib/features/auth/original_connected_clinical_gate.dart lib/features/onboarding/medisuivi_welcome_gate.dart lib/features/auth/dev_auth_api.dart
+      - name: Test original app and all existing regressions
+        run: flutter test --reporter expanded
+      - name: Build Firefox-compatible web
+        run: flutter build web --release --dart-define=MEDISUIVI_DEV_API_BASE_URL=http://127.0.0.1:8027
