@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -9,11 +10,15 @@ class DevPractitioner {
   const DevPractitioner({
     required this.id, required this.email,
     required this.firstName, required this.lastName,
+    this.phone = '', this.specialty = '', this.hasAvatar = false,
   });
   final String id;
   final String email;
   final String firstName;
   final String lastName;
+  final String phone;
+  final String specialty;
+  final bool hasAvatar;
   String get displayName => '$firstName $lastName'.trim();
 
   factory DevPractitioner.fromJson(Map<String, dynamic> json) =>
@@ -22,6 +27,9 @@ class DevPractitioner {
         email: json['email'] as String,
         firstName: json['first_name'] as String,
         lastName: json['last_name'] as String,
+        phone: json['phone'] as String? ?? '',
+        specialty: json['specialty'] as String? ?? '',
+        hasAvatar: json['has_avatar'] as bool? ?? false,
       );
 }
 
@@ -102,6 +110,11 @@ class DevAuthApi {
         case 'POST':
           return await _client.post(url, headers: headers,
               body: body == null ? null : jsonEncode(body)).timeout(_timeout);
+        case 'PUT':
+          return await _client.put(url, headers: headers,
+              body: body == null ? null : jsonEncode(body)).timeout(_timeout);
+        case 'DELETE':
+          return await _client.delete(url, headers: headers).timeout(_timeout);
         default:
           throw ArgumentError('Méthode HTTP inconnue');
       }
@@ -169,6 +182,65 @@ class DevAuthApi {
     return (jsonDecode(response.body) as List<dynamic>)
         .map((item) => DevPatient.fromJson(item as Map<String, dynamic>))
         .toList(growable: false);
+  }
+
+  Future<DevPractitioner> updateProfile(
+    DevSession session, {
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String specialty,
+  }) async {
+    final response = await _request('PUT', '/api/v1/me',
+      token: session.accessToken,
+      body: {
+        'first_name': firstName.trim(), 'last_name': lastName.trim(),
+        'phone': phone.trim(), 'specialty': specialty.trim(),
+      });
+    _ensureSuccess(response);
+    return DevPractitioner.fromJson(_map(response));
+  }
+
+  Future<Uint8List?> loadAvatar(DevSession session) async {
+    final response = await _request('GET', '/api/v1/me/avatar',
+        token: session.accessToken);
+    if (response.statusCode == 404) return null;
+    _ensureSuccess(response);
+    return response.bodyBytes;
+  }
+
+  Future<DevPractitioner> uploadAvatar(
+    DevSession session, Uint8List bytes, {
+      required String mimeType,
+    }) async {
+    if (bytes.isEmpty || bytes.lengthInBytes > 2 * 1024 * 1024) {
+      throw const DevApiException('Photo trop volumineuse.');
+    }
+    if (!const {'image/png', 'image/jpeg', 'image/webp'}.contains(mimeType)) {
+      throw const DevApiException('Choisissez une photo PNG, JPEG ou WebP.');
+    }
+    try {
+      final response = await _client.put(_url('/api/v1/me/avatar'),
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ${session.accessToken}',
+          'Content-Type': mimeType,
+        },
+        body: bytes,
+      ).timeout(_timeout);
+      _ensureSuccess(response);
+      return DevPractitioner.fromJson(_map(response));
+    } on TimeoutException {
+      throw const DevApiException('Le serveur ne répond pas.');
+    } on http.ClientException {
+      throw const DevApiException('Photo non transmise au serveur.');
+    }
+  }
+
+  Future<void> removeAvatar(DevSession session) async {
+    final response = await _request('DELETE', '/api/v1/me/avatar',
+      token: session.accessToken);
+    _ensureSuccess(response, expected: 204);
   }
 
   /// Generates a synthetic identity. Users cannot enter actual patient names.
