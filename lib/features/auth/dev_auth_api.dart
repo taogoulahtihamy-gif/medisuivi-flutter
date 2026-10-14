@@ -191,14 +191,18 @@ class DevAuthApi {
       switch (method) {
         case 'GET':
           response = await _client.get(url, headers: headers).timeout(_timeout);
+          break;
         case 'POST':
           response = await _client.post(url, headers: headers,
               body: body == null ? null : jsonEncode(body)).timeout(_timeout);
+          break;
         case 'PUT':
           response = await _client.put(url, headers: headers,
               body: body == null ? null : jsonEncode(body)).timeout(_timeout);
+          break;
         case 'DELETE':
           response = await _client.delete(url, headers: headers).timeout(_timeout);
+          break;
         default:
           throw ArgumentError('Méthode HTTP inconnue');
       }
