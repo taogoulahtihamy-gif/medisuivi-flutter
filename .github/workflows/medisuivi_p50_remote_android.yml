@@ -3,7 +3,7 @@ name: MediSuivi P5.0 remote HTTPS Android APK
 on:
   push:
     branches:
-      - feat/medisuivi-p50-remote-web-android-sandbox
+      - feat/medisuivi-p50-vercel-api-neon
     paths:
       - "android/**"
       - "lib/**"
@@ -26,12 +26,12 @@ permissions:
   contents: read
 
 env:
-  MEDISUIVI_API_BASE_URL: https://medisuivi-api-staging.onrender.com
+  MEDISUIVI_API_BASE_URL: https://medisuivi-api-staging.vercel.app
   MEDISUIVI_REMOTE_SANDBOX_APK: "true"
 
 jobs:
   connected-apk:
-    name: Android APK pointing to Render HTTPS (no USB tunnel)
+    name: Android APK pointing to Vercel HTTPS (no USB tunnel)
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -82,7 +82,7 @@ jobs:
             grep -q "package: name='com.example.medisuivi.sandbox'"
       - uses: actions/upload-artifact@v4
         with:
-          name: medisuivi-p50-render-connected-android-debug-apk
+          name: medisuivi-p50-vercel-connected-android-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
           if-no-files-found: error
