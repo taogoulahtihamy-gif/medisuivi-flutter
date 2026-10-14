@@ -126,7 +126,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                       TextFormField(
                         controller: name,
                         textCapitalization: TextCapitalization.words,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: context.store is ConnectedClinicalStore
                               ? 'Ex. PATIENT FICTIF A' : 'Ex. Aminata Diallo',
                         ),
