@@ -9,6 +9,7 @@ on:
       - "lib/**"
       - "integration_test/**"
       - "scripts/check_remote_api_url.py"
+      - "scripts/ci_p50_android_emulator.sh"
       - "scripts/check_android_p46_security.py"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
       - "pubspec.yaml"
@@ -19,6 +20,7 @@ on:
       - "lib/**"
       - "integration_test/**"
       - "scripts/check_remote_api_url.py"
+      - "scripts/ci_p50_android_emulator.sh"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
       - "pubspec.yaml"
       - "pubspec.lock"
@@ -94,6 +96,8 @@ jobs:
     needs: connected-apk
     runs-on: ubuntu-latest
     timeout-minutes: 55
+    env:
+      MEDISUIVI_ANDROID_API_LEVEL: ${{ matrix.api-level }}
     strategy:
       fail-fast: false
       matrix:
@@ -144,45 +148,8 @@ jobs:
           profile: pixel_5
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -accel on -no-snapshot -noaudio -no-boot-anim
-          script: |
-            # android-emulator-runner executes this block with /bin/sh (dash).
-            # pipefail is a Bash-specific option: use portable POSIX flags.
-            set -eu
-            test -s downloaded-apk/app-debug.apk
-            adb wait-for-device
-            adb shell getprop ro.build.version.release
-            # sys.boot_completed can be 1 before Android's package manager
-            # is responsive, especially on cold API 35 emulator startup.
-            package_ready=0
-            attempt=0
-            while [ "$attempt" -lt 40 ]; do
-              attempt=$((attempt + 1))
-              if adb shell 'cmd package list packages android' 2>/dev/null | grep -q 'package:android'; then
-                package_ready=1
-                break
-              fi
-              echo "Waiting for Android package manager ($attempt/40)"
-              sleep 3
-            done
-            if [ "$package_ready" -ne 1 ]; then
-              echo "ERROR: Android package manager did not become ready"
-              adb devices -l || true
-              exit 1
-            fi
-            # Non-streaming install is more stable after cold emulator boot.
-            adb install --no-streaming -r downloaded-apk/app-debug.apk
-            adb shell pm path com.example.medisuivi.sandbox
-            adb shell am start -W -n \
-              com.example.medisuivi.sandbox/com.example.medisuivi.MainActivity
-            adb shell pidof com.example.medisuivi.sandbox
-            # Fresh CI emulator contains no patient data. Capture startup UI
-            # for visual compatibility review in GitHub Actions artifacts.
-            sleep 2
-            adb exec-out screencap -p > "medisuivi-android-${{ matrix.api-level }}.png"
-            flutter test integration_test/p50_vercel_android_emulator_test.dart \
-              -d emulator-5554 --no-pub \
-              --dart-define="MEDISUIVI_DEV_API_BASE_URL=$MEDISUIVI_API_BASE_URL" \
-              --dart-define=MEDISUIVI_REMOTE_SANDBOX=true
+          # The action runs each line via /bin/sh; use a single Bash invocation.
+          script: bash scripts/ci_p50_android_emulator.sh
       - name: Save emulator startup screenshot (synthetic only)
         if: always()
         uses: actions/upload-artifact@v4
