@@ -83,6 +83,12 @@ class Settings:
                 raise RuntimeError("Sandbox invitation secret must be >=32 bytes")
             if not self.database_url.startswith("postgresql+psycopg://"):
                 raise RuntimeError("Sandbox requires a dedicated PostgreSQL database")
+            from urllib.parse import parse_qs
+            database = urlsplit(self.database_url)
+            if database.hostname not in {"localhost", "127.0.0.1"}:
+                sslmode = parse_qs(database.query).get("sslmode", [""])[0]
+                if sslmode not in {"require", "verify-ca", "verify-full"}:
+                    raise RuntimeError("Remote sandbox PostgreSQL must require TLS")
         # This foundation explicitly REFUSES production traffic.
         if self.environment not in {"development", "test", "staging", "sandbox"}:
             raise RuntimeError("Prototype API: production prohibited until security approval")
