@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart' as demo;
 import 'package:medisuivi/app/theme.dart';
@@ -21,14 +20,6 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
-      if (width == 320) {
-        final originalError = FlutterError.onError;
-        FlutterError.onError = (details) {
-          debugPrint('ONBOARDING_RENDER_DETAIL: ${details.toString()}');
-          originalError?.call(details);
-        };
-        addTearDown(() => FlutterError.onError = originalError);
-      }
 
       await tester.pumpWidget(_entry());
       expect(find.byKey(const Key('welcome-progress')), findsOneWidget);
@@ -41,21 +32,7 @@ void main() {
       expect(find.byKey(const Key('welcome-create')), findsOneWidget);
       expect(find.byKey(const Key('welcome-login')), findsOneWidget);
       expect(find.byKey(const Key('welcome-demo')), findsOneWidget);
-      final layoutError = tester.takeException();
-      if (layoutError is FlutterError) {
-        debugPrint(layoutError.toStringDeep());
-        for (final flex in tester.renderObjectList<RenderFlex>(find.byType(Row))) {
-          final children = flex.getChildrenAsList();
-          final lastEnd = children.map((child) {
-            final offset = (child.parentData! as FlexParentData).offset;
-            return offset.dx + child.size.width;
-          }).fold<double>(0, (maximum, end) => end > maximum ? end : maximum);
-          if (lastEnd > flex.size.width + 0.5) {
-            debugPrint('OVERFLOW_ROW: size=${flex.size.width} end=$lastEnd creator=${flex.debugCreator}');
-          }
-        }
-      }
-      expect(layoutError, isNull);
+      expect(tester.takeException(), isNull);
 
       await tester.tap(find.byKey(const Key('welcome-login')));
       await tester.pumpAndSettle();
