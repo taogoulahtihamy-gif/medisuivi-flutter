@@ -15,14 +15,14 @@ Depuis `backend/` :
 6. Pour créer les comptes fictifs en développement uniquement, définir `APP_ALLOW_DEVELOPMENT_REGISTRATION=true` et recréer le service API.
 
 Aucun endpoint n'est à exposer sur Internet. Docker limite les ports à l'interface locale.
-Les comptes utilisateurs ne sont pas encore reliés aux écrans Flutter.
+Les écrans Flutter de développement utilisent désormais l'API pour les comptes fictifs. Les jetons restent uniquement en mémoire : une fermeture de l'application impose une nouvelle connexion.
 
 ### API initiale
 
 - `POST /api/v1/auth/register` : uniquement avec inscription de développement explicitement activée.
-- `POST /api/v1/auth/login` : email/mot de passe, jeton HS256 signé, expiration 15 minutes.
+- `POST /api/v1/auth/login` : email/mot de passe, JWT HS256 signé (15 minutes), nouvelle session par connexion.
 - `GET /api/v1/me` : praticien courant.
-- `POST /api/v1/auth/logout` : invalide tous les jetons précédents de ce compte.
+- `POST /api/v1/auth/refresh` : renouvellement du JWT et rotation du jeton opaque de rafraîchissement (session fixe de 7 jours).\n- `POST /api/v1/auth/logout` : révoque uniquement la session de cet appareil.\n- `POST /api/v1/auth/logout-all` : invalide toutes les sessions du praticien.\n- `GET/PUT /api/v1/me` et `GET/PUT/DELETE /api/v1/me/avatar` : profil et photo privés.
 - `GET/POST /api/v1/patients` et `GET /api/v1/patients/{id}` : filtrage serveur obligatoire par `owner_user_id`.
 
 Les consultations, bilans et suivis disposent désormais de tables serveur avec clés étrangères composites `(patient_id, owner_user_id)`. Leur lecture, leur création et leurs changements d'état sont bornés par l'identité signée.
@@ -45,7 +45,7 @@ Tests : stockage Argon2id, connexion invalide, sessions expirées/révoquées, i
 
 - Formalités CDP, finalités/consentement/base légale, lieu d'hébergement et transferts internationaux validés.
 - Migrations Alembic et isolation PostgreSQL (en plus des contrôles applicatifs), tests réels avec PostgreSQL.
-- Validation d'email, gestion et révocation de sessions par appareil, MFA selon risques, récupération de mot de passe.
+- Validation d'email, interface de gestion des appareils, MFA selon risques, récupération de mot de passe.\n- La détection de réutilisation d'un jeton de rafraîchissement ne couvre actuellement que **la rotation immédiatement précédente**. La réutilisation d'un jeton plus ancien reçoit 401 mais ne révoque pas la session. Ajouter un historique d'empreintes et un test de régression PostgreSQL avant toute mise en service.
 - Rate limiting distribué, anti-énumération, protections de transport, gestion robuste des secrets et rotation.
 - Modèles cliniques complets et tests croisés pour **chaque** endpoint, politique d'audit sans données sensibles.
 - Chiffrement, sauvegardes testées, supervision, incident response et pentest.
