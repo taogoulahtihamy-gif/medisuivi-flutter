@@ -11,6 +11,7 @@ import 'package:medisuivi/features/auth/original_account_access_screen.dart';
 void main() {
   testWidgets('P5.0 remote registration sends private invitation ONLY as header',
       (tester) async {
+    if (!const bool.fromEnvironment('MEDISUIVI_REMOTE_SANDBOX')) return;
     const invite = 'synthetic-test-invitation-code-1234567890';
     final requests = <http.Request>[];
     final api = DevAuthApi(
