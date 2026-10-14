@@ -27,6 +27,7 @@ permissions:
 
 env:
   MEDISUIVI_API_BASE_URL: https://medisuivi-api-staging.onrender.com
+  MEDISUIVI_REMOTE_SANDBOX_APK: "true"
 
 jobs:
   connected-apk:
@@ -77,6 +78,8 @@ jobs:
           "$build_tools/apksigner" verify --verbose "$apk"
           "$build_tools/aapt" dump permissions "$apk" | \
             grep -q 'android.permission.INTERNET'
+          "$build_tools/aapt" dump badging "$apk" | \
+            grep -q "package: name='com.example.medisuivi.sandbox'"
       - uses: actions/upload-artifact@v4
         with:
           name: medisuivi-p50-render-connected-android-debug-apk
