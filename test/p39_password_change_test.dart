@@ -50,7 +50,7 @@ void main() {
     final session = _session();
     final api = DevAuthApi(Uri.parse('http://127.0.0.1:8027'),
       client: MockClient((request) async =>
-        http.Response(jsonEncode({'detail': 'Incorrect'}), 401)));
+        http.Response(jsonEncode({'detail': 'Incorrect'}), 400)));
     await expectLater(api.changePassword(session,
       currentPassword: 'wrong-synthetic',
       newPassword: 'new-synthetic-secret-2026'),
