@@ -7,6 +7,7 @@ No shared clinical credentials, no implicit team access, no PHI logging.
 from __future__ import annotations
 
 import os
+import json
 import hashlib
 import hmac
 import math
@@ -14,7 +15,7 @@ import secrets
 from io import BytesIO
 from app.email_delivery import send_security_code
 from datetime import datetime, timedelta, timezone
-from typing import Literal
+from typing import Any, Literal
 from uuid import uuid4
 
 import jwt
@@ -27,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint,
-    Integer, LargeBinary, String, Text, UniqueConstraint, create_engine, event, select, text,
+    Integer, JSON, LargeBinary, String, Text, UniqueConstraint, create_engine, event, select, text,
 )
 from sqlalchemy.dialects.postgresql import insert as postgresql_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
@@ -181,6 +182,12 @@ class Patient(Base):
         nullable=False, index=True)
     display_name: Mapped[str] = mapped_column(String(180), nullable=False)
     age: Mapped[int] = mapped_column(Integer, nullable=False)
+    sex: Mapped[str] = mapped_column(String(1), nullable=False, default="N")
+    phone: Mapped[str] = mapped_column(String(40), nullable=False, default="")
+    allergies: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    medical_history: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    follow_up: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    profile_json: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     practitioner: Mapped[User] = relationship(back_populates="patients")
@@ -218,6 +225,7 @@ class Visit(ClinicalChild):
     pulse: Mapped[int | None] = mapped_column(Integer)
     spo2: Mapped[int | None] = mapped_column(Integer)
     notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    intake_json: Mapped[dict[str, Any] | None] = mapped_column(JSON)
 
 
 class LabExam(ClinicalChild):
@@ -325,13 +333,56 @@ class RefreshIn(StrictModel):
     refresh_token: str = Field(min_length=60, max_length=200)
 
 
+def validate_clinical_json(value: dict[str, Any] | None,
+                           *, max_bytes: int) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if len(json.dumps(value, ensure_ascii=False).encode("utf-8")) > max_bytes:
+        raise ValueError("Complément clinique trop volumineux")
+    return value
+
+
 class PatientIn(StrictModel):
     display_name: str = Field(min_length=1, max_length=180)
     age: int = Field(ge=0, le=125)
+    sex: Literal["F", "M", "N"] = "N"
+    phone: str = Field(default="", max_length=40)
+    allergies: str = Field(default="", max_length=2000)
+    medical_history: str = Field(default="", max_length=4000)
+    follow_up: bool = False
+    profile_json: dict[str, Any] | None = None
+
+    @field_validator("profile_json")
+    @classmethod
+    def bounded_profile(cls, value):
+        if value is not None and set(value) - {
+            "neighborhood", "address", "emergencyContactName",
+            "emergencyContactPhone", "currentMedications",
+            "surgicalHistory", "familyHistory",
+        }:
+            raise ValueError("Champ de profil inconnu")
+        return validate_clinical_json(value, max_bytes=12000)
 
 
 class PatientOut(PatientIn):
     id: str
+    created_at: datetime
+
+
+class PatientUpdateIn(StrictModel):
+    phone: str = Field(max_length=40)
+    allergies: str = Field(max_length=2000)
+    medical_history: str = Field(max_length=4000)
+    profile_json: dict[str, Any] | None = None
+
+    @field_validator("profile_json")
+    @classmethod
+    def bounded_profile(cls, value):
+        return PatientIn.bounded_profile(value)
+
+
+class FollowUpFlagIn(StrictModel):
+    to_review: bool
 
 
 class VisitIn(StrictModel):
@@ -342,6 +393,24 @@ class VisitIn(StrictModel):
     pulse: int | None = Field(default=None, ge=20, le=250)
     spo2: int | None = Field(default=None, ge=50, le=100)
     notes: str = Field(default="", max_length=4000)
+    intake_json: dict[str, Any] | None = None
+
+    @field_validator("intake_json")
+    @classmethod
+    def bounded_intake(cls, value):
+        if value is not None:
+            if value.get("schemaVersion") != 1 or set(value) - {
+                "schemaVersion", "weightKg", "heightCm", "respiratoryRate",
+                "symptomHistory", "associatedSigns", "generalCondition",
+                "physicalExamination", "systemsExamination",
+                "diagnosticHypotheses", "diagnosis",
+                "investigationsRequested", "investigationsInterpretation",
+                "managementPlan", "outpatientTreatment",
+                "hospitalizationReason", "referralDetails",
+                "followUpInstructions", "careDisposition",
+            }:
+                raise ValueError("Format de consultation inconnu")
+        return validate_clinical_json(value, max_bytes=16000)
 
 
 class VisitOut(VisitIn):
@@ -978,13 +1047,49 @@ def api_app() -> FastAPI:
         if settings.environment != "development":
             raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
         patient = Patient(
-            owner_user_id=user.id, display_name=data.display_name.strip(), age=data.age)
+            owner_user_id=user.id,
+            **(data.model_dump() | {"display_name": clean_text(data.display_name)}))
         if not patient.display_name:
             raise HTTPException(status_code=422, detail="Nom du patient obligatoire")
         db.add(patient)
         db.commit()
         db.refresh(patient)
         return PatientOut.model_validate(patient, from_attributes=True)
+
+    @app.put("/api/v1/patients/{patient_id}", response_model=PatientOut)
+    def update_patient(patient_id: str, data: PatientUpdateIn,
+                       user: User = Depends(current_user),
+                       db: Session = Depends(get_db)):
+        dev_write_only()
+        row = db.scalar(select(Patient).where(
+            Patient.id == patient_id, Patient.owner_user_id == user.id)
+            .with_for_update())
+        if row is None:
+            raise HTTPException(status_code=404, detail="Dossier introuvable")
+        row.phone = data.phone
+        row.allergies = data.allergies
+        row.medical_history = data.medical_history
+        if data.profile_json is not None:
+            row.profile_json = data.profile_json
+        db.commit()
+        db.refresh(row)
+        return PatientOut.model_validate(row, from_attributes=True)
+
+    @app.put("/api/v1/patients/{patient_id}/follow-up-flag",
+             response_model=PatientOut)
+    def update_patient_followup(patient_id: str, data: FollowUpFlagIn,
+                                user: User = Depends(current_user),
+                                db: Session = Depends(get_db)):
+        dev_write_only()
+        row = db.scalar(select(Patient).where(
+            Patient.id == patient_id, Patient.owner_user_id == user.id)
+            .with_for_update())
+        if row is None:
+            raise HTTPException(status_code=404, detail="Dossier introuvable")
+        row.follow_up = data.to_review
+        db.commit()
+        db.refresh(row)
+        return PatientOut.model_validate(row, from_attributes=True)
 
     @app.get("/api/v1/patients/{patient_id}", response_model=PatientOut)
     def get_patient(patient_id: str, user: User = Depends(current_user),
