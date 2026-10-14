@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
+import '../../app/display_preferences.dart';
 import '../../core/models/medical_models.dart';
 
 String shortDate(DateTime d) {
@@ -123,10 +124,13 @@ class ClinicalListRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final compact = DisplayPreferencesScope.maybeOf(context)
+        ?.value.compactLists ?? true;
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 13, 12),
+        padding: EdgeInsets.fromLTRB(14, compact ? 12 : 18,
+          13, compact ? 12 : 18),
         child: Row(children: [
           if (leading != null) ...[leading!, const SizedBox(width: 12)],
           Expanded(child: Column(
