@@ -13,11 +13,15 @@ class RemoteClinicalScope extends InheritedNotifier<RemoteClinicalStore> {
     super.key,
     required RemoteClinicalStore store,
     required this.practitioner,
+    required this.session,
+    required this.api,
     required this.signOut,
     required super.child,
   }) : super(notifier: store);
 
   final DevPractitioner practitioner;
+  final DevSession session;
+  final DevAuthApi api;
   final Future<void> Function() signOut;
 
   static RemoteClinicalScope? maybeOf(BuildContext context) =>
@@ -148,6 +152,8 @@ class _RemoteClinicalGatewayState extends State<RemoteClinicalGateway> {
     return RemoteClinicalScope(
       store: _store,
       practitioner: widget.session.practitioner,
+      session: widget.session,
+      api: widget.api,
       signOut: _signOut,
       child: const MainShell(key: Key('original-connected-shell')),
     );
