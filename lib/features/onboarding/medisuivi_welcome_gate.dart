@@ -72,7 +72,7 @@ class MediSuiviWelcomeGate extends StatefulWidget {
 }
 
 enum _EntryStep {
-  splash, introduction, access, signIn, register, verifyEmail,
+  splash, restoring, introduction, access, signIn, register, verifyEmail,
   recoverPassword, profile, workspace, authenticated
 }
 
@@ -83,14 +83,83 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   String? _emailPendingVerification;
   _EntryStep _step = _EntryStep.splash;
   Timer? _splashTimer;
+  bool _splashElapsed = false;
+  bool _resumeDone = false;
+  DevSession? _resumeSession;
+  String? _resumeError;
+  int _resumeAttempt = 0;
+
+  void _finishSplash() {
+    if (!mounted || !_splashElapsed || !_resumeDone) return;
+    setState(() {
+      if (_resumeSession != null) {
+        _authenticatedSession = _resumeSession;
+        _resumeSession = null;
+        _step = _EntryStep.authenticated;
+      } else if (_resumeError != null) {
+        _step = _EntryStep.restoring;
+      } else {
+        _step = _EntryStep.introduction;
+      }
+    });
+  }
+
+  Future<void> _restoreAccount() async {
+    final token = ++_resumeAttempt;
+    _resumeDone = false;
+    _resumeError = null;
+    try {
+      final session = await _authApi?.restoreSavedSession();
+      if (!mounted || token != _resumeAttempt) {
+        session?.clear();
+        return;
+      }
+      _resumeSession = session;
+    } on DevApiException catch (error) {
+      if (!mounted || token != _resumeAttempt) return;
+      _resumeError = error.message;
+    } catch (_) {
+      if (!mounted || token != _resumeAttempt) return;
+      _resumeError = 'Restauration indisponible. Réessayez.';
+    } finally {
+      if (mounted && token == _resumeAttempt) {
+        _resumeDone = true;
+        _finishSplash();
+      }
+    }
+  }
+
+  Future<void> _chooseAnotherAccount() async {
+    ++_resumeAttempt;
+    try {
+      await _authApi?.forgetSavedSession();
+      if (mounted) setState(() {
+        _resumeSession?.clear();
+        _resumeSession = null;
+        _resumeError = null;
+        _step = _EntryStep.signIn;
+      });
+    } on DevApiException catch (error) {
+      if (mounted) setState(() => _resumeError = error.message);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _authApi = widget.developmentAuthApi ?? DevAuthApi.fromEnvironment();
+    if (_authApi?.canRestoreSession == true) {
+      unawaited(_restoreAccount());
+    } else {
+      _resumeDone = true;
+    }
     _splashTimer = Timer(const Duration(milliseconds: 2800), () {
-      if (mounted && _step == _EntryStep.splash) {
-        setState(() => _step = _EntryStep.introduction);
+      if (!mounted || _step != _EntryStep.splash) return;
+      _splashElapsed = true;
+      if (_resumeDone) {
+        _finishSplash();
+      } else {
+        setState(() => _step = _EntryStep.restoring);
       }
     });
   }
@@ -98,6 +167,8 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   @override
   void dispose() {
     _splashTimer?.cancel();
+    ++_resumeAttempt;
+    _resumeSession?.clear();
     _practitioner.dispose();
     // The API owns no persisted token; close only client created by this gate.
     if (widget.developmentAuthApi == null) _authApi?.close();
@@ -113,11 +184,14 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   });
 
   void _onAuthenticated(DevSession session) => setState(() {
+    _resumeAttempt++;
+    _authenticatedSession?.clear();
     _authenticatedSession = session;
     _step = _EntryStep.authenticated;
   });
 
   void _onSignedOut() => setState(() {
+    _authenticatedSession?.clear();
     _authenticatedSession = null;
     _step = _EntryStep.access;
   });
@@ -132,6 +206,47 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
       switchOutCurve: Curves.easeInCubic,
       child: switch (_step) {
         _EntryStep.splash => const _IntroSplash(key: ValueKey('welcome-splash')),
+        _EntryStep.restoring => Scaffold(
+          key: const ValueKey('dev-session-restoring'),
+          body: SafeArea(child: Center(child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.lock_clock_outlined, size: 41),
+                const SizedBox(height: 22),
+                Text(_resumeError == null
+                    ? 'Vérification de votre session…'
+                    : 'Session indisponible',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 21, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 13),
+                Text(_resumeError ??
+                  'Connexion sécurisée au serveur en cours.',
+                  textAlign: TextAlign.center),
+                const SizedBox(height: 26),
+                if (_resumeError == null)
+                  const CircularProgressIndicator()
+                else ...[
+                  FilledButton(
+                    key: const Key('dev-resume-retry'),
+                    onPressed: () {
+                      setState(() => _resumeError = null);
+                      unawaited(_restoreAccount());
+                    },
+                    child: const Text('Réessayer'),
+                  ),
+                  TextButton(
+                    key: const Key('dev-resume-other-account'),
+                    onPressed: _chooseAnotherAccount,
+                    child: const Text('Utiliser un autre compte'),
+                  ),
+                ],
+              ],
+            ),
+          ))),
+        ),
         _EntryStep.introduction => _Introduction(
           key: const ValueKey('welcome-introduction'),
           onFinished: () => _go(_EntryStep.access),
