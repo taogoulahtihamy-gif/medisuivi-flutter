@@ -986,8 +986,9 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
             child: Icon(Icons.health_and_safety_outlined,
               size: 18, color: p.forest),
           ),
-          const SizedBox(width: 10),
-          const Text('MediSuivi'),
+          const SizedBox(width: 9),
+          const Flexible(child: Text('MediSuivi',
+            maxLines: 1, overflow: TextOverflow.ellipsis)),
         ]),
         actions: [
           IconButton(
