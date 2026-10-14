@@ -3,7 +3,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Palette de couleurs sémantiques — Nocturne Clinique
 abstract final class ClinicalColors {
@@ -328,9 +327,6 @@ abstract final class ClinicalShadow {
   ];
 }
 
-/// Résolveur de polices Google Fonts — utilisé pour le rendu runtime
-final GoogleFonts googleFonts = GoogleFonts();
-
 // Tokens d'animations
 abstract final class ClinicalMotion {
   static const Duration instant = Duration(milliseconds: 0);
@@ -347,9 +343,7 @@ abstract final class ClinicalMotion {
   static const Duration staggerMax = Duration(milliseconds: 400);
 }
 
-// Google Fonts — rendu runtime (fractionné au démarrage)
-// Ces styles ne sont PAS const car GoogleFonts résout les polices à l'exécution.
-// Elles sont disponible via ClinicalTypographyGoogleFonts.xxx si besoin.
+// Compatibilité des anciens styles : tous utilisent la police locale DM Sans.
 class ClinicalTypographyGoogleFonts {
   // Display — Fraunces
   static TextStyle display = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
