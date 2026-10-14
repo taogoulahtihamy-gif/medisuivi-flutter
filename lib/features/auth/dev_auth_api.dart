@@ -57,19 +57,37 @@ class DevSession {
 }
 
 class DevPatient {
-  const DevPatient({required this.id, required this.displayName,
-      required this.age, this.createdAt});
+  const DevPatient({
+    required this.id, required this.displayName, required this.age,
+    this.createdAt, this.sex = 'N', this.phone = '',
+    this.allergies = '', this.medicalHistory = '', this.followUp = false,
+    this.profile = const {},
+  });
   final String id;
   final String displayName;
   final int age;
   final DateTime? createdAt;
+  final String sex;
+  final String phone;
+  final String allergies;
+  final String medicalHistory;
+  final bool followUp;
+  final Map<String, dynamic> profile;
 
   factory DevPatient.fromJson(Map<String, dynamic> json) =>
-      DevPatient(id: json['id'] as String,
+      DevPatient(
+        id: json['id'] as String,
         displayName: json['display_name'] as String,
         age: json['age'] as int,
+        sex: json['sex'] as String? ?? 'N',
+        phone: json['phone'] as String? ?? '',
+        allergies: json['allergies'] as String? ?? '',
+        medicalHistory: json['medical_history'] as String? ?? '',
+        followUp: json['follow_up'] as bool? ?? false,
+        profile: (json['profile'] as Map<String, dynamic>?) ?? const {},
         createdAt: json['created_at'] is String
-          ? DateTime.parse(json['created_at'] as String) : null);
+          ? DateTime.parse(json['created_at'] as String) : null,
+      );
 }
 
 /// Data returned by the authenticated backend, never by DemoStore.
@@ -77,7 +95,7 @@ class DevVisit {
   const DevVisit({
     required this.id, required this.reason, required this.createdAt,
     this.temperature, this.systolic, this.diastolic, this.pulse, this.spo2,
-    this.notes = '',
+    this.notes = '', this.intake = const {},
   });
   final String id;
   final String reason;
@@ -85,6 +103,7 @@ class DevVisit {
   final double? temperature;
   final int? systolic, diastolic, pulse, spo2;
   final String notes;
+  final Map<String, dynamic> intake;
   factory DevVisit.fromJson(Map<String, dynamic> data) => DevVisit(
     id: data['id'] as String, reason: data['reason'] as String,
     createdAt: DateTime.parse(data['created_at'] as String),
@@ -94,6 +113,7 @@ class DevVisit {
     pulse: (data['pulse'] as num?)?.toInt(),
     spo2: (data['spo2'] as num?)?.toInt(),
     notes: data['notes'] as String? ?? '',
+    intake: data['intake'] as Map<String, dynamic>? ?? const {},
   );
 }
 
@@ -710,21 +730,53 @@ class DevAuthApi {
   /// The backend always derives owner_user_id from the JWT.
   /// No broad/anonymous dataset and no direct DemoStore fallback.
   Future<DevPatient> createClinicalPatient(
-      DevSession session, String displayName, int age) async {
+      DevSession session, String displayName, int age, {
+      String sex = 'N', String phone = '',
+      Map<String, Object?> profile = const {},
+      }) async {
     final value = displayName.trim();
     if (!value.toUpperCase().startsWith('PATIENT FICTIF')) {
       throw const DevApiException(
         'En développement, seuls les patients fictifs sont autorisés.');
     }
     final response = await _request('POST', '/api/v1/patients',
-        session: session, body: {'display_name': value, 'age': age});
+        session: session, body: {
+          'display_name': value, 'age': age, 'sex': sex,
+          'phone': phone, 'profile': profile,
+        });
     _ensureSuccess(response, expected: 201);
+    return DevPatient.fromJson(_map(response));
+  }
+
+  Future<DevPatient> updateClinicalPatient(
+      DevSession session, String patientId, {
+      required String phone, required String allergies,
+      required String medicalHistory,
+      Map<String, Object?> profile = const {},
+      }) async {
+    final response = await _request('PUT',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}',
+        session: session, body: {
+          'phone': phone, 'allergies': allergies,
+          'medical_history': medicalHistory, 'profile': profile,
+        });
+    _ensureSuccess(response);
+    return DevPatient.fromJson(_map(response));
+  }
+
+  Future<DevPatient> updateClinicalFollowUpFlag(
+      DevSession session, String patientId, bool toReview) async {
+    final response = await _request('PUT',
+        '/api/v1/patients/${Uri.encodeComponent(patientId)}/follow-up',
+        session: session, body: {'to_review': toReview});
+    _ensureSuccess(response);
     return DevPatient.fromJson(_map(response));
   }
 
   Future<DevVisit> createClinicalVisit(DevSession session, String patientId, {
     required String reason, double? temperature, int? systolic,
     int? diastolic, int? pulse, int? spo2, String notes = '',
+    Map<String, Object?> intake = const {},
   }) async {
     final response = await _request('POST',
         '/api/v1/patients/${Uri.encodeComponent(patientId)}/visits',
@@ -732,6 +784,7 @@ class DevAuthApi {
           'reason': reason.trim(), 'temperature': temperature,
           'systolic': systolic, 'diastolic': diastolic,
           'pulse': pulse, 'spo2': spo2, 'notes': notes.trim(),
+          'intake': intake,
         });
     _ensureSuccess(response, expected: 201);
     return DevVisit.fromJson(_map(response));
