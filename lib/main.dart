@@ -49,8 +49,9 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
     // Clinical data for such builds comes only from scoped API requests.
     // The optional demo remains synthetic/in-memory in this mode.
     if (kIsWeb || DevAuthApi.devBaseUrl.trim().isNotEmpty) {
-      // Web or connected-mode Android/iOS: in-memory synthetic demo only.
-      _demoStore = DemoStore();
+      // Never instantiate DemoStore in API-connected mode, including Web.
+      // The original MainShell receives its account-only ConnectedClinicalStore.
+      _demoStore = DevAuthApi.devBaseUrl.trim().isEmpty ? DemoStore() : null;
       _initResult = DatabaseInitResult.notSupported;
       _isInitializing = false;
       if (mounted) setState(() {});
@@ -187,20 +188,19 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
     if (kIsWeb || _initResult == DatabaseInitResult.notSupported) {
       // Explicit synthetic demo only; server accounts use their own API.
       // Do not mount a legacy PersistentScope in connected mobile mode.
-      return DemoScope(
-        store: _demoStore!,
-        child: MaterialApp(
-          title: 'MediSuivi',
-          debugShowCheckedModeBanner: false,
-          theme: ClinicalTheme.light(),
-          darkTheme: ClinicalTheme.dark(),
-          themeMode: _themeController.value,
-          home: const MediSuiviWelcomeGate(
-            isWebDemo: true,
-            child: MainShell(),
-          ),
+      final app = MaterialApp(
+        title: 'MediSuivi',
+        debugShowCheckedModeBanner: false,
+        theme: ClinicalTheme.light(),
+        darkTheme: ClinicalTheme.dark(),
+        themeMode: _themeController.value,
+        home: const MediSuiviWelcomeGate(
+          isWebDemo: true,
+          child: MainShell(),
         ),
       );
+      final demo = _demoStore;
+      return demo == null ? app : DemoScope(store: demo, child: app);
     }
 
     // Mode persistant mobile
