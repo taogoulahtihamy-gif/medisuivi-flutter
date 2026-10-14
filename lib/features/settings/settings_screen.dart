@@ -4,6 +4,7 @@ import '../../app/theme.dart';
 import '../../app/theme_controller.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../../core/state/store_context.dart';
+import '../onboarding/medisuivi_welcome_gate.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -40,12 +41,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 15),
                 const _AppearanceSettings(),
                 const SizedBox(height: 10),
-                const _Item(
-                  Icons.person_outline_rounded,
-                  'Profil du praticien',
-                  'Photo et compte personnel non configurés. '
-                  'Aucune identité médicale n’est simulée.',
-                ),
+                Builder(builder: (context) {
+                  final profile = PractitionerPreviewScope.maybeOf(context);
+                  if (profile == null) {
+                    return const _Item(
+                      Icons.person_outline_rounded,
+                      'Profil du praticien',
+                      'Aucun compte personnel configuré.',
+                    );
+                  }
+                  return SurfaceCard(
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      key: const Key('settings-practitioner-profile'),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                      leading: CircleAvatar(
+                        radius: 23,
+                        backgroundColor: Palette.of(context).tealSoft,
+                        foregroundImage: profile.photo == null
+                            ? null : MemoryImage(profile.photo!),
+                        child: profile.photo == null
+                            ? Icon(Icons.person_rounded,
+                                color: Palette.of(context).forest) : null,
+                      ),
+                      title: Text(profile.displayName.isEmpty
+                          ? 'Profil du praticien' : profile.displayName),
+                      subtitle: const Text('Profil local de prévisualisation'),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (formContext) => PractitionerPreviewForm(
+                            controller: profile,
+                            isWebDemo: kIsWeb,
+                            onSaved: () => Navigator.of(formContext).pop(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
                 const SizedBox(height: 16),
                 _Item(
                   Icons.info_outline_rounded,

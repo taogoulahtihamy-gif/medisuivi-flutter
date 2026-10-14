@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'app/medisuivi_app.dart';
+import 'features/onboarding/medisuivi_welcome_gate.dart';
 import 'app/theme_v2.dart';
 import 'app/theme_controller.dart';
 import 'core/persistence/database_initializer.dart';
@@ -188,7 +189,10 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
           theme: ClinicalTheme.light(),
           darkTheme: ClinicalTheme.dark(),
           themeMode: _themeController.value,
-          home: const MainShell(),
+          home: const MediSuiviWelcomeGate(
+            isWebDemo: true,
+            child: MainShell(),
+          ),
         ),
       );
     }
@@ -202,7 +206,10 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
         themeMode: _themeController.value,
-        home: const MainShell(),
+        home: const MediSuiviWelcomeGate(
+          isWebDemo: false,
+          child: MainShell(),
+        ),
       ),
     );
   }
@@ -220,7 +227,7 @@ class _LoadingScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(),
+              const SizedBox(width: 170, child: LinearProgressIndicator(minHeight: 4)),
               const SizedBox(height: 24),
               Text(
                 'Initialisation de MediSuivi...',
