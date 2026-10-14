@@ -317,7 +317,7 @@ class _GroupHeading extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 5),
       child: Text(text, style: TextStyle(
-        color: p.muted, fontSize: 10.5,
+        color: p.muted, fontSize: 11.5,
         letterSpacing: 1.05, fontWeight: FontWeight.w700)),
     );
   }
@@ -375,11 +375,11 @@ class _SettingsLine extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.ink, fontSize: 13.8,
+                    style: TextStyle(color: p.ink, fontSize: 14.6,
                       fontWeight: FontWeight.w600)),
                   const SizedBox(height: 3),
                   Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.muted, fontSize: 11.5,
+                    style: TextStyle(color: p.muted, fontSize: 12.5,
                       height: 1.35)),
                 ],
               )),
