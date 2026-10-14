@@ -1,0 +1,36 @@
+name: MediSuivi backend P1 tests
+
+on:
+  push:
+    branches:
+      - feat/medisuivi-p1-sn-auth-foundation
+    paths:
+      - "backend/**"
+      - ".github/workflows/medisuivi_backend_ci.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/medisuivi_backend_ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  api-security:
+    name: API auth and account-isolation checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Test fail-closed config and two-account isolation
+        run: python -m pytest tests -q
+      - name: Python compile check
+        run: python -m compileall -q app scripts
