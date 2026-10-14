@@ -282,6 +282,7 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   late Future<List<DevPatient>> _patients;
   late DevPractitioner _profile;
   Uint8List? _avatar;
+  final TextEditingController _search = TextEditingController();
   bool _working = false;
   String? _error;
 
@@ -291,6 +292,12 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
     _profile = widget.session.practitioner;
     _patients = widget.api.listPatients(widget.session);
     if (_profile.hasAvatar) unawaited(_loadAvatar());
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
   }
 
   Future<void> _loadAvatar() async {
@@ -493,6 +500,25 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
             Text('Les dossiers affichés appartiennent uniquement à ce compte.',
               style: TextStyle(color: p.muted, fontSize: 12.5)),
             const SizedBox(height: 16),
+            TextField(
+              key: const Key('dev-search-patients'),
+              controller: _search,
+              onChanged: (_) => setState(() {}),
+              textInputAction: TextInputAction.search,
+              decoration: InputDecoration(
+                hintText: 'Rechercher un dossier fictif',
+                prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                suffixIcon: _search.text.isEmpty ? null : IconButton(
+                  tooltip: 'Effacer la recherche',
+                  onPressed: () {
+                    _search.clear();
+                    setState(() {});
+                  },
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             FutureBuilder<List<DevPatient>>(
               key: const Key('dev-patients-loader'),
               future: _patients,
@@ -501,20 +527,44 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Text('Impossible de charger les dossiers de ce compte.',
-                    key: const Key('dev-patients-error'),
-                    style: TextStyle(color: p.danger, fontSize: 13));
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Impossible de charger les dossiers de ce compte.',
+                        key: const Key('dev-patients-error'),
+                        style: TextStyle(color: p.danger, fontSize: 13)),
+                      TextButton.icon(
+                        key: const Key('dev-patients-retry'),
+                        onPressed: _reload,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: const Text('Réessayer'),
+                      ),
+                    ],
+                  );
                 }
-                final patients = snapshot.data ?? const <DevPatient>[];
+                final source = snapshot.data ?? const <DevPatient>[];
+                final term = _search.text.trim().toLowerCase();
+                final patients = source.where((p) =>
+                  p.displayName.toLowerCase().contains(term)).toList();
                 if (patients.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    child: Text('Aucun patient fictif dans ce compte.',
+                    child: Text(source.isEmpty
+                        ? 'Aucun patient fictif dans ce compte.'
+                        : 'Aucun dossier fictif ne correspond à cette recherche.',
                       key: const Key('dev-patients-empty'),
                       style: TextStyle(color: p.muted, fontSize: 14)),
                   );
                 }
                 return Column(children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text('${patients.length} dossier(s) fictif(s)',
+                        style: TextStyle(color: p.muted, fontSize: 12)),
+                    ),
+                  ),
                   for (final patient in patients)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 9),

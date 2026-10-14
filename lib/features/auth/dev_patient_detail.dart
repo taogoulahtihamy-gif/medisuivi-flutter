@@ -22,6 +22,25 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
   bool _saving = false;
   String? _error;
 
+  String _date(DateTime date) {
+    final value = date.toLocal();
+    return '${value.day.toString().padLeft(2, '0')}/'
+        '${value.month.toString().padLeft(2, '0')}/${value.year}';
+  }
+
+  String _visitSubtitle(DevVisit visit) {
+    final details = <String>['${_date(visit.createdAt)} · Consultation enregistrée'];
+    if (visit.temperature != null) {
+      details.add('${visit.temperature!.toStringAsFixed(1)} °C');
+    }
+    if (visit.systolic != null && visit.diastolic != null) {
+      details.add('${visit.systolic}/${visit.diastolic} mmHg');
+    }
+    if (visit.pulse != null) details.add('${visit.pulse} bpm');
+    if (visit.spo2 != null) details.add('SpO₂ ${visit.spo2}%');
+    return details.join(' · ');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -51,7 +70,7 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
   Widget _listTile({
     required String title, required String subtitle,
     required IconData icon, required PaletteData palette,
-    VoidCallback? onTap, String? keyName,
+    VoidCallback? onTap, String? keyName, Widget? trailing,
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 9),
     child: Material(
@@ -80,8 +99,10 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
                   style: TextStyle(color: palette.muted, fontSize: 12.8)),
               ],
             )),
-            if (onTap != null) Icon(Icons.chevron_right_rounded,
-              size: 20, color: palette.muted),
+            if (trailing != null) trailing,
+            if (trailing == null && onTap != null)
+              Icon(Icons.chevron_right_rounded,
+                size: 20, color: palette.muted),
           ]),
         ),
       ),
@@ -94,6 +115,9 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
     required String actionTitle,
     required String actionKey,
     required Future<void> Function() onCreate,
+    Future<void> Function()? onCreateAlternate,
+    String? alternateTitle,
+    String? alternateKey,
     required PaletteData palette,
   }) => ListView(
     padding: const EdgeInsets.fromLTRB(21, 18, 21, 35),
@@ -112,6 +136,16 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
         icon: const Icon(Icons.add_rounded),
         label: Text(actionTitle),
       ),
+      if (onCreateAlternate != null && alternateTitle != null)
+        Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: TextButton.icon(
+            key: Key(alternateKey ?? 'dev-clinical-alternate'),
+            onPressed: _saving ? null : () => _mutate(onCreateAlternate),
+            icon: const Icon(Icons.post_add_rounded),
+            label: Text(alternateTitle),
+          ),
+        ),
       const SizedBox(height: 14),
       Text('Les actes créés ici sont entièrement fictifs.',
         textAlign: TextAlign.center,
@@ -188,7 +222,7 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
                   rows: [
                     for (final visit in records.visits)
                       _listTile(title: visit.reason,
-                        subtitle: 'Consultation enregistrée',
+                        subtitle: _visitSubtitle(visit),
                         icon: Icons.medical_information_outlined, palette: p),
                   ],
                   emptyText: 'Aucune consultation fictive enregistrée.',
@@ -196,6 +230,10 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
                   actionKey: 'dev-add-synthetic-visit',
                   onCreate: () => widget.api.createSyntheticVisit(
                     widget.session, widget.patient),
+                  alternateTitle: 'Tester des constantes fictives',
+                  alternateKey: 'dev-add-synthetic-vitals',
+                  onCreateAlternate: () => widget.api.createSyntheticVisit(
+                    widget.session, widget.patient, withVitals: true),
                 ),
                 _recordsTab(
                   palette: p,
@@ -224,9 +262,31 @@ class _DevPatientDetailState extends State<DevPatientDetail> {
                     for (final follow in records.followUps)
                       _listTile(title: follow.reason,
                         subtitle: follow.status == 'planned'
-                          ? 'Rendez-vous fictif programmé'
-                          : 'Suivi fictif clôturé',
+                          ? 'Rendez-vous fictif programmé · ${_date(follow.scheduledAt)}'
+                          : follow.status == 'cancelled'
+                            ? 'Suivi fictif annulé'
+                            : 'Suivi fictif clôturé',
                         icon: Icons.event_note_outlined, palette: p,
+                        trailing: follow.status == 'planned'
+                          ? PopupMenuButton<String>(
+                              key: Key('dev-followup-options-${follow.id}'),
+                              tooltip: 'Options du suivi fictif',
+                              onSelected: (action) {
+                                if (action == 'reschedule') {
+                                  _mutate(() => widget.api.rescheduleSyntheticFollowUp(
+                                    widget.session, follow));
+                                } else if (action == 'cancel') {
+                                  _mutate(() => widget.api.cancelSyntheticFollowUp(
+                                    widget.session, follow));
+                                }
+                              },
+                              itemBuilder: (_) => const [
+                                PopupMenuItem(value: 'reschedule',
+                                  child: Text('Reporter de 7 jours')),
+                                PopupMenuItem(value: 'cancel',
+                                  child: Text('Annuler ce suivi fictif')),
+                              ],
+                            ) : null,
                         keyName: 'dev-followup-${follow.id}',
                         onTap: follow.status == 'planned' && !_saving
                           ? () => _mutate(() => widget.api

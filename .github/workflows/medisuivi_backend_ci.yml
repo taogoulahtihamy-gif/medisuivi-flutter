@@ -12,6 +12,7 @@ on:
       - feat/medisuivi-p35-session-rotation
       - feat/medisuivi-p36-login-throttling
       - feat/medisuivi-p41-email-verification-reset
+      - feat/medisuivi-p43-clinical-api-workflow
       - feat/medisuivi-p32-profile-avatar
     paths:
       - "backend/**"
@@ -79,4 +80,4 @@ jobs:
       - name: Upgrade empty PostgreSQL schema with Alembic
         run: python -m alembic upgrade head
       - name: Check migration and prevent cross-account clinical operations
-        run: python -m pytest tests/test_postgres_isolation.py -q
+        run: python -m pytest tests/test_postgres_isolation.py tests/test_postgres_clinical_roundtrip.py -q
