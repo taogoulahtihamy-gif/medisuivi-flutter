@@ -2,5 +2,6 @@
     <!-- USB adb reverse to 127.0.0.1:8027 is allowed in DEBUG only. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:networkSecurityConfig="@xml/medisuivi_debug_network_security"/>
+        android:networkSecurityConfig="@xml/medisuivi_debug_network_security"
+        android:label="MediSuivi Test"/>
 </manifest>
