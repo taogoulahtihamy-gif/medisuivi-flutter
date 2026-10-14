@@ -71,36 +71,58 @@ class DevPatient {
 
 /// Data returned by the authenticated backend, never by DemoStore.
 class DevVisit {
-  const DevVisit({required this.id, required this.reason, required this.createdAt});
+  const DevVisit({
+    required this.id, required this.reason, required this.createdAt,
+    this.temperature, this.systolic, this.diastolic, this.pulse, this.spo2,
+  });
   final String id;
   final String reason;
   final DateTime createdAt;
+  final double? temperature;
+  final int? systolic, diastolic, pulse, spo2;
   factory DevVisit.fromJson(Map<String, dynamic> data) => DevVisit(
     id: data['id'] as String, reason: data['reason'] as String,
-    createdAt: DateTime.parse(data['created_at'] as String));
+    createdAt: DateTime.parse(data['created_at'] as String),
+    temperature: (data['temperature'] as num?)?.toDouble(),
+    systolic: (data['systolic'] as num?)?.toInt(),
+    diastolic: (data['diastolic'] as num?)?.toInt(),
+    pulse: (data['pulse'] as num?)?.toInt(),
+    spo2: (data['spo2'] as num?)?.toInt(),
+  );
 }
 
 class DevExam {
-  const DevExam({required this.id, required this.title, required this.status});
+  const DevExam({required this.id, required this.title,
+    required this.status, this.result, this.resultRecordedAt});
   final String id;
   final String title;
   final String status;
+  final String? result;
+  final DateTime? resultRecordedAt;
   factory DevExam.fromJson(Map<String, dynamic> data) => DevExam(
     id: data['id'] as String, title: data['title'] as String,
-    status: data['status'] as String);
+    status: data['status'] as String,
+    result: data['result'] as String?,
+    resultRecordedAt: data['result_recorded_at'] is String
+      ? DateTime.parse(data['result_recorded_at'] as String) : null,
+  );
 }
 
 class DevFollowUp {
   const DevFollowUp({required this.id, required this.reason,
-    required this.status, required this.scheduledAt});
+    required this.status, required this.scheduledAt, this.completedAt});
   final String id;
   final String reason;
   final String status;
   final DateTime scheduledAt;
+  final DateTime? completedAt;
   factory DevFollowUp.fromJson(Map<String, dynamic> data) => DevFollowUp(
     id: data['id'] as String, reason: data['reason'] as String,
     status: data['status'] as String,
-    scheduledAt: DateTime.parse(data['scheduled_at'] as String));
+    scheduledAt: DateTime.parse(data['scheduled_at'] as String),
+    completedAt: data['completed_at'] is String
+      ? DateTime.parse(data['completed_at'] as String) : null,
+  );
 }
 
 class DevClinicalBundle {
@@ -590,11 +612,23 @@ class DevAuthApi {
   }
 
   /// Synthetic actions ONLY. No free text that could accidentally carry PHI.
-  Future<void> createSyntheticVisit(DevSession session, DevPatient patient) async {
+  Future<void> createSyntheticVisit(DevSession session, DevPatient patient,
+      {bool withVitals = false}) async {
     final response = await _request('POST', _patientPath(patient, 'visits'),
       session: session,
-      body: {'reason':'Consultation de démonstration',
-             'notes':'Donnée entièrement fictive'});
+      body: {
+        'reason': withVitals
+            ? 'Contrôle clinique fictif avec constantes'
+            : 'Consultation de démonstration',
+        if (withVitals) ...{
+          'temperature': 36.8,
+          'systolic': 120,
+          'diastolic': 80,
+          'pulse': 72,
+          'spo2': 98,
+        },
+        'notes':'Donnée entièrement fictive',
+      });
     _ensureSuccess(response, expected: 201);
   }
 
@@ -621,6 +655,34 @@ class DevAuthApi {
         'reason': 'Contrôle fictif',
       });
     _ensureSuccess(response, expected: 201);
+  }
+
+  Future<void> rescheduleSyntheticFollowUp(
+      DevSession session, DevFollowUp followUp) async {
+    if (followUp.status != 'planned') {
+      throw const DevApiException('Ce suivi fictif est déjà clôturé.');
+    }
+    final next = followUp.scheduledAt.toUtc().add(const Duration(days: 7));
+    final response = await _request('PUT',
+      '/api/v1/followups/${Uri.encodeComponent(followUp.id)}/reschedule',
+      session: session,
+      body: {
+        'scheduled_at': next.toIso8601String(),
+        'reason': followUp.reason,
+        'notes': 'Report de démonstration, aucune donnée réelle',
+      });
+    _ensureSuccess(response);
+  }
+
+  Future<void> cancelSyntheticFollowUp(
+      DevSession session, DevFollowUp followUp) async {
+    if (followUp.status != 'planned') {
+      throw const DevApiException('Ce suivi fictif est déjà clôturé.');
+    }
+    final response = await _request('PUT',
+      '/api/v1/followups/${Uri.encodeComponent(followUp.id)}/close',
+      session: session, body: {'completed':false});
+    _ensureSuccess(response);
   }
 
   Future<void> closeSyntheticFollowUp(
