@@ -5,6 +5,8 @@ import '../../app/theme.dart';
 import '../../app/theme_controller.dart';
 import '../../app/display_preferences.dart';
 import '../../core/state/store_context.dart';
+import '../../core/state/remote_clinical_scope.dart';
+import 'connected_profile_page.dart';
 import '../notifications/clinical_alerts_screen.dart';
 import 'settings_detail_screens.dart';
 import '../onboarding/medisuivi_welcome_gate.dart';
@@ -34,6 +36,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   );
 
   void _editProfile(PractitionerPreview? profile) {
+    final remote = RemoteClinicalScope.maybeOf(context);
+    if (remote != null) {
+      _open(ConnectedProfilePage(
+        api: remote.api,
+        session: remote.session,
+        onSaved: (updated) {
+          profile?.update(
+            firstName: updated.firstName,
+            lastName: updated.lastName,
+            email: updated.email,
+            phone: updated.phone,
+            specialty: updated.specialty,
+          );
+        },
+        onPasswordChanged: () {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          remote.signOut();
+        },
+      ));
+      return;
+    }
     if (profile == null) {
       _open(const _SettingsDetailPage(
         title: 'Mon profil',
@@ -61,6 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final practitioner = PractitionerPreviewScope.maybeOf(context);
+    final remote = RemoteClinicalScope.maybeOf(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -82,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   controller: practitioner,
                   onEdit: () => _editProfile(practitioner),
                 ),
-                if (!kIsWeb) ...[
+                if (remote == null && !kIsWeb) ...[
                   const SizedBox(height: 21),
                   _OfflineOperationsSummary(future: _pendingSyncCountFuture),
                 ],
@@ -107,23 +131,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     key: const Key('settings-notifications'),
                     icon: Icons.notifications_none_rounded,
                     title: 'Notifications',
-                    subtitle: 'Vos alertes cliniques locales',
+                    subtitle: remote != null
+                      ? 'Alertes de votre compte'
+                      : 'Vos alertes cliniques locales',
                     onTap: () => _open(const ClinicalAlertsScreen()),
                   ),
                   _SettingsLine(
                     key: const Key('settings-data'),
                     icon: Icons.folder_copy_outlined,
                     title: 'Données et stockage',
-                    subtitle: kIsWeb ? 'Dossiers fictifs du navigateur'
-                        : 'Dossiers sur cet appareil',
-                    onTap: _openStorage,
+                    subtitle: remote != null
+                        ? 'Dossiers sur le serveur MediSuivi'
+                        : kIsWeb ? 'Dossiers fictifs du navigateur'
+                            : 'Dossiers sur cet appareil',
+                    onTap: remote == null ? _openStorage : () => _open(
+                      const _SettingsDetailPage(
+                        title: 'Données connectées',
+                        icon: Icons.cloud_done_outlined,
+                        heading: 'Dossiers enregistrés sur le serveur',
+                        description: 'Vos dossiers appartiennent à votre '
+                          'compte praticien. Le stockage hors ligne n’est '
+                          'pas encore activé pour ce compte.',
+                      )),
                   ),
                   _SettingsLine(
                     key: const Key('settings-synchronization'),
                     icon: Icons.cloud_off_outlined,
                     title: 'Synchronisation',
                     subtitle: 'Non disponible pour le moment',
-                    onTap: _openSync,
+                    onTap: remote == null ? _openSync : () => _open(
+                      const _SettingsDetailPage(
+                        title: 'Synchronisation',
+                        icon: Icons.cloud_off_outlined,
+                        heading: 'Mode hors ligne en préparation',
+                        description: 'Les données connectées proviennent '
+                          'de FastAPI. Aucune écriture hors connexion '
+                          'n’est enregistrée localement.',
+                      )),
                     last: true,
                   ),
                 ]),
@@ -158,11 +202,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     last: true,
                   ),
                 ]),
+                if (remote != null) ...[
+                  const SizedBox(height: 23),
+                  const _GroupHeading('SESSION'),
+                  const SizedBox(height: 8),
+                  _SettingsGroup(children: [
+                    _SettingsLine(
+                      key: const Key('settings-connected-signout'),
+                      icon: Icons.logout_rounded,
+                      title: 'Changer de praticien',
+                      subtitle: 'Fermer la session et protéger les dossiers',
+                      onTap: () { remote.signOut(); },
+                      last: true,
+                    ),
+                  ]),
+                ],
                 const SizedBox(height: 24),
                 Center(child: Text(
-                  kIsWeb
-                    ? 'Profil de démonstration · Aucun compte distant'
-                    : 'Profil local de prévisualisation · Aucun compte distant',
+                  remote != null
+                    ? 'Compte connecté · Données serveur'
+                    : kIsWeb
+                      ? 'Profil de démonstration · Aucun compte distant'
+                      : 'Profil local de prévisualisation · Aucun compte distant',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: p.muted, fontSize: 11.5),
                 )),
