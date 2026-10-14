@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feat/medisuivi-p1-sn-auth-foundation
+      - feat/medisuivi-p2-clinical-isolation
     paths:
       - "backend/**"
       - ".github/workflows/medisuivi_backend_ci.yml"
