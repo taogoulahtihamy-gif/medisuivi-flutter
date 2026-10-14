@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -236,6 +237,60 @@ void main() {
     expect(await api.restoreSavedSession(), isNull);
     expect(storage.saved, isNull);
     expect(calls, 0);
+    api.close();
+  });
+
+
+  test('P4.2 switching A to B replaces the only saved mobile credential', () async {
+    final storage = TestSecureStore()
+      ..saved = const SavedDevSession(
+        api: apiUrl, ownerId: alice, refreshToken: 'alice-credential');
+    final api = DevAuthApi(Uri.parse(apiUrl), persistence: storage,
+      client: MockClient((request) async {
+        if (request.url.path == '/api/v1/auth/login') {
+          return http.Response(jsonEncode({
+            'access_token':'b-access', 'refresh_token':'b-refresh',
+          }), 200);
+        }
+        if (request.url.path == '/api/v1/me') {
+          return http.Response(jsonEncode(identity(bob)), 200);
+        }
+        return http.Response('{}', 404);
+      }));
+    final session = await api.signIn('fiction@medisuvi-ci.org', 'b-secret-test');
+    expect(session.practitioner.id, bob);
+    expect(storage.saved?.ownerId, bob);
+    expect(storage.saved?.refreshToken, 'b-refresh');
+    expect(storage.saved?.refreshToken, isNot('alice-credential'));
+    api.close();
+  });
+
+  test('P4.2 late restart refresh cannot persist after account cancellation',
+      () async {
+    final storage = TestSecureStore()
+      ..saved = const SavedDevSession(
+        api: apiUrl, ownerId: alice, refreshToken: 'alice-credential');
+    final refreshReceived = Completer<void>();
+    final delayedRefresh = Completer<http.Response>();
+    var userLookupCount = 0;
+    final api = DevAuthApi(Uri.parse(apiUrl), persistence: storage,
+      client: MockClient((request) async {
+        if (request.url.path == '/api/v1/auth/refresh') {
+          refreshReceived.complete();
+          return delayedRefresh.future;
+        }
+        if (request.url.path == '/api/v1/me') userLookupCount++;
+        return http.Response('{}', 404);
+      }));
+    final pending = api.restoreSavedSession();
+    await refreshReceived.future.timeout(const Duration(seconds: 3));
+    await api.forgetSavedSession();
+    delayedRefresh.complete(http.Response(jsonEncode({
+      'access_token':'late-access', 'refresh_token':'late-refresh',
+    }), 200));
+    expect(await pending, isNull);
+    expect(storage.saved, isNull);
+    expect(userLookupCount, 0);
     api.close();
   });
 
