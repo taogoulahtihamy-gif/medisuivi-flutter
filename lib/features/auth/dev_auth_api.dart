@@ -40,7 +40,14 @@ class DevSession {
   String accessToken;
   String refreshToken;
 
+  // Monotonic session revision. A late HTTP response must never resurrect
+  // a logged-out account or return its previous patient's clinical data.
+  int _revision = 0;
+  int get revision => _revision;
+  bool get isActive => accessToken.isNotEmpty;
+
   void clear() {
+    _revision++;
     accessToken = '';
     refreshToken = '';
   }
@@ -137,6 +144,13 @@ class DevAuthApi {
   final Duration _timeout = const Duration(seconds: 10);
   final Map<DevSession, Future<void>> _refreshing = {};
 
+  void _assertSession(DevSession session, int revision) {
+    if (!session.isActive || session.revision != revision) {
+      throw const DevApiException(
+        'Session fermée. Reconnectez-vous pour accéder aux dossiers.');
+    }
+  }
+
   Uri _url(String path) {
     final prefix = _baseUri.toString().replaceAll(RegExp(r'/+$'), '');
     return Uri.parse('$prefix$path');
@@ -155,19 +169,26 @@ class DevAuthApi {
   }
 
   Future<void> _exchangeRefresh(DevSession session) async {
+    final revision = session.revision;
+    _assertSession(session, revision);
     if (session.refreshToken.isEmpty) {
       throw const DevApiException('Session expirée, reconnectez-vous.');
     }
     try {
       final response = await _request('POST', '/api/v1/auth/refresh',
         body: {'refresh_token': session.refreshToken});
+      _assertSession(session, revision);
       _ensureSuccess(response);
       final payload = _map(response);
-      session.accessToken = payload['access_token'] as String;
-      session.refreshToken = payload['refresh_token'] as String;
+      final access = payload['access_token'] as String;
+      final refresh = payload['refresh_token'] as String;
+      _assertSession(session, revision);
+      session.accessToken = access;
+      session.refreshToken = refresh;
     } catch (_) {
-      // Never retain a rejected refresh secret in the client memory.
-      session.clear();
+      // If another action already signed out, leave the cleared session
+      // untouched. Otherwise reject the damaged refresh secret.
+      if (session.revision == revision) session.clear();
       throw const DevApiException('Session expirée, reconnectez-vous.');
     }
   }
@@ -178,6 +199,8 @@ class DevAuthApi {
     String? token,
     DevSession? session,
   }) async {
+    final revision = session?.revision;
+    if (session != null) _assertSession(session, revision!);
     final effectiveToken = session?.accessToken ?? token;
     final headers = <String, String>{
       'Accept': 'application/json',
@@ -206,13 +229,18 @@ class DevAuthApi {
         default:
           throw ArgumentError('Méthode HTTP inconnue');
       }
+      if (session != null) _assertSession(session, revision!);
       if (response.statusCode == 401 && session != null &&
           session.refreshToken.isNotEmpty) {
         if (session.accessToken == effectiveToken) {
           await _refreshSession(session);
         }
-        // Retry once only; cannot recurse into refresh again.
-        return await _request(method, path, body: body, token: session.accessToken);
+        _assertSession(session, revision!);
+        // Retry once only; then check that sign-out did not occur in-flight.
+        final retried = await _request(method, path, body: body,
+          token: session.accessToken);
+        _assertSession(session, revision);
+        return retried;
       }
       return response;
     } on TimeoutException {
@@ -322,8 +350,11 @@ class DevAuthApi {
     if (!const {'image/png', 'image/jpeg', 'image/webp'}.contains(mimeType)) {
       throw const DevApiException('Choisissez une photo PNG, JPEG ou WebP.');
     }
-    Future<http.Response> uploadOnce() =>
-        _client.put(_url('/api/v1/me/avatar'),
+    final revision = session.revision;
+    _assertSession(session, revision);
+    Future<http.Response> uploadOnce() {
+      _assertSession(session, revision);
+      return _client.put(_url('/api/v1/me/avatar'),
           headers: {
             'Accept': 'application/json',
             'Authorization': 'Bearer ${session.accessToken}',
@@ -331,11 +362,15 @@ class DevAuthApi {
           },
           body: bytes,
         ).timeout(_timeout);
+    }
     try {
       var response = await uploadOnce();
+      _assertSession(session, revision);
       if (response.statusCode == 401 && session.refreshToken.isNotEmpty) {
         await _refreshSession(session);
+        _assertSession(session, revision);
         response = await uploadOnce();
+        _assertSession(session, revision);
       }
       _ensureSuccess(response);
       return DevPractitioner.fromJson(_map(response));
