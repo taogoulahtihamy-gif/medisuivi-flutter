@@ -8,6 +8,7 @@ import 'features/onboarding/medisuivi_welcome_gate.dart';
 import 'features/auth/dev_auth_api.dart';
 import 'app/theme_v2.dart';
 import 'app/theme_controller.dart';
+import 'app/display_preferences.dart';
 import 'core/persistence/database_initializer.dart';
 import 'core/persistence/persistence_types.dart';
 import 'core/state/demo_store.dart';
@@ -30,6 +31,8 @@ class MediSuiviApp extends StatefulWidget {
 
 class _MediSuiviAppState extends State<MediSuiviApp> {
   final ThemeModeController _themeController = ThemeModeController();
+  final DisplayPreferencesController _displayPreferences =
+      DisplayPreferencesController();
   DemoStore? _demoStore;
   PersistentStore? _persistentStore;
   DatabaseInitResult? _initResult;
@@ -40,6 +43,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
   void initState() {
     super.initState();
     unawaited(_themeController.load());
+    unawaited(_displayPreferences.load());
     _initializeApp();
   }
 
@@ -139,6 +143,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
   @override
   void dispose() {
     _themeController.dispose();
+    _displayPreferences.dispose();
     _demoStore?.dispose();
     final store = _persistentStore;
     store?.dispose();
@@ -149,11 +154,25 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
   @override
   Widget build(BuildContext context) => ClinicalThemeScope(
     controller: _themeController,
-    child: AnimatedBuilder(
-      animation: _themeController,
-      builder: (context, _) => _buildApp(context),
+    child: DisplayPreferencesScope(
+      controller: _displayPreferences,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_themeController, _displayPreferences]),
+        builder: (context, _) => _buildApp(context),
+      ),
     ),
   );
+
+  Widget _withDisplayPreferences(BuildContext context, Widget? child) {
+    final media = MediaQuery.of(context);
+    return MediaQuery(
+      data: media.copyWith(
+        disableAnimations:
+            media.disableAnimations || _displayPreferences.value.reduceMotion,
+      ),
+      child: child ?? const SizedBox.shrink(),
+    );
+  }
 
   Widget _buildApp(BuildContext context) {
     // Écran de chargement / erreur pendant l'initialisation
@@ -164,6 +183,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
         themeMode: _themeController.value,
+        builder: _withDisplayPreferences,
         home: const _LoadingScreen(),
       );
     }
@@ -177,6 +197,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
         themeMode: _themeController.value,
+        builder: _withDisplayPreferences,
         home: _ErrorScreen(
           message: _errorMessage ?? 'Erreur inconnue',
           onRetry: _initializeApp,
@@ -194,6 +215,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
         themeMode: _themeController.value,
+        builder: _withDisplayPreferences,
         home: const MediSuiviWelcomeGate(
           isWebDemo: true,
           child: MainShell(),
@@ -212,6 +234,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
         themeMode: _themeController.value,
+        builder: _withDisplayPreferences,
         home: const MediSuiviWelcomeGate(
           isWebDemo: false,
           child: MainShell(),
