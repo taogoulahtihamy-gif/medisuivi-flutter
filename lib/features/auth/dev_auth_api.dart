@@ -115,6 +115,12 @@ class DevApiException implements Exception {
   String toString() => message;
 }
 
+class DevVerificationRequired extends DevApiException {
+  const DevVerificationRequired(this.email)
+      : super('Adresse e-mail à confirmer.');
+  final String email;
+}
+
 class DevAuthApi {
   DevAuthApi(Uri baseUri, {http.Client? client})
       : _baseUri = baseUri,
@@ -283,6 +289,15 @@ class DevAuthApi {
   Future<DevSession> signIn(String email, String password) async {
     final result = await _request('POST', '/api/v1/auth/login',
         body: {'email': email.trim(), 'password': password});
+    if (result.statusCode == 403) {
+      try {
+        if (_map(result)['detail'] == 'Adresse e-mail non vérifiée') {
+          throw DevVerificationRequired(email.trim());
+        }
+      } on FormatException {
+        // The generic error handler below will report unexpected responses.
+      }
+    }
     _ensureSuccess(result);
     final tokens = _map(result);
     final token = tokens['access_token'] as String;
@@ -305,7 +320,48 @@ class DevAuthApi {
       'email': email.trim(), 'password': password,
     });
     _ensureSuccess(response, expected: 201);
+    final payload = _map(response);
+    if (payload['email_verification_required'] == true) {
+      throw DevVerificationRequired(email.trim());
+    }
     return signIn(email, password);
+  }
+
+  Future<void> verifyEmail(String email, String code) async {
+    final response = await _request('POST', '/api/v1/auth/email/verify',
+      body: {'email': email.trim(), 'code': code.trim()});
+    if (response.statusCode == 400) {
+      throw const DevApiException('Code incorrect ou expiré.');
+    }
+    _ensureSuccess(response, expected: 204);
+  }
+
+  Future<void> resendEmailCode(String email) async {
+    final response = await _request('POST', '/api/v1/auth/email/resend',
+      body: {'email': email.trim()});
+    _ensureSuccess(response, expected: 202);
+  }
+
+  Future<void> requestPasswordReset(String email) async {
+    final response = await _request('POST', '/api/v1/auth/password/forgot',
+      body: {'email': email.trim()});
+    _ensureSuccess(response, expected: 202);
+  }
+
+  Future<void> resetForgottenPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    final response = await _request('POST', '/api/v1/auth/password/reset',
+      body: {
+        'email': email.trim(), 'code': code.trim(),
+        'new_password': newPassword,
+      });
+    if (response.statusCode == 400) {
+      throw const DevApiException('Code incorrect ou expiré.');
+    }
+    _ensureSuccess(response, expected: 204);
   }
 
   Future<List<DevPatient>> listPatients(DevSession session) async {
