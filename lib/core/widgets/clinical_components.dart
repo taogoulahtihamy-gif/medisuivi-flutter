@@ -289,7 +289,7 @@ class ClinicalButton extends StatelessWidget {
     this.icon,
     this.minWidth,
     this.height = 48,
-    this.expanded = true,
+    this.expanded = false,
     this.loading = false,
     this.disabled = false,
   });
@@ -309,19 +309,20 @@ class ClinicalButton extends StatelessWidget {
     final p = _palette(context);
     final isEnabled = !disabled && !loading && onPressed != null;
     final fg = switch (level) {
-      ClinicalButtonLevel.primary => p.surfaceElevated,
-      ClinicalButtonLevel.secondary => p.brandPrimary,
+      ClinicalButtonLevel.primary => ClinicalColors.actionOnDarkFill,
+      ClinicalButtonLevel.secondary => p.ink,
       ClinicalButtonLevel.tertiary => p.inkMuted,
     };
     final bg = switch (level) {
-      ClinicalButtonLevel.primary => p.brandPrimary,
+      ClinicalButtonLevel.primary => p.isDark
+          ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill,
       ClinicalButtonLevel.secondary => Colors.transparent,
       ClinicalButtonLevel.tertiary => Colors.transparent,
     };
     final side = switch (level) {
       ClinicalButtonLevel.primary => null,
       ClinicalButtonLevel.secondary =>
-        BorderSide(color: p.borderFocus, width: 1.5),
+        BorderSide(color: p.border, width: 1),
       ClinicalButtonLevel.tertiary => null,
     };
 
@@ -365,8 +366,12 @@ class ClinicalButton extends StatelessWidget {
           onTap: isEnabled ? onPressed : null,
           borderRadius: BorderRadius.circular(ClinicalRadius.button),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: ClinicalSpacing.lg),
-            child: Center(child: child),
+            padding: const EdgeInsets.symmetric(horizontal: ClinicalSpacing.xl),
+            child: Align(
+              alignment: Alignment.center,
+              widthFactor: expanded ? null : 1,
+              child: child,
+            ),
           ),
         ),
       ),
