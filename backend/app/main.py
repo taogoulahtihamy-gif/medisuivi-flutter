@@ -761,7 +761,11 @@ def api_app() -> FastAPI:
         if not valid:
             db.commit()
             raise HTTPException(status_code=400, detail="Code invalide ou expiré")
-        if hasher.verify(user.password_hash, data.new_password):
+        try:
+            unchanged = bool(hasher.verify(user.password_hash, data.new_password))
+        except (VerificationError, ValueError):
+            unchanged = False
+        if unchanged:
             db.commit()
             raise HTTPException(status_code=422,
                                 detail="Choisissez un nouveau mot de passe")
