@@ -318,18 +318,23 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
     }
   }
 
-  Future<void> _signOut() async {
+  Future<void> _signOut({bool allDevices = false}) async {
     if (_working) return;
     setState(() { _working = true; _error = null; });
     String? failure;
     try {
-      await widget.api.signOut(widget.session);
-    } on DevApiException {
-      failure = 'Déconnexion locale effectuée. La révocation serveur '
-          'n’a pas pu être confirmée.';
+      if (allDevices) {
+        await widget.api.signOutEverywhere(widget.session);
+      } else {
+        await widget.api.signOut(widget.session);
+      }
+    } catch (_) {
+      failure = 'La session locale est effacée. La révocation serveur '
+          'n’a pas pu être confirmée. Réessayez lorsque le réseau revient.';
     } finally {
-      // NEVER keep displaying former account's clinical data after logout,
-      // including when the network is unavailable.
+      // Never retain previous practitioner data, even if server is unreachable.
+      widget.session.clear();
+      _avatar = null;
       if (mounted) {
         if (failure != null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -337,6 +342,42 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
         }
         widget.onSignedOut();
       }
+    }
+  }
+
+  Future<void> _confirmSignOutEverywhere() async {
+    if (_working) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Déconnecter tous les appareils ?'),
+        content: const Text('Toutes les sessions de ce compte seront '
+          'révoquées, y compris sur vos autres appareils.'),
+        actions: [
+          TextButton(
+            key: const Key('dev-session-cancel-all'),
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            key: const Key('dev-session-confirm-all'),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Tout déconnecter'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await _signOut(allDevices: true);
+    }
+  }
+
+  void _onSessionAction(String action) {
+    if (action == 'all') {
+      _confirmSignOutEverywhere();
+    } else if (action == 'switch') {
+      // Explicit account switch: revoke the current device first.
+      _signOut();
     }
   }
 
@@ -360,9 +401,34 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 : null,
             ),
           ),
+          PopupMenuButton<String>(
+            key: const Key('dev-session-actions'),
+            enabled: !_working,
+            tooltip: 'Comptes et sessions',
+            onSelected: _onSessionAction,
+            itemBuilder: (_) => const [
+              PopupMenuItem<String>(
+                value: 'switch',
+                child: Row(children: [
+                  Icon(Icons.switch_account_outlined, size: 20),
+                  SizedBox(width: 10),
+                  Text('Changer de praticien'),
+                ]),
+              ),
+              PopupMenuItem<String>(
+                value: 'all',
+                child: Row(children: [
+                  Icon(Icons.phonelink_erase_rounded, size: 20),
+                  SizedBox(width: 10),
+                  Text('Déconnecter tous les appareils'),
+                ]),
+              ),
+            ],
+            icon: const Icon(Icons.more_vert_rounded),
+          ),
           IconButton(
             key: const Key('dev-workspace-logout'),
-            onPressed: _working ? null : _signOut,
+            onPressed: _working ? null : () => _signOut(),
             tooltip: 'Se déconnecter',
             icon: const Icon(Icons.logout_rounded),
           ),
