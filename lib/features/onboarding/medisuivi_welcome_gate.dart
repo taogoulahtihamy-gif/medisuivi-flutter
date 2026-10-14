@@ -208,6 +208,8 @@ class _WelcomeBrand extends StatelessWidget {
 }
 
 
+/// Écran d'ouverture : portrait lisible, rédaction à mi-hauteur, barre
+/// de préparation séparée et alignée avec la largeur des textes.
 class _IntroSplash extends StatelessWidget {
   const _IntroSplash({super.key});
 
@@ -222,57 +224,77 @@ class _IntroSplash extends StatelessWidget {
           imageKey: Key('welcome-splash-photo'),
           alignment: Alignment(0, -.35),
         ),
-        const _WelcomePhotoShade(),
+        const IgnorePointer(child: DecoratedBox(
+          decoration: BoxDecoration(gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0, .16, .38, .56, .79, 1],
+            colors: [
+              Color(0x6B07110F),
+              Color(0x0807110F),
+              Color(0x6007110F),
+              Color(0xDD07110F),
+              Color(0xF807100D),
+              Color(0xFF070F0D),
+            ],
+          )),
+        )),
         SafeArea(child: Padding(
-          padding: const EdgeInsets.fromLTRB(26, 25, 26, 30),
+          padding: const EdgeInsets.fromLTRB(25, 21, 25, 33),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _WelcomeBrand(),
-              const Spacer(flex: 3),
-              const Text('Le suivi médical,\nà portée de main.',
+              const Spacer(flex: 5),
+              const Text('VOTRE ESPACE CLINIQUE',
+                style: TextStyle(
+                  color: Color(0xFFB5E6CF),
+                  fontSize: ClinicalTypeScale.caption,
+                  letterSpacing: 1.05, fontWeight: FontWeight.w700,
+                )),
+              const SizedBox(height: 12),
+              const Text('Le suivi médical,\\nà portée de main.',
                 key: Key('welcome-splash-title'),
                 style: TextStyle(
-                  color: Colors.white, fontSize: 35,
-                  height: 1.15, letterSpacing: -.95,
+                  color: Colors.white,
+                  fontSize: ClinicalTypeScale.hero,
+                  height: 1.16, letterSpacing: -.65,
                   fontWeight: FontWeight.w700,
                 )),
-              const SizedBox(height: 11),
-              const Text('Une pratique plus claire.\nDes dossiers mieux organisés.',
-                style: TextStyle(color: Color(0xFFDCE6E0),
-                  fontSize: 15, height: 1.5)),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+              const Text('Une pratique plus claire.\\nDes dossiers mieux organisés.',
+                style: TextStyle(
+                  color: Color(0xFFE6F1EA),
+                  fontSize: ClinicalTypeScale.body,
+                  height: 1.48,
+                )),
+              const Spacer(flex: 2),
               Row(children: [
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: 1),
-                  duration: reduced ? Duration.zero :
-                    const Duration(milliseconds: 2580),
-                  curve: Curves.easeInOutCubic,
-                  builder: (context, value, _) => SizedBox(
-                    width: 94,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: LinearProgressIndicator(
-                        key: const Key('welcome-progress'),
-                        value: value,
-                        minHeight: 4,
-                        color: const Color(0xFF9CE5C4),
-                        backgroundColor: const Color(0x75E2EBE5),
-                      ),
-                    ),
+                const Expanded(child: Text('Préparation de votre espace',
+                  style: TextStyle(color: Color(0xFFE1EDE5),
+                    fontSize: ClinicalTypeScale.body,
+                    fontWeight: FontWeight.w600))),
+                const SizedBox(width: 12),
+                const Icon(Icons.shield_outlined, color: Color(0xFFABD9C2),
+                  size: 17),
+              ]),
+              const SizedBox(height: 12),
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: reduced ? Duration.zero
+                  : const Duration(milliseconds: 2580),
+                curve: Curves.easeInOutCubic,
+                builder: (context, value, _) => ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: LinearProgressIndicator(
+                    key: const Key('welcome-progress'),
+                    value: value,
+                    minHeight: 4,
+                    color: const Color(0xFF9CE5C4),
+                    backgroundColor: const Color(0x668BADA0),
                   ),
                 ),
-                const SizedBox(width: 12),
-                const Expanded(child: Text('Préparation de votre espace',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Color(0xFFDCE6E0),
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                  ))),
-              ]),
-              const Spacer(flex: 2),
+              ),
             ],
           ),
         )),
