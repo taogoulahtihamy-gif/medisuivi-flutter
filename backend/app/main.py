@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 from uuid import uuid4
 
 import jwt
@@ -15,8 +16,11 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, create_engine, select, text
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from sqlalchemy import (
+    Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint,
+    Integer, String, Text, UniqueConstraint, create_engine, event, select, text,
+)
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
 
@@ -46,6 +50,13 @@ class Settings:
 
 settings = Settings()
 engine = create_engine(settings.database_url, pool_pre_ping=True)
+if settings.database_url.startswith('sqlite'):
+    # SQLite integration tests must enforce the same FK invariants as PostgreSQL.
+    @event.listens_for(engine, 'connect')
+    def enable_sqlite_fk(connection, _):
+        cursor = connection.cursor()
+        cursor.execute('PRAGMA foreign_keys=ON')
+        cursor.close()
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
@@ -71,6 +82,7 @@ class User(Base):
 
 class Patient(Base):
     __tablename__ = "patients"
+    __table_args__ = (UniqueConstraint("id", "owner_user_id", name="uq_patient_id_owner"),)
 
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid4()))
@@ -82,6 +94,72 @@ class Patient(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     practitioner: Mapped[User] = relationship(back_populates="patients")
+
+
+class ClinicalChild(Base):
+    """Abstract shared parent. Both owner and patient are constrained in the DB.
+
+    A child row cannot point to a patient owned by another practitioner even
+    if an application-level ownership check were ever omitted.
+    """
+    __abstract__ = True
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    owner_user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("practitioners.id", ondelete="RESTRICT"),
+        nullable=False, index=True)
+    patient_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+
+class Visit(ClinicalChild):
+    __tablename__ = "visits"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["patient_id", "owner_user_id"], ["patients.id", "patients.owner_user_id"],
+            ondelete="RESTRICT", name="fk_visits_patient_owner"),
+    )
+
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    temperature: Mapped[float | None] = mapped_column(Float)
+    systolic: Mapped[int | None] = mapped_column(Integer)
+    diastolic: Mapped[int | None] = mapped_column(Integer)
+    pulse: Mapped[int | None] = mapped_column(Integer)
+    spo2: Mapped[int | None] = mapped_column(Integer)
+    notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+
+
+class LabExam(ClinicalChild):
+    __tablename__ = "exams"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["patient_id", "owner_user_id"], ["patients.id", "patients.owner_user_id"],
+            ondelete="RESTRICT", name="fk_exams_patient_owner"),
+        CheckConstraint("status IN ('pending','complete')", name="ck_exam_status"),
+    )
+
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="pending")
+    result: Mapped[str | None] = mapped_column(Text)
+    result_recorded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class FollowUp(ClinicalChild):
+    __tablename__ = "followups"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["patient_id", "owner_user_id"], ["patients.id", "patients.owner_user_id"],
+            ondelete="RESTRICT", name="fk_followups_patient_owner"),
+        CheckConstraint("status IN ('planned','completed','cancelled')",
+                        name="ck_followup_status"),
+    )
+
+    scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    reason: Mapped[str] = mapped_column(String(500), nullable=False)
+    notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default="planned")
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 def get_db():
@@ -125,6 +203,86 @@ class PatientIn(StrictModel):
 
 class PatientOut(PatientIn):
     id: str
+
+
+class VisitIn(StrictModel):
+    reason: str = Field(min_length=1, max_length=500)
+    temperature: float | None = Field(default=None, ge=25, le=45)
+    systolic: int | None = Field(default=None, ge=40, le=280)
+    diastolic: int | None = Field(default=None, ge=20, le=180)
+    pulse: int | None = Field(default=None, ge=20, le=250)
+    spo2: int | None = Field(default=None, ge=50, le=100)
+    notes: str = Field(default="", max_length=4000)
+
+
+class VisitOut(VisitIn):
+    id: str
+    patient_id: str
+    created_at: datetime
+
+
+class ExamIn(StrictModel):
+    title: str = Field(min_length=1, max_length=300)
+
+
+class ExamOut(ExamIn):
+    id: str
+    patient_id: str
+    status: Literal["pending", "complete"]
+    result: str | None
+    result_recorded_at: datetime | None
+    created_at: datetime
+
+
+class ExamResultIn(StrictModel):
+    result: str = Field(min_length=1, max_length=10000)
+
+
+class FollowUpIn(StrictModel):
+    scheduled_at: datetime
+    reason: str = Field(min_length=1, max_length=500)
+    notes: str = Field(default="", max_length=4000)
+
+    @field_validator("scheduled_at")
+    @classmethod
+    def require_timezone(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("Date avec fuseau horaire obligatoire")
+        return value.astimezone(timezone.utc)
+
+
+class FollowUpOut(FollowUpIn):
+    id: str
+    patient_id: str
+    status: Literal["planned", "completed", "cancelled"]
+    completed_at: datetime | None
+    created_at: datetime
+
+
+class CloseFollowUpIn(StrictModel):
+    completed: bool
+
+
+def owned_patient(db: Session, user: User, patient_id: str) -> Patient:
+    patient = db.scalar(
+        select(Patient).where(Patient.id == patient_id,
+                              Patient.owner_user_id == user.id))
+    if patient is None:
+        # A foreign practitioner's identifier is indistinguishable from missing.
+        raise HTTPException(status_code=404, detail="Dossier introuvable")
+    return patient
+
+
+def dev_write_only() -> None:
+    if settings.environment != "development":
+        raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
+
+
+def clean_text(value: str) -> str:
+    result = value.strip()
+    if not result:
+        raise HTTPException(status_code=422, detail="Champ vide")
+    return result
 
 
 def invalid_token() -> HTTPException:
@@ -269,6 +427,132 @@ def api_app() -> FastAPI:
         if patient is None:
             raise HTTPException(status_code=404, detail="Dossier introuvable")
         return PatientOut.model_validate(patient, from_attributes=True)
+
+    # P2: all clinical operations are nested under an OWNED patient, or
+    # select by ID + owner for updates. Caller-supplied owner is forbidden.
+    @app.get("/api/v1/patients/{patient_id}/visits", response_model=list[VisitOut])
+    def list_visits(patient_id: str, user: User = Depends(current_user),
+                    db: Session = Depends(get_db)):
+        owned_patient(db, user, patient_id)
+        records = db.scalars(select(Visit).where(
+            Visit.patient_id == patient_id, Visit.owner_user_id == user.id)
+            .order_by(Visit.created_at.desc())).all()
+        return [VisitOut.model_validate(item, from_attributes=True) for item in records]
+
+    @app.post("/api/v1/patients/{patient_id}/visits",
+              response_model=VisitOut, status_code=201)
+    def create_visit(patient_id: str, data: VisitIn,
+                     user: User = Depends(current_user), db: Session = Depends(get_db)):
+        dev_write_only()
+        owned_patient(db, user, patient_id)
+        row = Visit(patient_id=patient_id, owner_user_id=user.id,
+                    **(data.model_dump() | {"reason": clean_text(data.reason)}))
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+        return VisitOut.model_validate(row, from_attributes=True)
+
+    @app.get("/api/v1/patients/{patient_id}/exams", response_model=list[ExamOut])
+    def list_exams(patient_id: str, user: User = Depends(current_user),
+                   db: Session = Depends(get_db)):
+        owned_patient(db, user, patient_id)
+        records = db.scalars(select(LabExam).where(
+            LabExam.patient_id == patient_id, LabExam.owner_user_id == user.id)
+            .order_by(LabExam.created_at.desc())).all()
+        return [ExamOut.model_validate(item, from_attributes=True) for item in records]
+
+    @app.post("/api/v1/patients/{patient_id}/exams",
+              response_model=ExamOut, status_code=201)
+    def create_exam(patient_id: str, data: ExamIn,
+                    user: User = Depends(current_user), db: Session = Depends(get_db)):
+        dev_write_only()
+        owned_patient(db, user, patient_id)
+        row = LabExam(patient_id=patient_id, owner_user_id=user.id,
+                      title=clean_text(data.title))
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+        return ExamOut.model_validate(row, from_attributes=True)
+
+    @app.put("/api/v1/exams/{exam_id}/result", response_model=ExamOut)
+    def record_exam(exam_id: str, data: ExamResultIn,
+                    user: User = Depends(current_user), db: Session = Depends(get_db)):
+        dev_write_only()
+        row = db.scalar(select(LabExam).where(
+            LabExam.id == exam_id, LabExam.owner_user_id == user.id)
+            .with_for_update())
+        if row is None:
+            raise HTTPException(status_code=404, detail="Examen introuvable")
+        if row.status != "pending":
+            raise HTTPException(status_code=409, detail="Examen déjà clôturé")
+        row.result = clean_text(data.result)
+        row.result_recorded_at = datetime.now(timezone.utc)
+        row.status = "complete"
+        db.commit()
+        db.refresh(row)
+        return ExamOut.model_validate(row, from_attributes=True)
+
+    @app.get("/api/v1/patients/{patient_id}/followups",
+             response_model=list[FollowUpOut])
+    def list_followups(patient_id: str, user: User = Depends(current_user),
+                       db: Session = Depends(get_db)):
+        owned_patient(db, user, patient_id)
+        records = db.scalars(select(FollowUp).where(
+            FollowUp.patient_id == patient_id, FollowUp.owner_user_id == user.id)
+            .order_by(FollowUp.scheduled_at.asc())).all()
+        return [FollowUpOut.model_validate(item, from_attributes=True) for item in records]
+
+    @app.post("/api/v1/patients/{patient_id}/followups",
+              response_model=FollowUpOut, status_code=201)
+    def create_followup(patient_id: str, data: FollowUpIn,
+                        user: User = Depends(current_user), db: Session = Depends(get_db)):
+        dev_write_only()
+        owned_patient(db, user, patient_id)
+        row = FollowUp(patient_id=patient_id, owner_user_id=user.id,
+                       **(data.model_dump() | {"reason": clean_text(data.reason)}))
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+        return FollowUpOut.model_validate(row, from_attributes=True)
+
+    @app.put("/api/v1/followups/{followup_id}/reschedule",
+             response_model=FollowUpOut)
+    def reschedule_followup(followup_id: str, data: FollowUpIn,
+                            user: User = Depends(current_user),
+                            db: Session = Depends(get_db)):
+        dev_write_only()
+        row = db.scalar(select(FollowUp).where(
+            FollowUp.id == followup_id, FollowUp.owner_user_id == user.id)
+            .with_for_update())
+        if row is None:
+            raise HTTPException(status_code=404, detail="Suivi introuvable")
+        if row.status != "planned":
+            raise HTTPException(status_code=409, detail="Suivi déjà clôturé")
+        row.scheduled_at = data.scheduled_at
+        row.reason = clean_text(data.reason)
+        row.notes = data.notes
+        db.commit()
+        db.refresh(row)
+        return FollowUpOut.model_validate(row, from_attributes=True)
+
+    @app.put("/api/v1/followups/{followup_id}/close",
+             response_model=FollowUpOut)
+    def close_followup(followup_id: str, data: CloseFollowUpIn,
+                       user: User = Depends(current_user),
+                       db: Session = Depends(get_db)):
+        dev_write_only()
+        row = db.scalar(select(FollowUp).where(
+            FollowUp.id == followup_id, FollowUp.owner_user_id == user.id)
+            .with_for_update())
+        if row is None:
+            raise HTTPException(status_code=404, detail="Suivi introuvable")
+        if row.status != "planned":
+            raise HTTPException(status_code=409, detail="Suivi déjà clôturé")
+        row.status = "completed" if data.completed else "cancelled"
+        row.completed_at = datetime.now(timezone.utc) if data.completed else None
+        db.commit()
+        db.refresh(row)
+        return FollowUpOut.model_validate(row, from_attributes=True)
 
     return app
 
