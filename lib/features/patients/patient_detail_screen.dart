@@ -318,21 +318,18 @@ class _PatientProfileHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Hero(
-            tag: 'patient-${patient.id}',
-            child: Container(
-              key: const Key('patient-profile-avatar'),
-              width: 74,
-              height: 74,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: palette.tealSoft,
-                border: Border.all(color: palette.border, width: 1.25),
-              ),
-              alignment: Alignment.center,
-              child: Icon(Icons.person_rounded, size: 36,
-                color: palette.forest),
+          Container(
+            key: const Key('patient-profile-avatar'),
+            width: 74,
+            height: 74,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: palette.tealSoft,
+              border: Border.all(color: palette.border, width: 1.25),
             ),
+            alignment: Alignment.center,
+            child: Icon(Icons.person_rounded, size: 36,
+              color: palette.forest),
           ),
           const SizedBox(height: 10),
           Text(
