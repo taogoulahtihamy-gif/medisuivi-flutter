@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:medisuivi/app/medisuivi_app.dart' as demo;
 import 'package:medisuivi/app/theme.dart';
+import 'package:medisuivi/core/assets/clinical_hero_photo.dart';
 import 'package:medisuivi/features/onboarding/medisuivi_welcome_gate.dart';
 
 Widget _entry() => MaterialApp(
@@ -74,5 +77,36 @@ void main() {
     expect(find.text('Fatou Diop'), findsOneWidget);
     expect(find.byKey(const Key('settings-practitioner-profile')), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+
+  testWidgets('5J : la photo du praticien apparaît dans l’avatar en haut à droite',
+      (tester) async {
+    final profile = PractitionerPreview();
+    addTearDown(profile.dispose);
+    profile.update(
+      firstName: 'Fatou',
+      lastName: 'Diop',
+      email: '', phone: '', specialty: '',
+      photo: base64Decode(clinicalHeroPhotoWebpBase64),
+    );
+    await tester.pumpWidget(PractitionerPreviewScope(
+      controller: profile,
+      child: const demo.MediSuiviApp(themeMode: ThemeMode.light),
+    ));
+    await tester.pumpAndSettle();
+
+    final avatar = tester.widget<CircleAvatar>(
+      find.byKey(const Key('home-practitioner-avatar')));
+    expect(avatar.foregroundImage, isA<MemoryImage>());
+    expect(tester.takeException(), isNull);
+
+    profile.update(
+      firstName: 'Fatou', lastName: 'Diop',
+      email: '', phone: '', specialty: '', photo: null);
+    await tester.pump();
+    final withoutPhoto = tester.widget<CircleAvatar>(
+      find.byKey(const Key('home-practitioner-avatar')));
+    expect(withoutPhoto.foregroundImage, isNull);
   });
 }
