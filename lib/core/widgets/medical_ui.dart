@@ -22,7 +22,7 @@ class ScreenWidth extends StatelessWidget {
 }
 
 class SurfaceCard extends StatelessWidget {
-  const SurfaceCard({super.key, required this.child, this.onTap, this.padding = const EdgeInsets.all(16)});
+  const SurfaceCard({super.key, required this.child, this.onTap, this.padding = const EdgeInsets.all(14)});
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsets padding;
@@ -35,10 +35,10 @@ class SurfaceCard extends StatelessWidget {
       shadowColor: p.night,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: p.border),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(19),
+        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: Padding(padding: padding, child: child),
       ),
@@ -211,10 +211,10 @@ class ClinicalFormSection extends StatelessWidget {
     final p = _p(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(17),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: p.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(23),
         border: Border.all(color: p.border),
       ),
       child: Column(

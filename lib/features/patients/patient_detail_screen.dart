@@ -122,13 +122,31 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           _navigation(),
           const SizedBox(height: 18),
           if (_section == 0) ...[
+          const SectionHeading(title: 'Dernières constantes'),
+          const SizedBox(height: 8),
+          if (last == null)
+            SurfaceCard(child: Text('Aucune mesure enregistrée.', style: TextStyle(color: Palette.of(context).muted)))
+          else SurfaceCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(shortDate(last.date), style: TextStyle(color: Palette.of(context).muted, fontSize: 12)),
+            const SizedBox(height: 13),
+            Row(children: [
+              Expanded(child: _Vital(label: 'Température', value: last.temperature == null ? '—' : '${last.temperature!.toStringAsFixed(1)} °C', icon: Icons.thermostat_rounded)),
+              Expanded(child: _Vital(label: 'Tension', value: last.systolic == null || last.diastolic == null ? '—' : '${last.systolic}/${last.diastolic}', icon: Icons.monitor_heart_outlined)),
+            ]),
+            const Divider(height: 19),
+            Row(children: [
+              Expanded(child: _Vital(label: 'Pouls', value: last.pulse == null ? '—' : '${last.pulse} bpm', icon: Icons.favorite_border_rounded)),
+              Expanded(child: _Vital(label: 'SpO₂', value: last.spo2 == null ? '—' : '${last.spo2} %', icon: Icons.air_rounded)),
+            ]),
+          ])),
+          const SizedBox(height: 16),
           SectionHeading(title: 'Informations médicales', trailing: 'Modifier',
             onTap: () async {
               await Navigator.push(context, MaterialPageRoute<void>(
                 builder: (_) => PatientMedicalInfoScreen(patient: patient)));
               if (mounted) setState(() {});
             }),
-          const SizedBox(height: 11),
+          const SizedBox(height: 8),
           SurfaceCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Expanded(child: _Fact(label: 'Sexe', value: switch (patient.sex) {
@@ -136,9 +154,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               Expanded(child: _Fact(label: 'Téléphone', value: patient.phone)),
             ]),
             const Divider(height: 28),
-            _Fact(label: 'Antécédents médicaux', value: patient.medicalHistory),
-            const Divider(height: 28),
-            _Fact(label: 'Allergies connues', value: patient.allergies),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: _Fact(label: 'Antécédents médicaux',
+                value: patient.medicalHistory)),
+              const SizedBox(width: 12),
+              Expanded(child: _Fact(label: 'Allergies connues',
+                value: patient.allergies)),
+            ]),
           ])),
           const SizedBox(height: 14),
           FutureBuilder<PatientProfileSupplement?>(
@@ -185,24 +207,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               );
             },
           ),
-          const SizedBox(height: 26),
-          const SectionHeading(title: 'Dernières constantes'),
-          const SizedBox(height: 11),
-          if (last == null)
-            SurfaceCard(child: Text('Aucune mesure enregistrée.', style: TextStyle(color: Palette.of(context).muted)))
-          else SurfaceCard(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(shortDate(last.date), style: TextStyle(color: Palette.of(context).muted, fontSize: 12)),
-            const SizedBox(height: 13),
-            Row(children: [
-              Expanded(child: _Vital(label: 'Température', value: last.temperature == null ? '—' : '${last.temperature!.toStringAsFixed(1)} °C', icon: Icons.thermostat_rounded)),
-              Expanded(child: _Vital(label: 'Tension', value: last.systolic == null || last.diastolic == null ? '—' : '${last.systolic}/${last.diastolic}', icon: Icons.monitor_heart_outlined)),
-            ]),
-            const Divider(height: 27),
-            Row(children: [
-              Expanded(child: _Vital(label: 'Pouls', value: last.pulse == null ? '—' : '${last.pulse} bpm', icon: Icons.favorite_border_rounded)),
-              Expanded(child: _Vital(label: 'SpO₂', value: last.spo2 == null ? '—' : '${last.spo2} %', icon: Icons.air_rounded)),
-            ]),
-          ])),
           ],
           if (_section == 1) ...[
           SectionHeading(title: 'Historique des consultations',
@@ -415,9 +419,9 @@ class _Fact extends StatelessWidget {
   final String value;
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    Text(label, style: TextStyle(fontSize: 14, color: Palette.of(context).muted)),
-    const SizedBox(height: 7),
-    Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+    Text(label, style: TextStyle(fontSize: 12, color: Palette.of(context).muted)),
+    const SizedBox(height: 5),
+    Text(value, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
   ]);
 }
 
@@ -430,8 +434,8 @@ class _Vital extends StatelessWidget {
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     Row(children: [Icon(icon, size: 16, color: Palette.of(context).teal), const SizedBox(width: 6),
       Flexible(child: Text(label, style: TextStyle(fontSize: 13, color: Palette.of(context).muted)))]),
-    const SizedBox(height: 7),
-    Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+    const SizedBox(height: 5),
+    Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
   ]);
 }
 

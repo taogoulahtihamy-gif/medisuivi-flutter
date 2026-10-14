@@ -163,7 +163,7 @@ abstract final class MediTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(19),
+          borderRadius: BorderRadius.circular(23),
           side: BorderSide(color: p.border),
         ),
       ),
@@ -176,7 +176,7 @@ abstract final class MediTheme {
         labelStyle: TextStyle(color: p.muted, fontSize: 13),
         prefixIconColor: p.muted,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide(color: p.border),
         ),
         enabledBorder: OutlineInputBorder(

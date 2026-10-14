@@ -193,8 +193,8 @@ abstract final class ClinicalSpacing {
   static const double screenPaddingHorizontal = lg; // 16
   static const double screenPaddingVertical = xl; // 20
   static const double cardPaddingCompact = md; // 12
-  static const double cardPaddingComfortable = lg; // 16
-  static const double cardPaddingSpacious = xl; // 20
+  static const double cardPaddingComfortable = 14; // 14, plus compact
+  static const double cardPaddingSpacious = 18; // 18
   static const double sectionGap = xl; // 20
   static const double groupGap = lg; // 16
   static const double fieldGap = md; // 12
@@ -211,14 +211,14 @@ abstract final class ClinicalRadius {
   static const double full = 9999;
 
   // Rayons sémantiques
-  static const double cardDefault = lg; // 16
-  static const double cardElevated = xl; // 20
+  static const double cardDefault = xl; // 20
+  static const double cardElevated = xxl; // 24
   static const double button = xxl; // 24, coins généreusement arrondis
-  static const double chip = sm; // 8
+  static const double chip = lg; // 16
   static const double avatar = full;
-  static const double input = md; // 12
+  static const double input = xl; // 20
   static const double modal = xxl; // 24
-  static const double navItem = xl; // 20
+  static const double navItem = xxl; // 24
 }
 
 /// Tokens d'ombres

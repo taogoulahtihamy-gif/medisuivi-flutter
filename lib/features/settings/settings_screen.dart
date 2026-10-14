@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../../app/theme.dart';
+import '../../app/theme_controller.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../../core/state/store_context.dart';
 
@@ -36,7 +37,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 PageTitle(
                     title: 'Mon espace',
                     subtitle: 'État et paramètres de l’application'),
-                SizedBox(height: 21),
+                const SizedBox(height: 15),
+                const _AppearanceSettings(),
+                const SizedBox(height: 10),
+                const _Item(
+                  Icons.person_outline_rounded,
+                  'Profil du praticien',
+                  'Photo et compte personnel non configurés. '
+                  'Aucune identité médicale n’est simulée.',
+                ),
+                const SizedBox(height: 16),
                 _Item(
                   Icons.info_outline_rounded,
                   'Stockage actuel',
@@ -89,6 +99,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ]))
         ])),
       );
+}
+
+class _AppearanceSettings extends StatelessWidget {
+  const _AppearanceSettings();
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = ClinicalThemeScope.maybeOf(context);
+    final palette = Palette.of(context);
+    final current = controller?.value ?? ThemeMode.system;
+    const options = <(ThemeMode, String, IconData)>[
+      (ThemeMode.light, 'Clair', Icons.light_mode_outlined),
+      (ThemeMode.dark, 'Sombre', Icons.dark_mode_outlined),
+      (ThemeMode.system, 'Auto', Icons.settings_suggest_outlined),
+    ];
+    return SurfaceCard(
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Apparence', style: TextStyle(
+            fontSize: 15, fontWeight: FontWeight.w700, color: palette.ink)),
+          const SizedBox(height: 5),
+          Text('Choisir le thème de MediSuivi.',
+            style: TextStyle(fontSize: 12, color: palette.muted)),
+          const SizedBox(height: 12),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final option in options)
+              ChoiceChip(
+                key: Key('theme-${option.$1.name}'),
+                label: Text(option.$2),
+                avatar: Icon(option.$3, size: 17),
+                selected: current == option.$1,
+                onSelected: controller == null ? null :
+                  (_) => controller.choose(option.$1),
+              ),
+          ]),
+        ],
+      ),
+    );
+  }
 }
 
 class _Item extends StatelessWidget {
