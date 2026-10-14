@@ -252,3 +252,58 @@ class ClinicalFormSection extends StatelessWidget {
     );
   }
 }
+
+/// Section de formulaire compacte : évite plusieurs écrans de défilement.
+/// Les contrôleurs appartiennent à l'écran parent ; maintainState préserve
+/// aussi les widgets enfants lorsqu'une section est repliée.
+class ClinicalDisclosureSection extends StatelessWidget {
+  const ClinicalDisclosureSection({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.child,
+    this.subtitle,
+    this.initiallyExpanded = false,
+  });
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+  final String? subtitle;
+  final bool initiallyExpanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = _p(context);
+    return Material(
+      color: p.surface,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: p.border),
+        borderRadius: BorderRadius.circular(17),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
+        ),
+        child: ExpansionTile(
+          key: PageStorageKey<String>('clinical-section-$title'),
+          maintainState: true,
+          initiallyExpanded: initiallyExpanded,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 1),
+          childrenPadding: const EdgeInsets.fromLTRB(15, 0, 15, 16),
+          leading: Icon(icon, color: p.forest, size: 20),
+          title: Text(title, style: TextStyle(
+            fontSize: 14.5, fontWeight: FontWeight.w600, color: p.ink,
+          )),
+          subtitle: subtitle == null ? null : Text(subtitle!,
+            style: TextStyle(fontSize: 12.5, color: p.muted)),
+          children: [
+            Divider(height: 14, color: p.border),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}

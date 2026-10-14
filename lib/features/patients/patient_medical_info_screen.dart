@@ -202,7 +202,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
                 ),
               ),
               const SizedBox(height: 14),
-              ClinicalFormSection(
+              ClinicalDisclosureSection(
                 icon: Icons.location_on_outlined,
                 title: 'Adresse et contact',
                 subtitle: 'Informations complémentaires',
@@ -218,7 +218,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
                 ]),
               ),
               const SizedBox(height: 14),
-              ClinicalFormSection(
+              ClinicalDisclosureSection(
                 icon: Icons.medical_services_outlined,
                 title: 'Antécédents complémentaires',
                 child: Column(children: [
@@ -229,12 +229,7 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
                   _entry('Antécédents familiaux', familyHistory, multiline: true),
                 ]),
               ),
-              const SizedBox(height: 21),
-              ElevatedButton.icon(
-                onPressed: _saving ? null : _save,
-                icon: const Icon(Icons.check_rounded),
-                label: const Text('Enregistrer les informations'),
-              ),
+
               const SizedBox(height: 13),
               Text(
                 kIsWeb ? 'Version Web : données fictives temporaires.' : 'Données enregistrées localement ; synchronisation indisponible.',
@@ -246,5 +241,21 @@ class _PatientMedicalInfoScreenState extends State<PatientMedicalInfoScreen> {
         ),
       ),
     )),
+    bottomNavigationBar: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton.icon(
+            onPressed: _saving || _loadingProfile || _profileLoadFailed
+                ? null : _save,
+            icon: const Icon(Icons.check_rounded),
+            label: Text(_saving ? 'Enregistrement…' : 'Enregistrer les informations'),
+          ),
+        ),
+      ),
+    ),
   );
 }
