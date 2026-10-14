@@ -827,76 +827,75 @@ class _AccessChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = Palette.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF070F0D),
-      body: Stack(fit: StackFit.expand, children: [
-        const _WelcomePhoto(
-          imageUrl: _WelcomePhotos.access,
-          imageKey: Key('welcome-access-photo'),
-          alignment: Alignment(0, -.6),
-        ),
-        const _WelcomePhotoShade(),
-        SafeArea(child: Center(child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 510),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(25, 19, 25, 21),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _WelcomeBrand(),
-                const Spacer(),
-                const Text('Votre espace de soin.\nRien qu’à vous.',
-                  style: TextStyle(
-                    color: Colors.white, fontSize: 29,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -.7, height: 1.15,
-                  )),
-                const SizedBox(height: 12),
-                const Text(
-                  'Un praticien, un espace personnel pour organiser ses dossiers.',
-                  style: TextStyle(color: Color(0xFFDCE7E0),
-                    fontSize: 13, height: 1.45),
+      backgroundColor: p.canvas,
+      body: SafeArea(child: Center(child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(23, 28, 23, 36),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 470),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(children: [
+                Container(
+                  key: const Key('welcome-clinical-brand'),
+                  width: 48, height: 48,
+                  decoration: BoxDecoration(
+                    color: p.tealSoft,
+                    borderRadius: BorderRadius.circular(15)),
+                  child: Icon(Icons.health_and_safety_outlined,
+                    color: p.forest, size: 25),
                 ),
-                const SizedBox(height: 25),
-                _OnboardPrimaryButton(
-                  key: const Key('welcome-create'),
-                  label: 'Créer un compte',
-                  onTap: onCreate,
-                ),
-                const SizedBox(height: 12),
-                _OnboardSecondaryButton(
-                  key: const Key('welcome-login'),
-                  label: 'Se connecter',
-                  onTap: onSignIn,
-                  onPhoto: true,
-                ),
-                if (allowLocalAccess) ...[
-                const SizedBox(height: 13),
-                Center(child: TextButton(
+                const SizedBox(width: 14),
+                Column(crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('MediSuivi', style: TextStyle(
+                      color: p.ink, fontSize: 21,
+                      fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 3),
+                    Text('ESPACE PRATICIEN', style: TextStyle(
+                      color: p.muted, fontSize: 10,
+                      fontWeight: FontWeight.w700, letterSpacing: 1.15)),
+                  ]),
+              ]),
+              const SizedBox(height: 53),
+              Text('Vos dossiers,\nau même endroit.',
+                style: TextStyle(color: p.ink, fontSize: 30,
+                  height: 1.19, letterSpacing: -.7,
+                  fontWeight: FontWeight.w700)),
+              const SizedBox(height: 14),
+              Text('Accédez à votre espace clinique personnel.',
+                style: TextStyle(color: p.muted,
+                  fontSize: 14, height: 1.55)),
+              const SizedBox(height: 34),
+              SizedBox(height: 49, child: FilledButton(
+                key: const Key('welcome-login'),
+                onPressed: onSignIn,
+                child: const Text('Se connecter'))),
+              const SizedBox(height: 13),
+              SizedBox(height: 49, child: OutlinedButton(
+                key: const Key('welcome-create'),
+                onPressed: onCreate,
+                child: const Text('Créer un compte'))),
+              if (allowLocalAccess) ...[
+                const SizedBox(height: 16),
+                TextButton(
                   key: const Key('welcome-demo'),
                   onPressed: onLocalAccess,
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFFE3EDE8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8)),
                   child: Text(isWebDemo
-                    ? 'Explorer la démonstration'
-                    : 'Accéder aux dossiers locaux'),
-                )),
-                const SizedBox(height: 5),
-                Text(isWebDemo
-                  ? 'Démonstration avec patients fictifs. Aucun compte réel créé.'
-                  : 'Dossiers locaux uniquement. Aucun compte distant connecté.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFFC3CEC8), fontSize: 10.5,
-                    height: 1.35),
+                      ? 'Explorer la démonstration'
+                      : 'Ouvrir les dossiers locaux'),
                 ),
-                ],
               ],
-            ),
+              const SizedBox(height: 31),
+              Text('Environnement de test · Données fictives uniquement',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: p.muted, fontSize: 11.5)),
+            ],
           ),
-        ))),
-      ]),
+        ),
+      ))),
     );
   }
 }
