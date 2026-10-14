@@ -8,6 +8,7 @@ import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
 import '../auth/dev_auth_api.dart';
 import '../auth/dev_auth_screens.dart';
+import '../auth/dev_email_flows.dart';
 
 /// Prévisualisation mémoire du profil, PAS un compte authentifié.
 /// Aucun mot de passe, jeton, document patient ou photo n'est envoyé au réseau.
@@ -70,12 +71,16 @@ class MediSuiviWelcomeGate extends StatefulWidget {
   State<MediSuiviWelcomeGate> createState() => _MediSuiviWelcomeGateState();
 }
 
-enum _EntryStep { splash, introduction, access, signIn, register, profile, workspace, authenticated }
+enum _EntryStep {
+  splash, introduction, access, signIn, register, verifyEmail,
+  recoverPassword, profile, workspace, authenticated
+}
 
 class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   final PractitionerPreview _practitioner = PractitionerPreview();
   late final DevAuthApi? _authApi;
   DevSession? _authenticatedSession;
+  String? _emailPendingVerification;
   _EntryStep _step = _EntryStep.splash;
   Timer? _splashTimer;
 
@@ -101,6 +106,11 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   }
 
   void _go(_EntryStep step) => setState(() => _step = step);
+
+  void _verifyEmail(String email) => setState(() {
+    _emailPendingVerification = email;
+    _step = _EntryStep.verifyEmail;
+  });
 
   void _onAuthenticated(DevSession session) => setState(() {
     _authenticatedSession = session;
@@ -146,6 +156,8 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
               api: _authApi, isRegister: false,
               onBack: () => _go(_EntryStep.access),
               onToggle: () => _go(_EntryStep.register),
+              onVerificationRequired: _verifyEmail,
+              onForgotPassword: () => _go(_EntryStep.recoverPassword),
               onAuthenticated: _onAuthenticated,
             ),
         _EntryStep.register => DevAuthScreen(
@@ -153,7 +165,21 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
           api: _authApi!, isRegister: true,
           onBack: () => _go(_EntryStep.access),
           onToggle: () => _go(_EntryStep.signIn),
+          onVerificationRequired: _verifyEmail,
           onAuthenticated: _onAuthenticated,
+        ),
+        _EntryStep.verifyEmail => DevEmailVerificationScreen(
+          key: const ValueKey('dev-email-verification'),
+          api: _authApi!,
+          email: _emailPendingVerification!,
+          onVerified: () => _go(_EntryStep.signIn),
+          onBack: () => _go(_EntryStep.signIn),
+        ),
+        _EntryStep.recoverPassword => DevPasswordRecoveryScreen(
+          key: const ValueKey('dev-password-recovery'),
+          api: _authApi!,
+          onFinished: () => _go(_EntryStep.signIn),
+          onBack: () => _go(_EntryStep.signIn),
         ),
         _EntryStep.profile => PractitionerPreviewForm(
           key: const ValueKey('welcome-profile'),
