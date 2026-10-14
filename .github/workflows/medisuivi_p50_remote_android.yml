@@ -7,6 +7,7 @@ on:
     paths:
       - "android/**"
       - "lib/**"
+      - "integration_test/**"
       - "scripts/check_remote_api_url.py"
       - "scripts/check_android_p46_security.py"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
@@ -16,6 +17,7 @@ on:
     paths:
       - "android/**"
       - "lib/**"
+      - "integration_test/**"
       - "scripts/check_remote_api_url.py"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
       - "pubspec.yaml"
@@ -86,3 +88,57 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
           if-no-files-found: error
+
+  android-emulator:
+    name: Android ${{ matrix.api-level }} HTTPS + original UI
+    needs: connected-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    strategy:
+      fail-fast: false
+      matrix:
+        # Android 10 (older devices) and Android 15 (modern devices).
+        api-level: [29, 35]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+      - name: Download the EXACT APK from the signed-debug build
+        uses: actions/download-artifact@v4
+        with:
+          name: medisuivi-p50-vercel-connected-android-debug-apk
+          path: downloaded-apk
+      - name: Verify HTTPS origin and resolve test dependencies
+        run: |
+          set -euo pipefail
+          python3 scripts/check_remote_api_url.py "$MEDISUIVI_API_BASE_URL"
+          flutter pub get
+      - name: Boot Android, install APK and call real Vercel API from device
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: |
+            set -euo pipefail
+            test -s downloaded-apk/app-debug.apk
+            adb shell getprop ro.build.version.release
+            adb install -r downloaded-apk/app-debug.apk
+            adb shell am start -W -n \
+              com.example.medisuivi.sandbox/com.example.medisuivi.MainActivity
+            adb shell pidof com.example.medisuivi.sandbox
+            flutter test integration_test/p50_vercel_android_emulator_test.dart \
+              -d emulator-5554 --no-pub \
+              --dart-define="MEDISUIVI_DEV_API_BASE_URL=$MEDISUIVI_API_BASE_URL" \
+              --dart-define=MEDISUIVI_REMOTE_SANDBOX=true
