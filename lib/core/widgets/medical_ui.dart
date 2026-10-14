@@ -138,19 +138,19 @@ class ClinicalListRow extends StatelessWidget {
               Text(title,
                 maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 14.7, height: 1.22,
+                  fontSize: 15.3, height: 1.22,
                   fontWeight: FontWeight.w600, color: p.ink)),
               if (subtitle != null) ...[
                 const SizedBox(height: 4),
                 Text(subtitle!,
                   maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12.5, height: 1.3, color: p.muted)),
+                  style: TextStyle(fontSize: 13.1, height: 1.3, color: p.muted)),
               ],
               if (detail != null) ...[
                 const SizedBox(height: 5),
                 Text(detail!,
                   maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600,
+                  style: TextStyle(fontSize: 13.1, fontWeight: FontWeight.w600,
                     color: p.forest)),
               ],
             ],
