@@ -57,7 +57,9 @@ void main() {
       expect(find.byKey(const Key('welcome-create')), findsOneWidget);
       expect(find.byKey(const Key('welcome-login')), findsOneWidget);
       expect(find.byKey(const Key('welcome-demo')), findsOneWidget);
-      expect(find.byKey(const Key('welcome-access-photo')), findsOneWidget);
+      expect(find.byKey(const Key('welcome-access-brand')), findsOneWidget);
+      expect(find.byKey(const Key('welcome-access-photo')), findsNothing,
+        reason: 'L’accès au compte ne doit plus être couvert de photos.');
       expect(tester.takeException(), isNull);
 
       await tester.tap(find.byKey(const Key('welcome-login')));
