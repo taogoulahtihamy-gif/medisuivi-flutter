@@ -636,7 +636,7 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       color: p.inkMuted,
-                      fontSize: narrow ? 10 : 11,
+                      fontSize: narrow ? (p.isDark ? 10 : 11) : 11.5,
                     )),
                   const SizedBox(height: 3),
                   Text('Vos dossiers',
@@ -655,7 +655,7 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       color: p.inkMuted,
-                      fontSize: narrow ? 10.5 : 12,
+                      fontSize: narrow ? (p.isDark ? 10.5 : 11.5) : 12.2,
                       height: 1.25,
                     )),
                 ],
@@ -693,7 +693,8 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                       focusedBorder: InputBorder.none,
                       hintText: narrow ? 'Patient…' : 'Chercher un patient',
                       hintStyle: TextStyle(
-                        color: p.inkMuted, fontSize: narrow ? 11 : 12),
+                        color: p.inkMuted,
+                        fontSize: narrow ? (p.isDark ? 11 : 11.8) : 12),
                       prefixIcon: Icon(Icons.search_rounded,
                         size: 19, color: p.inkMuted),
                       prefixIconConstraints: const BoxConstraints(
