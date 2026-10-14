@@ -5,6 +5,7 @@ import '../../app/theme.dart';
 import '../../app/theme_controller.dart';
 import '../../app/display_preferences.dart';
 import '../../core/state/store_context.dart';
+import '../../core/state/connected_clinical_store.dart';
 import '../notifications/clinical_alerts_screen.dart';
 import 'settings_detail_screens.dart';
 import '../onboarding/medisuivi_welcome_gate.dart';
@@ -45,9 +46,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ));
       return;
     }
+    final clinical = context.store;
+    final connected = clinical is ConnectedClinicalStore ? clinical : null;
     _open(PractitionerPreviewForm(
       controller: profile,
       isWebDemo: kIsWeb,
+      connectedAccount: connected != null,
+      onPersist: connected == null ? null : (draft) async {
+        if (!connected.active) {
+          throw StateError('Session fermée.');
+        }
+        await connected.api.updateProfile(
+          connected.session,
+          firstName: draft.firstName,
+          lastName: draft.lastName,
+          phone: draft.phone,
+          specialty: draft.specialty,
+        );
+      },
       onSaved: () => Navigator.of(context).pop(),
     ));
   }
