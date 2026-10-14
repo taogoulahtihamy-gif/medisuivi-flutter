@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:medisuivi/app/theme.dart';
+import 'package:medisuivi/core/state/store_context.dart';
 import 'package:medisuivi/features/auth/dev_auth_api.dart';
 import 'package:medisuivi/features/auth/dev_session_persistence.dart';
 import 'package:medisuivi/features/onboarding/medisuivi_welcome_gate.dart';
@@ -57,15 +58,17 @@ void main() {
       home: MediSuiviWelcomeGate(
         developmentAuthApi: api,
         isWebDemo: true,
-        child: const Text('FORBIDDEN SHARED DEMO STORE'),
+        child: Builder(builder: (context) => Text(
+          'CONNECTED PATIENT COUNT ${context.store.patients.length}')),
+
       ),
     ));
     await tester.pump(const Duration(milliseconds: 3000));
     await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('dev-authenticated-workspace')),
+    expect(find.byKey(const ValueKey('original-authenticated-workspace')),
       findsOneWidget);
-    expect(find.text('Awa Fictif'), findsOneWidget);
-    expect(find.text('FORBIDDEN SHARED DEMO STORE'), findsNothing);
+    expect(find.text('CONNECTED PATIENT COUNT 0'), findsOneWidget);
+    expect(find.text('CONNECTED PATIENT COUNT 99'), findsNothing);
     expect(storage.saved?.refreshToken, 'new-refresh');
     api.close();
   });
@@ -87,14 +90,16 @@ void main() {
       home: MediSuiviWelcomeGate(
         developmentAuthApi: api,
         isWebDemo: true,
-        child: const Text('FORBIDDEN SHARED DEMO STORE'),
+        child: Builder(builder: (context) => Text(
+          'CONNECTED PATIENT COUNT ${context.store.patients.length}')),
+
       ),
     ));
     await tester.pump(const Duration(milliseconds: 3000));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('dev-session-restoring')),
       findsOneWidget);
-    expect(find.byKey(const ValueKey('dev-authenticated-workspace')),
+    expect(find.byKey(const ValueKey('original-authenticated-workspace')),
       findsNothing);
     expect(storage.saved?.refreshToken, 'valid-but-offline');
 
@@ -102,7 +107,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(storage.saved, isNull);
     expect(find.byKey(const ValueKey('dev-signin')), findsOneWidget);
-    expect(find.text('FORBIDDEN SHARED DEMO STORE'), findsNothing);
+    expect(find.text('CONNECTED PATIENT COUNT 99'), findsNothing);
     api.close();
   });
 }
