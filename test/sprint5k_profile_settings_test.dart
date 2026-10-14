@@ -116,7 +116,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('settings-privacy')));
     await tester.pumpAndSettle();
-    expect(find.text('La confidentialité avant tout'), findsOneWidget);
+    expect(find.text('Confidentialité et protection'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }
