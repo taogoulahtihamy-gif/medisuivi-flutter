@@ -1,5 +1,42 @@
 # P5.0 alternative : API Vercel + Neon (aucun VPS, aucun backend local)
 
+## État du 14 octobre 2026 : API validée
+
+- URL de production **confirmée** : `https://medisuivi-api-staging.vercel.app`.
+- `/health` : HTTP 200, environnement non-production.
+- `/ready` : HTTP 200, base distante disponible.
+- `/openapi.json` : HTTP 200, FastAPI et routes de l'API exposés.
+- Migrations Alembic sur la base `medisuivi_sandbox` : build Vercel réussi.
+- Contrôles réels multi-utilisateurs et parcours Flutter complets : **encore à effectuer**.
+
+**Action Web Render (uniquement après validation du build GitHub)** :
+dans Render > `medisuivi-web-staging`, remplacer
+`MEDISUIVI_API_BASE_URL` par
+`https://medisuivi-api-staging.vercel.app`, puis changer la branche du
+service pour `feat/medisuivi-p50-vercel-api-neon` et utiliser le déploiement
+manuel. Conserver la même commande `bash scripts/build_render_web.sh`.
+Vérifier `https://medisuivi-web-staging.onrender.com` avec un compte fictif
+et le panneau Réseau ; ne pas envoyer de données personnelles réelles.
+
+**Action Android GitHub** : la CI
+`MediSuivi P5.0 remote HTTPS Android APK` de la même branche est maintenant
+configurée pour `https://medisuivi-api-staging.vercel.app`.
+Télécharger uniquement l'artefact de la branche Vercel et non l'ancienne
+APK qui utilisait Render. App Android physique pas encore validée.
+
+**Protection Vercel** : conserver la protection des preview. La production
+doit être accessible depuis Web et APK uniquement après validation du
+fonctionnement de son domaine public. La santé HTTP 200 ne suffit pas à
+prouver l'authentification ni l'isolation A/B.
+Ne jamais copier de jeton de contournement de protection dans Flutter.
+
+**Secrets** : le mot de passe Neon et des secrets JWT/invitation ont été
+exposés dans des captures précédentes. Les renouveler dans Neon et Vercel
+avant des tests publics. Cette procédure invalide potentiellement des
+sessions existantes ; ne pas modifier des bases de l'ERP ou des données
+locales.
+
+
 **Portée : sandbox technique avec des comptes et dossiers totalement fictifs.**
 Le site Flutter reste sur Render Static Site. L'APK Android sera reconstruite
 après validation de l'URL Vercel. Le service Web FastAPI bloqué sur Render
@@ -83,11 +120,9 @@ Contrôler le bundle à l'aide du navigateur Réseau : aucune requête vers
 
 ## Recompiler l'APK
 
-Le workflow `MediSuivi P5.0 remote HTTPS Android APK` conserve une
-ancienne adresse Render tant qu'elle n'a pas été changée.
-Après réception de l'URL Vercel, modifier l'environnement
-`MEDISUIVI_API_BASE_URL` **dans le workflow GitHub**, exécuter la CI et
-télécharger son nouvel artefact signé debug depuis le dernier run réussi.
+Le workflow Android sur `feat/medisuivi-p50-vercel-api-neon` référence désormais
+l'API Vercel. Utiliser son artefact `medisuivi-p50-vercel-connected-android-debug-apk`
+seulement après une CI verte.
 
 La version de démonstration Android utilise `com.example.medisuivi.sandbox`
 et n'écrase pas l'ancienne application.
