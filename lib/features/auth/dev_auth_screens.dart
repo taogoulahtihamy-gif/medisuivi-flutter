@@ -375,21 +375,28 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   }
 
   Future<void> _openProfile() async {
+    if (!widget.session.isActive) return;
+    final session = widget.session;
+    final api = widget.api;
     await Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => DevProfileEditor(
-        api: widget.api,
-        session: widget.session,
+        api: api,
+        session: session,
         initial: _profile,
         avatar: _avatar,
         onChanged: (updated, bytes) {
-          if (mounted) setState(() {
-            _profile = updated;
-            _avatar = bytes;
-          });
+          if (mounted && identical(widget.session, session) &&
+              session.isActive) {
+            setState(() {
+              _profile = updated;
+              _avatar = bytes;
+            });
+          }
         },
         onPasswordChanged: () {
-          // Backend revoked every device; abandon profile & sensitive routes.
-          if (!mounted) return;
+          // The server revoked all sessions; drop this account's routes.
+          if (!mounted || !identical(widget.session, session)) return;
+          session.clear();
           Navigator.of(context).popUntil((route) => route.isFirst);
           _avatar = null;
           widget.onSignedOut();
@@ -489,10 +496,19 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   }
 
   Future<List<_PendingFollowUp>> _loadFollowUps() async {
-    final patients = await _patients;
-    // Only practitioner-owned patients returned by this session's API.
+    final session = widget.session;
+    final api = widget.api;
+    final patientsFuture = _patients;
+    final patients = await patientsFuture;
+    if (!session.isActive || !identical(widget.session, session)) {
+      throw StateError('La session a changé.');
+    }
+    // Never query A's patient IDs through a newly selected B session.
     final bundles = await Future.wait(patients.map((patient) =>
-        widget.api.getPatientClinical(widget.session, patient)));
+        api.getPatientClinical(session, patient)));
+    if (!session.isActive || !identical(widget.session, session)) {
+      throw StateError('La session a changé.');
+    }
     final result = <_PendingFollowUp>[];
     for (var index = 0; index < patients.length; index++) {
       for (final followUp in bundles[index].followUps) {
@@ -518,14 +534,17 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
 
   Future<void> _openPatient(DevPatient patient) async {
     if (!widget.session.isActive) return;
+    final session = widget.session;
+    final api = widget.api;
     await Navigator.of(context).push(MaterialPageRoute<void>(
       builder: (_) => DevPatientDetail(
-        api: widget.api,
-        session: widget.session,
+        api: api,
+        session: session,
         patient: patient,
       ),
     ));
-    if (mounted && widget.session.isActive) _reload();
+    if (mounted && session.isActive &&
+        identical(widget.session, session)) _reload();
   }
 
   Widget _patientTile(DevPatient patient, PaletteData p) => Padding(
