@@ -7,14 +7,22 @@ cd "$(dirname "$0")/.."
 python3 scripts/check_remote_api_url.py "$MEDISUIVI_API_BASE_URL"
 
 FLUTTER_VERSION="3.47.7"
-FLUTTER_HOME="${HOME}/.cache/medisuivi-flutter-$FLUTTER_VERSION"
-if [ ! -x "$FLUTTER_HOME/bin/flutter" ]; then
-  mkdir -p "$(dirname "$FLUTTER_HOME")"
-  git clone --depth 1 --branch "$FLUTTER_VERSION" \
-    https://github.com/flutter/flutter.git "$FLUTTER_HOME"
+if command -v flutter >/dev/null 2>&1; then
+  INSTALLED="$(flutter --version --machine |
+    python3 -c 'import json,sys; print(json.load(sys.stdin)["frameworkVersion"])')"
+  if [ "$INSTALLED" != "$FLUTTER_VERSION" ]; then
+    echo "Flutter version mismatch: expected $FLUTTER_VERSION" >&2
+    exit 1
+  fi
+else
+  FLUTTER_HOME="${HOME}/.cache/medisuivi-flutter-$FLUTTER_VERSION"
+  if [ ! -x "$FLUTTER_HOME/bin/flutter" ]; then
+    mkdir -p "$(dirname "$FLUTTER_HOME")"
+    git clone --depth 1 --branch "$FLUTTER_VERSION" \
+      https://github.com/flutter/flutter.git "$FLUTTER_HOME"
+  fi
+  export PATH="$FLUTTER_HOME/bin:$PATH"
 fi
-
-export PATH="$FLUTTER_HOME/bin:$PATH"
 flutter config --no-analytics
 flutter precache --web
 flutter pub get
