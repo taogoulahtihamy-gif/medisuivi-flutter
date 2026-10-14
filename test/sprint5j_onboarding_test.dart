@@ -21,6 +21,14 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+      if (width == 320) {
+        final originalError = FlutterError.onError;
+        FlutterError.onError = (details) {
+          debugPrint('ONBOARDING_RENDER_DETAIL: ${details.toString()}');
+          originalError?.call(details);
+        };
+        addTearDown(() => FlutterError.onError = originalError);
+      }
 
       await tester.pumpWidget(_entry());
       expect(find.byKey(const Key('welcome-progress')), findsOneWidget);
