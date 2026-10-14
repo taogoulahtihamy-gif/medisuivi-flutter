@@ -96,7 +96,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Awa Diop'), findsOneWidget);
 
-    await tester.ensureVisible(find.byKey(const Key('settings-notifications')));
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('settings-notifications')), 130,
+      scrollable: find.byType(Scrollable).first);
+    await tester.drag(find.byKey(const Key('settings-page-list')),
+        const Offset(0, -140));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('settings-notifications')));
     await tester.pumpAndSettle();
     expect(find.text('À surveiller'), findsOneWidget);
