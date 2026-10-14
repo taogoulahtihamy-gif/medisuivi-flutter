@@ -1,0 +1,62 @@
+name: MediSuivi P4.7 staging deployment safety
+
+on:
+  push:
+    branches:
+      - feat/medisuivi-p47-render-neon-staging
+    paths:
+      - "render.yaml"
+      - "backend/**"
+      - ".github/workflows/medisuivi_p47_staging_ci.yml"
+  pull_request:
+    paths:
+      - "render.yaml"
+      - "backend/**"
+      - ".github/workflows/medisuivi_p47_staging_ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  staging-guard:
+    name: Check read-only staging on disposable PostgreSQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: medisuivi_ci
+          POSTGRES_USER: medisuivi_ci
+          POSTGRES_PASSWORD: only-synthetic-ci-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U medisuivi_ci -d medisuivi_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      APP_ENV: staging
+      APP_DATABASE_URL: postgresql+psycopg://medisuivi_ci:only-synthetic-ci-password@127.0.0.1:5432/medisuivi_ci
+      APP_JWT_SECRET: p47-CI-only-synthetic-not-for-production-secret-2026
+      APP_ALLOW_DEVELOPMENT_REGISTRATION: "false"
+      APP_ENABLE_EMAIL_AUTH: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify no public registration and no stored credentials
+        run: |
+          python -m pip install PyYAML==6.0.2
+          python backend/scripts/check_p47_render_blueprint.py
+      - name: Install backend dependencies
+        working-directory: backend
+        run: python -m pip install -r requirements.txt
+      - name: Apply migrations to empty disposable PostgreSQL 17
+        working-directory: backend
+        run: python -m alembic upgrade head
+      - name: Verify staging cannot create clinical records
+        working-directory: backend
+        run: python -m pytest tests/test_p47_staging_read_only.py -q
