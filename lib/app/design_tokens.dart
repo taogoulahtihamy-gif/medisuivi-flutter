@@ -15,6 +15,11 @@ abstract final class ClinicalColors {
   static const Color lightInkMuted = Color(0xFF5C5650);
   static const Color lightInkSubtle = Color(0xFF9C948A);
   static const Color lightBrandPrimary = Color(0xFF2D3A35);
+  // Actions : olive profond, moins saturé que la couleur d'accent.
+  // Fond et texte distincts pour conserver une lisibilité élevée.
+  static const Color lightActionFill = Color(0xFF354A40);
+  static const Color darkActionFill = Color(0xFF3A5F4F);
+  static const Color actionOnDarkFill = Color(0xFFF7F8F5);
   static const Color lightBrandPrimarySoft = Color(0xFFE8EDEB);
   static const Color lightAccentAmber = Color(0xFFC49A2A);
   static const Color lightAccentAmberSoft = Color(0xFFF5ECDB);
@@ -208,7 +213,7 @@ abstract final class ClinicalRadius {
   // Rayons sémantiques
   static const double cardDefault = lg; // 16
   static const double cardElevated = xl; // 20
-  static const double button = md; // 12
+  static const double button = xxl; // 24, coins généreusement arrondis
   static const double chip = sm; // 8
   static const double avatar = full;
   static const double input = md; // 12
