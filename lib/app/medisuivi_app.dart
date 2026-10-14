@@ -9,6 +9,7 @@ import '../features/followup/followup_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/patients/patients_screen.dart';
 import 'theme.dart';
+import 'theme_controller.dart';
 import 'design_tokens.dart';
 
 class MediSuiviApp extends StatefulWidget {
@@ -22,23 +23,40 @@ class MediSuiviApp extends StatefulWidget {
 
 class _MediSuiviAppState extends State<MediSuiviApp> {
   final DemoStore _store = DemoStore();
+  late final ThemeModeController _themeController =
+      ThemeModeController(initial: widget.themeMode);
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.themeMode == ThemeMode.system) {
+      _themeController.load();
+    }
+  }
 
   @override
   void dispose() {
     _store.dispose();
+    _themeController.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => DemoScope(
-    store: _store,
-    child: MaterialApp(
-      title: 'MediSuivi',
-      debugShowCheckedModeBanner: false,
-      theme: MediTheme.light(),
-      darkTheme: MediTheme.dark(),
-      themeMode: widget.themeMode,
-      home: const MainShell(),
+  Widget build(BuildContext context) => ClinicalThemeScope(
+    controller: _themeController,
+    child: AnimatedBuilder(
+      animation: _themeController,
+      builder: (context, _) => DemoScope(
+        store: _store,
+        child: MaterialApp(
+          title: 'MediSuivi',
+          debugShowCheckedModeBanner: false,
+          theme: MediTheme.light(),
+          darkTheme: MediTheme.dark(),
+          themeMode: _themeController.value,
+          home: const MainShell(),
+        ),
+      ),
     ),
   );
 }
