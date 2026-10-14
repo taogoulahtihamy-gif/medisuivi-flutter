@@ -255,6 +255,8 @@ class DevAuthApi {
     final code = response.statusCode;
     if (expected != null ? code == expected : code >= 200 && code < 300) return;
     switch (code) {
+      case 400:
+        throw const DevApiException('Mot de passe actuel incorrect.');
       case 401:
         throw const DevApiException('Identifiants invalides ou session expirée.');
       case 429:
