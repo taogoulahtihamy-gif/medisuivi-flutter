@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import '../../app/theme_controller.dart';
+import '../../app/display_preferences.dart';
 import '../../core/state/store_context.dart';
 import '../notifications/clinical_alerts_screen.dart';
 import 'settings_detail_screens.dart';
@@ -519,15 +520,10 @@ class _MoreSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final display = DisplayPreferencesScope.maybeOf(context);
     void openLanguage() => Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const _SettingsDetailPage(
-          title: 'Langue',
-          icon: Icons.language_rounded,
-          heading: 'Français',
-          description: 'Le français est actuellement la langue disponible. '
-              'Le choix d’autres langues sera ajouté ultérieurement.',
-        ),
+        builder: (_) => const _LanguageSettingsPage(),
       ),
     );
 
@@ -545,6 +541,34 @@ class _MoreSettingsPage extends StatelessWidget {
             Text('Retrouvez les informations et réglages complémentaires.',
               style: TextStyle(color: p.muted, fontSize: 13)),
             const SizedBox(height: 25),
+            Text('AFFICHAGE', style: TextStyle(
+              color: p.muted, fontSize: 11.5,
+              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            const SizedBox(height: 10),
+            _SettingsGroup(children: [
+              SwitchListTile.adaptive(
+                key: const Key('settings-reduce-motion'),
+                title: const Text('Réduire les animations'),
+                subtitle: const Text('Transitions plus discrètes dans MediSuivi'),
+                value: display?.value.reduceMotion ?? false,
+                onChanged: display == null
+                    ? null : (enabled) => display.setReduceMotion(enabled),
+              ),
+              Divider(height: 1, color: p.border),
+              SwitchListTile.adaptive(
+                key: const Key('settings-compact-lists'),
+                title: const Text('Listes compactes'),
+                subtitle: const Text('Lignes resserrées ou plus espacées'),
+                value: display?.value.compactLists ?? true,
+                onChanged: display == null
+                    ? null : (enabled) => display.setCompactLists(enabled),
+              ),
+            ]),
+            const SizedBox(height: 24),
+            Text('INFORMATIONS', style: TextStyle(
+              color: p.muted, fontSize: 11.5,
+              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            const SizedBox(height: 10),
             _SettingsGroup(children: [
               _SettingsLine(
                 key: const Key('more-language'),
@@ -579,6 +603,42 @@ class _MoreSettingsPage extends StatelessWidget {
           ],
         ),
       ))),
+    );
+  }
+}
+
+class _LanguageSettingsPage extends StatelessWidget {
+  const _LanguageSettingsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Langue')),
+      body: SafeArea(child: ListView(
+        padding: const EdgeInsets.fromLTRB(21, 24, 21, 38),
+        children: [
+          Text('Langue de l’interface', style: TextStyle(color: p.ink,
+            fontSize: 23, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 9),
+          Text('Langue actuellement prise en charge par MediSuivi.',
+            style: TextStyle(color: p.muted, fontSize: 13.5)),
+          const SizedBox(height: 20),
+          Material(
+            color: p.surface,
+            borderRadius: BorderRadius.circular(17),
+            child: ListTile(
+              key: const Key('settings-language-fr'),
+              title: const Text('Français'),
+              subtitle: const Text('Langue actuelle'),
+              trailing: Icon(Icons.check_circle_rounded, color: p.forest),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text('Les autres langues ne sont pas encore disponibles.',
+            style: TextStyle(color: p.muted, fontSize: 12.5)),
+        ],
+      )),
     );
   }
 }
