@@ -51,7 +51,7 @@ def test_wrong_current_password_keeps_all_sessions_and_hash(client):
         old_hash = db.get(User, p["id"]).password_hash
     result = change(client, auth(device), "wrong-old",
                     "another-new-long-password-2026")
-    assert result.status_code == 401
+    assert result.status_code == 400
     assert result.json() == {"detail": "Mot de passe actuel incorrect"}
     assert client.get("/api/v1/me", headers=auth(device)).status_code == 200
     with SessionLocal() as db:
