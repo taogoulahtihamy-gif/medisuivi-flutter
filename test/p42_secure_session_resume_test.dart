@@ -294,6 +294,52 @@ void main() {
     api.close();
   });
 
+
+  test('P4.2 changing password erases protected credential and all local tokens',
+      () async {
+    final storage = TestSecureStore()
+      ..saved = const SavedDevSession(
+        api: apiUrl, ownerId: alice, refreshToken: 'before-password-change');
+    final session = DevSession(
+      practitioner: DevPractitioner.fromJson(identity(alice)),
+      accessToken: 'current-access',
+      refreshToken: 'before-password-change',
+    );
+    final api = DevAuthApi(Uri.parse(apiUrl), persistence: storage,
+      client: MockClient((request) async {
+        expect(request.method, 'PUT');
+        expect(request.url.path, '/api/v1/me/password');
+        return http.Response('', 204);
+      }));
+    await api.changePassword(session,
+      currentPassword: 'synthetic-before-password',
+      newPassword: 'synthetic-after-password-2026');
+    expect(storage.saved, isNull);
+    expect(session.isActive, isFalse);
+    expect(session.refreshToken, isEmpty);
+    api.close();
+  });
+
+  test('P4.2 global logout invalidates protected session locally', () async {
+    final storage = TestSecureStore()
+      ..saved = const SavedDevSession(
+        api: apiUrl, ownerId: alice, refreshToken: 'before-global-logout');
+    final session = DevSession(
+      practitioner: DevPractitioner.fromJson(identity(alice)),
+      accessToken: 'current-access',
+      refreshToken: 'before-global-logout',
+    );
+    final api = DevAuthApi(Uri.parse(apiUrl), persistence: storage,
+      client: MockClient((request) async {
+        expect(request.url.path, '/api/v1/auth/logout-all');
+        return http.Response('', 204);
+      }));
+    await api.signOutEverywhere(session);
+    expect(storage.saved, isNull);
+    expect(session.isActive, isFalse);
+    api.close();
+  });
+
   test('P4.2 corrupt JSON never creates a session', () {
     expect(SavedDevSession.parse('not-json'), isNull);
     expect(SavedDevSession.parse('{}'), isNull);
