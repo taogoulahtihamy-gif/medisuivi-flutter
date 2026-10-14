@@ -338,15 +338,37 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   }
 
   @override
+  void didUpdateWidget(covariant DevConnectedWorkspace oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A reused widget must never keep account A's cached lists or avatar
+    // when the parent replaces its authenticated session with account B.
+    if (!identical(oldWidget.session, widget.session) ||
+        oldWidget.api != widget.api) {
+      _profile = widget.session.practitioner;
+      _patients = widget.api.listPatients(widget.session);
+      _avatar = null;
+      _followUps = null;
+      _selectedTab = 0;
+      _error = null;
+      _working = false;
+      _search.clear();
+      if (_profile.hasAvatar) unawaited(_loadAvatar());
+    }
+  }
+
+  @override
   void dispose() {
     _search.dispose();
     super.dispose();
   }
 
   Future<void> _loadAvatar() async {
+    final session = widget.session;
     try {
-      final bytes = await widget.api.loadAvatar(widget.session);
-      if (mounted) setState(() => _avatar = bytes);
+      final bytes = await widget.api.loadAvatar(session);
+      if (mounted && identical(widget.session, session) && session.isActive) {
+        setState(() => _avatar = bytes);
+      }
     } catch (_) {
       // Do not block the entire workspace if a profile photo is unavailable.
     }
@@ -386,36 +408,41 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   }
 
   Future<void> _addSyntheticPatient() async {
-    if (_working) return;
+    if (_working || !widget.session.isActive) return;
+    final session = widget.session;
     setState(() { _working = true; _error = null; });
     try {
-      await widget.api.createSyntheticPatient(widget.session);
-      if (mounted) _reload();
+      await widget.api.createSyntheticPatient(session);
+      if (mounted && identical(widget.session, session)) _reload();
     } on DevApiException catch (error) {
-      if (mounted) setState(() => _error = error.message);
+      if (mounted && identical(widget.session, session)) {
+        setState(() => _error = error.message);
+      }
     } finally {
-      if (mounted) setState(() => _working = false);
+      if (mounted && identical(widget.session, session)) {
+        setState(() => _working = false);
+      }
     }
   }
 
   Future<void> _signOut({bool allDevices = false}) async {
-    if (_working) return;
+    if (_working || !widget.session.isActive) return;
+    final session = widget.session;
     setState(() { _working = true; _error = null; });
     String? failure;
     try {
       if (allDevices) {
-        await widget.api.signOutEverywhere(widget.session);
+        await widget.api.signOutEverywhere(session);
       } else {
-        await widget.api.signOut(widget.session);
+        await widget.api.signOut(session);
       }
     } catch (_) {
       failure = 'La session locale est effacée. La révocation serveur '
           'n’a pas pu être confirmée. Réessayez lorsque le réseau revient.';
     } finally {
-      // Never retain previous practitioner data, even if server is unreachable.
-      widget.session.clear();
-      _avatar = null;
-      if (mounted) {
+      session.clear();
+      if (mounted && identical(widget.session, session)) {
+        _avatar = null;
         if (failure != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(failure)));
