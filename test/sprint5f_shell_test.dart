@@ -44,6 +44,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Réglages'));
     await tester.pumpAndSettle();
+    // Le nouveau profil centré ajoute une zone d'identité :
+    // dégager les choix de thème du dock flottant avant interaction.
+    await tester.drag(find.byKey(const Key('settings-page-list')),
+        const Offset(0, -175));
+    await tester.pumpAndSettle();
     expect(find.text('Apparence'), findsOneWidget);
     expect(find.byKey(const Key('theme-light')), findsOneWidget);
     await tester.tap(find.byKey(const Key('theme-light')));
