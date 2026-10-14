@@ -131,6 +131,7 @@ abstract final class MediTheme {
       useMaterial3: true,
       colorScheme: scheme,
       brightness: p.isDark ? Brightness.dark : Brightness.light,
+      fontFamily: ClinicalTypography.fontFamilyUI,
     );
     final inputStroke = p.isDark
         ? p.border : ClinicalColors.lightBorderStrong;
@@ -150,7 +151,8 @@ abstract final class MediTheme {
       bodySmall: TextStyle(fontSize: 13, height: 1.42),
       labelLarge: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600),
       labelMedium: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
-    ).apply(bodyColor: p.ink, displayColor: p.ink);
+    ).apply(fontFamily: ClinicalTypography.fontFamilyUI,
+      bodyColor: p.ink, displayColor: p.ink);
 
     return base.copyWith(
       scaffoldBackgroundColor: p.canvas,
