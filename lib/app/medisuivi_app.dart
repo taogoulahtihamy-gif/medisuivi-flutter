@@ -98,6 +98,7 @@ class _MainShellState extends State<MainShell> {
     ];
 
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    final palette = Palette.of(context);
     final width = MediaQuery.sizeOf(context).width;
     final showRail = width >= ClinicalBreakpoints.mobile;
     final expandedRail = _expandedOverride ?? width >= ClinicalBreakpoints.tablet;
