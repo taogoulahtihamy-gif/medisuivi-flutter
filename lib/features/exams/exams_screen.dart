@@ -101,45 +101,25 @@ class _ExamsScreenState extends State<ExamsScreen> {
                 title: 'Aucun examen',
                 detail: 'Les examens enregistrés apparaîtront ici.',
                 icon: Icons.biotech_outlined)
-            else for (final exam in exams) ...[
-              SurfaceCard(
-                padding: const EdgeInsets.fromLTRB(15, 17, 14, 17),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => ExamDetailScreen(examId: exam.id))),
-                child: Row(children: [
-                  SoftIcon(
-                    icon: exam.status == ExamStatus.complete
-                      ? Icons.description_outlined : Icons.science_outlined,
-                    color: exam.status == ExamStatus.complete
-                      ? Palette.of(context).forest : Palette.of(context).forest,
-                    background: exam.status == ExamStatus.complete
-                      ? Palette.of(context).tealSoft : Palette.of(context).blueSoft),
-                  const SizedBox(width: 13),
-                  Expanded(child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(exam.title, style: const TextStyle(
-                        fontSize: 16, height: 1.25, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 5),
-                      Text(store.patientById(exam.patientId)?.name ??
-                        'Patient', style: TextStyle(
-                          fontSize: 13, color: Palette.of(context).muted)),
-                      const SizedBox(height: 7),
-                      Text(exam.status == ExamStatus.complete
-                        ? 'Résultat disponible' : 'En attente de résultat',
-                        style: TextStyle(fontSize: 14, height: 1.3,
-                          fontWeight: FontWeight.w600,
-                          color: exam.status == ExamStatus.complete
-                            ? Palette.of(context).forest : Palette.of(context).ink)),
-                    ],
-                  )),
-                  Icon(Icons.chevron_right_rounded,
-                    color: Palette.of(context).forest, size: 24),
-                ]),
-              ),
-              const SizedBox(height: 10),
-            ],
+            else ClinicalGroupedList(
+              key: const Key('exams-compact-register'),
+              children: [
+                for (final exam in exams)
+                  ClinicalListRow(
+                    title: exam.title,
+                    subtitle: store.patientById(exam.patientId)?.name ?? 'Patient',
+                    detail: exam.status == ExamStatus.complete
+                      ? 'Résultat disponible' : 'En attente de résultat',
+                    leading: Icon(
+                      exam.status == ExamStatus.complete
+                        ? Icons.description_outlined : Icons.science_outlined,
+                      color: Palette.of(context).forest, size: 22),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ExamDetailScreen(examId: exam.id))),
+                  ),
+              ],
+            ),
             const SizedBox(height: 11),
 
           ]),

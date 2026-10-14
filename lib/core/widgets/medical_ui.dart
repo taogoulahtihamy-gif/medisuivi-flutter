@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../app/theme.dart';
+import '../../app/display_preferences.dart';
 import '../../core/models/medical_models.dart';
 
 String shortDate(DateTime d) {
@@ -78,34 +79,109 @@ class PatientAvatar extends StatelessWidget {
   }
 }
 
-class PatientRow extends StatelessWidget {
-  const PatientRow({super.key, required this.patient, required this.onTap, this.subtitle});
-  final Patient patient;
-  final VoidCallback onTap;
-  final String? subtitle;
+/// Surface commune pour les registres : un seul fond et séparateurs fins.
+class ClinicalGroupedList extends StatelessWidget {
+  const ClinicalGroupedList({super.key, required this.children});
+  final List<Widget> children;
+
   @override
   Widget build(BuildContext context) {
-    final p = _p(context);
-    return SurfaceCard(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-      child: Row(children: [
-        PatientAvatar(patient: patient, hero: true),
-        const SizedBox(width: 14),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(patient.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600, color: p.ink)),
-          const SizedBox(height: 4),
-          Text(subtitle ?? '${patient.id} · ${patient.age} ans',
-            maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 14, color: p.muted)),
-        ])),
-        if (patient.followUp) Icon(Icons.event_repeat_rounded, size: 19, color: p.teal),
-        const SizedBox(width: 4),
-        Icon(Icons.chevron_right_rounded, color: p.muted),
+    final p = Palette.of(context);
+    return Material(
+      color: p.surface.withValues(alpha: p.isDark ? .76 : .96),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(19),
+        side: BorderSide(color: p.border),
+      ),
+      child: Column(children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) Padding(
+            padding: const EdgeInsets.only(left: 60, right: 13),
+            child: Divider(height: 1, thickness: .65, color: p.border),
+          ),
+          children[i],
+        ],
       ]),
     );
   }
+}
+
+/// Ligne éditoriale compacte et tactile, partagée entre dossiers et examens.
+class ClinicalListRow extends StatelessWidget {
+  const ClinicalListRow({
+    super.key, required this.title, required this.onTap,
+    this.subtitle, this.detail, this.leading, this.trailing,
+  });
+
+  final String title;
+  final String? subtitle;
+  final String? detail;
+  final Widget? leading;
+  final Widget? trailing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    final compact = DisplayPreferencesScope.maybeOf(context)
+        ?.value.compactLists ?? true;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(14, compact ? 12 : 18,
+          13, compact ? 12 : 18),
+        child: Row(children: [
+          if (leading != null) ...[leading!, const SizedBox(width: 12)],
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title,
+                maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 15.3, height: 1.22,
+                  fontWeight: FontWeight.w600, color: p.ink)),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(subtitle!,
+                  maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13.1, height: 1.3, color: p.muted)),
+              ],
+              if (detail != null) ...[
+                const SizedBox(height: 5),
+                Text(detail!,
+                  maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 13.1, fontWeight: FontWeight.w600,
+                    color: p.forest)),
+              ],
+            ],
+          )),
+          const SizedBox(width: 9),
+          if (trailing != null) trailing!,
+          Icon(Icons.chevron_right_rounded, size: 19, color: p.muted),
+        ]),
+      ),
+    );
+  }
+}
+
+class PatientRow extends StatelessWidget {
+  const PatientRow({
+    super.key, required this.patient, required this.onTap, this.subtitle,
+  });
+  final Patient patient;
+  final VoidCallback onTap;
+  final String? subtitle;
+
+  @override
+  Widget build(BuildContext context) => ClinicalListRow(
+    title: patient.name,
+    subtitle: subtitle ?? '${patient.id} · ${patient.age} ans',
+    leading: PatientAvatar(patient: patient, size: 40, hero: true),
+    trailing: patient.followUp
+        ? Icon(Icons.event_repeat_rounded, size: 17,
+            color: Palette.of(context).forest) : null,
+    onTap: onTap,
+  );
 }
 
 class PageTitle extends StatelessWidget {

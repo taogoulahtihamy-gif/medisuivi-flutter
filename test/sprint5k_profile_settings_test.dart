@@ -60,7 +60,7 @@ void main() {
       await tester.tap(find.byKey(const Key('more-language')));
       await tester.pumpAndSettle();
       expect(find.text('Le français est actuellement la langue disponible.'), findsNothing);
-      expect(find.textContaining('Le français est actuellement'), findsOneWidget);
+      expect(find.byKey(const Key('settings-language-fr')), findsOneWidget);
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -116,7 +116,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('settings-privacy')));
     await tester.pumpAndSettle();
-    expect(find.text('La confidentialité avant tout'), findsOneWidget);
+    expect(find.text('Confidentialité et protection'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

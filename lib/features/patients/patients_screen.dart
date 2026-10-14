@@ -125,14 +125,18 @@ class _PatientsScreenState extends State<PatientsScreen> {
                         ? 'Aucun dossier à revoir avec ces filtres.'
                         : 'Essayez une autre recherche.',
                 icon: Icons.search_off_rounded)
-            else for (final patient in filtered) ...[
-              PatientRow(
-                patient: patient,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                  builder: (_) => PatientDetailScreen(patientId: patient.id))),
-              ),
-              const SizedBox(height: 9),
-            ],
+            else ClinicalGroupedList(
+              key: const Key('patients-compact-register'),
+              children: [
+                for (final patient in filtered)
+                  PatientRow(
+                    patient: patient,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => PatientDetailScreen(patientId: patient.id))),
+                  ),
+              ],
+            ),
             const SizedBox(height: 10),
 
           ]),

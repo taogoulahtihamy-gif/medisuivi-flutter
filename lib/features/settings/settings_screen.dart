@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import '../../app/theme_controller.dart';
+import '../../app/display_preferences.dart';
 import '../../core/state/store_context.dart';
 import '../notifications/clinical_alerts_screen.dart';
+import 'settings_detail_screens.dart';
 import '../onboarding/medisuivi_welcome_gate.dart';
 
 /// Profil personnel et préférences : sections lisibles plutôt qu'une pile
@@ -50,54 +52,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ));
   }
 
-  void _openStorage() {
-    _open(_SettingsDetailPage(
-      title: 'Données et stockage',
-      icon: Icons.storage_outlined,
-      heading: kIsWeb ? 'Démonstration locale' : 'Dossiers conservés sur cet appareil',
-      description: kIsWeb
-          ? 'Le navigateur utilise des dossiers fictifs temporaires. '
-            'Ils ne sont liés à aucun compte et peuvent disparaître à la fermeture.'
-          : 'Vos dossiers sont stockés localement. La sauvegarde, '
-            'la restauration et la migration vers un compte sécurisé '
-            'doivent être validées avant un usage médical réel.',
-      extra: kIsWeb ? null : _PendingSyncInfo(future: _pendingSyncCountFuture),
-    ));
-  }
-
-  void _openSync() {
-    _open(const _SettingsDetailPage(
-      title: 'Synchronisation',
-      icon: Icons.cloud_off_outlined,
-      heading: 'Synchronisation non disponible',
-      description: 'Aucun serveur ni compte distant n’est connecté. '
-          'Les dossiers ne sont pas transférés automatiquement. '
-          'La synchronisation sécurisée sera ajoutée dans un sprint ultérieur.',
-    ));
-  }
-
-  void _openPrivacy() {
-    _open(const _SettingsDetailPage(
-      title: 'Confidentialité',
-      icon: Icons.shield_outlined,
-      heading: 'La confidentialité avant tout',
-      description: 'MediSuivi est encore en développement. '
-          'N’enregistrez pas de données patients réelles dans cette version. '
-          'La gestion sécurisée des comptes, les contrôles d’accès et '
-          'la restauration feront l’objet de validations distinctes.',
-    ));
-  }
-
-  void _openAbout() {
-    _open(const _SettingsDetailPage(
-      title: 'À propos',
-      icon: Icons.info_outline_rounded,
-      heading: 'MediSuivi',
-      description: 'Version de développement 0.1.0. '
-          'Application de suivi clinique en cours de conception. '
-          'Les fonctions de compte et de synchronisation ne sont pas encore actives.',
-    ));
-  }
+  void _openStorage() => _open(const SettingsDataPage());
+  void _openSync() => _open(const SettingsSyncPage());
+  void _openPrivacy() => _open(const SettingsPrivacyPage());
+  void _openAbout() => _open(const SettingsAboutPage());
 
   @override
   Widget build(BuildContext context) {
@@ -359,7 +317,7 @@ class _GroupHeading extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(left: 5),
       child: Text(text, style: TextStyle(
-        color: p.muted, fontSize: 10.5,
+        color: p.muted, fontSize: 11.5,
         letterSpacing: 1.05, fontWeight: FontWeight.w700)),
     );
   }
@@ -417,11 +375,11 @@ class _SettingsLine extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.ink, fontSize: 13.8,
+                    style: TextStyle(color: p.ink, fontSize: 14.6,
                       fontWeight: FontWeight.w600)),
                   const SizedBox(height: 3),
                   Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.muted, fontSize: 11.5,
+                    style: TextStyle(color: p.muted, fontSize: 12.5,
                       height: 1.35)),
                 ],
               )),
@@ -517,14 +475,13 @@ class _AppearanceOptions extends StatelessWidget {
 class _SettingsDetailPage extends StatelessWidget {
   const _SettingsDetailPage({
     required this.title, required this.icon, required this.heading,
-    required this.description, this.extra,
+    required this.description,
   });
 
   final String title;
   final IconData icon;
   final String heading;
   final String description;
-  final Widget? extra;
 
   @override
   Widget build(BuildContext context) {
@@ -544,36 +501,11 @@ class _SettingsDetailPage extends StatelessWidget {
             const SizedBox(height: 12),
             Text(description, style: TextStyle(
               fontSize: 14, height: 1.6, color: p.muted)),
-            if (extra != null) ...[
-              const SizedBox(height: 21),
-              extra!,
-            ],
           ],
         ),
       ))),
     );
   }
-}
-
-class _PendingSyncInfo extends StatelessWidget {
-  const _PendingSyncInfo({required this.future});
-  final Future<int>? future;
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder<int>(
-    future: future,
-    builder: (context, snapshot) {
-      final message = snapshot.hasError
-          ? 'Impossible de lire les opérations en attente.'
-          : snapshot.data == null
-              ? 'Lecture des opérations locales…'
-              : snapshot.data == 0
-                  ? 'Aucune opération en attente.'
-                  : '${snapshot.data} opération(s) locale(s) en attente.';
-      return Text(message, style: TextStyle(
-        color: Palette.of(context).ink, fontSize: 13));
-    },
-  );
 }
 
 class _MoreSettingsPage extends StatelessWidget {
@@ -588,15 +520,10 @@ class _MoreSettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final display = DisplayPreferencesScope.maybeOf(context);
     void openLanguage() => Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const _SettingsDetailPage(
-          title: 'Langue',
-          icon: Icons.language_rounded,
-          heading: 'Français',
-          description: 'Le français est actuellement la langue disponible. '
-              'Le choix d’autres langues sera ajouté ultérieurement.',
-        ),
+        builder: (_) => const _LanguageSettingsPage(),
       ),
     );
 
@@ -614,6 +541,40 @@ class _MoreSettingsPage extends StatelessWidget {
             Text('Retrouvez les informations et réglages complémentaires.',
               style: TextStyle(color: p.muted, fontSize: 13)),
             const SizedBox(height: 25),
+            Text('AFFICHAGE', style: TextStyle(
+              color: p.muted, fontSize: 11.5,
+              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            const SizedBox(height: 10),
+            _SettingsGroup(children: [
+              Material(
+                color: Colors.transparent,
+                child: SwitchListTile.adaptive(
+                key: const Key('settings-reduce-motion'),
+                title: const Text('Réduire les animations'),
+                subtitle: const Text('Transitions plus discrètes dans MediSuivi'),
+                value: display?.value.reduceMotion ?? false,
+                onChanged: display == null
+                    ? null : (enabled) => display.setReduceMotion(enabled),
+                ),
+              ),
+              Divider(height: 1, color: p.border),
+              Material(
+                color: Colors.transparent,
+                child: SwitchListTile.adaptive(
+                key: const Key('settings-compact-lists'),
+                title: const Text('Listes compactes'),
+                subtitle: const Text('Lignes resserrées ou plus espacées'),
+                value: display?.value.compactLists ?? true,
+                onChanged: display == null
+                    ? null : (enabled) => display.setCompactLists(enabled),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 24),
+            Text('INFORMATIONS', style: TextStyle(
+              color: p.muted, fontSize: 11.5,
+              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            const SizedBox(height: 10),
             _SettingsGroup(children: [
               _SettingsLine(
                 key: const Key('more-language'),
@@ -648,6 +609,42 @@ class _MoreSettingsPage extends StatelessWidget {
           ],
         ),
       ))),
+    );
+  }
+}
+
+class _LanguageSettingsPage extends StatelessWidget {
+  const _LanguageSettingsPage();
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Langue')),
+      body: SafeArea(child: ListView(
+        padding: const EdgeInsets.fromLTRB(21, 24, 21, 38),
+        children: [
+          Text('Langue de l’interface', style: TextStyle(color: p.ink,
+            fontSize: 23, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 9),
+          Text('Langue actuellement prise en charge par MediSuivi.',
+            style: TextStyle(color: p.muted, fontSize: 13.5)),
+          const SizedBox(height: 20),
+          Material(
+            color: p.surface,
+            borderRadius: BorderRadius.circular(17),
+            child: ListTile(
+              key: const Key('settings-language-fr'),
+              title: const Text('Français'),
+              subtitle: const Text('Langue actuelle'),
+              trailing: Icon(Icons.check_circle_rounded, color: p.forest),
+            ),
+          ),
+          const SizedBox(height: 18),
+          Text('Les autres langues ne sont pas encore disponibles.',
+            style: TextStyle(color: p.muted, fontSize: 12.5)),
+        ],
+      )),
     );
   }
 }
