@@ -1,0 +1,39 @@
+name: MediSuivi P4.5 clinical session isolation
+
+on:
+  push:
+    branches:
+      - test/medisuivi-p45-clinical-owner-session-e2e
+    paths:
+      - "lib/features/auth/dev_auth_api.dart"
+      - "test/p45_clinical_session_race_test.dart"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/medisuivi_p45_flutter_ci.yml"
+  pull_request:
+    paths:
+      - "lib/features/auth/dev_auth_api.dart"
+      - "test/p45_clinical_session_race_test.dart"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/medisuivi_p45_flutter_ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  stale-clinical-replies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install Flutter dependencies
+        run: flutter pub get
+      - name: Reject stale clinical responses across accounts
+        run: flutter test test/p45_clinical_session_race_test.dart
+      - name: Analyze clinical session regression
+        run: dart analyze test/p45_clinical_session_race_test.dart
