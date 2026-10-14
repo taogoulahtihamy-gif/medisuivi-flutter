@@ -131,7 +131,9 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           script: |
-            set -euo pipefail
+            # android-emulator-runner executes this block with /bin/sh (dash).
+            # pipefail is a Bash-specific option: use portable POSIX flags.
+            set -eu
             test -s downloaded-apk/app-debug.apk
             adb shell getprop ro.build.version.release
             adb install -r downloaded-apk/app-debug.apk
