@@ -637,7 +637,7 @@ def api_app() -> FastAPI:
             db.commit()
             if attempt.blocked_until is not None:
                 raise throttled_login(attempt.blocked_until, now)
-            raise HTTPException(status_code=401,
+            raise HTTPException(status_code=400,
                                 detail="Mot de passe actuel incorrect")
         if hmac.compare_digest(
                 data.current_password.encode("utf-8"),
