@@ -235,6 +235,7 @@ class _WelcomeBrand extends StatelessWidget {
   ]);
 }
 
+
 class _IntroSplash extends StatelessWidget {
   const _IntroSplash({super.key});
 
@@ -242,98 +243,65 @@ class _IntroSplash extends StatelessWidget {
   Widget build(BuildContext context) {
     final reduced = MediaQuery.disableAnimationsOf(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF07120F),
+      backgroundColor: const Color(0xFF070F0D),
       body: Stack(fit: StackFit.expand, children: [
-        Image.memory(
-          _ClinicalPhoto.bytes,
-          key: const Key('welcome-splash-photo'),
-          fit: BoxFit.cover,
-          alignment: Alignment.centerRight,
-          filterQuality: FilterQuality.medium,
-          excludeFromSemantics: true,
+        const _WelcomePhoto(
+          imageUrl: _WelcomePhotos.splash,
+          imageKey: Key('welcome-splash-photo'),
+          alignment: Alignment(0, -.35),
         ),
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                Color(0xF0061411),
-                Color(0xC90A1A16),
-                Color(0x710B1513),
-              ],
-              stops: [0, .50, 1],
-            ),
-          ),
-        ),
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0x1805100C),
-                Color(0x5105100D),
-                Color(0xEB05100D),
-              ],
-              stops: [0, .55, 1],
-            ),
-          ),
-        ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(28, 27, 28, 57),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  const Icon(Icons.medical_services_outlined,
-                    color: Color(0xFF8DDCC3), size: 24),
-                  const SizedBox(width: 10),
-                  Text('MediSuivi', key: const Key('welcome-brand'),
-                    style: const TextStyle(
-                      color: Colors.white, fontSize: 19,
-                      fontWeight: FontWeight.w700, letterSpacing: -.45)),
-                ]),
-                const Spacer(),
-                const Text('Votre pratique.\nVos dossiers.\nUn seul espace.',
-                  style: TextStyle(
-                    color: Colors.white, fontSize: 31, height: 1.13,
-                    fontWeight: FontWeight.w700, letterSpacing: -.95)),
-                const SizedBox(height: 13),
-                const Text('Le suivi clinique, pensé pour le quotidien.',
-                  style: TextStyle(
-                    color: Color(0xFFD6E1DC), height: 1.5, fontSize: 13.5)),
-                const SizedBox(height: 36),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 300),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: 1),
-                    duration: reduced ? Duration.zero
-                        : const Duration(milliseconds: 1080),
-                    curve: Curves.easeInOutCubic,
-                    builder: (context, progress, _) => ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
+        const _WelcomePhotoShade(),
+        SafeArea(child: Padding(
+          padding: const EdgeInsets.fromLTRB(26, 25, 26, 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _WelcomeBrand(),
+              const Spacer(flex: 6),
+              const Text('Le suivi médical,\nà portée de main.',
+                key: Key('welcome-splash-title'),
+                style: TextStyle(
+                  color: Colors.white, fontSize: 33,
+                  height: 1.15, letterSpacing: -.95,
+                  fontWeight: FontWeight.w700,
+                )),
+              const SizedBox(height: 11),
+              const Text('Une pratique plus claire.\nDes dossiers mieux organisés.',
+                style: TextStyle(color: Color(0xFFDCE6E0),
+                  fontSize: 13, height: 1.5)),
+              const SizedBox(height: 29),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: reduced ? Duration.zero :
+                    const Duration(milliseconds: 1080),
+                  curve: Curves.easeInOutCubic,
+                  builder: (context, value, _) => SizedBox(
+                    width: 70,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
                         key: const Key('welcome-progress'),
-                        value: progress,
-                        minHeight: 4,
-                        backgroundColor: const Color(0x50E5ECE8),
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF80D4B5)),
+                        value: value,
+                        minHeight: 3,
+                        color: const Color(0xFF9CE5C4),
+                        backgroundColor: const Color(0x75E2EBE5),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                const Text('Ouverture de MediSuivi',
+                const SizedBox(width: 12),
+                const Text('Préparation de votre espace',
                   style: TextStyle(
-                    color: Color(0xFFE0EAE4),
-                    fontSize: 11.5, letterSpacing: .15)),
-              ],
-            ),
+                    color: Color(0xFFDCE6E0),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                  )),
+              ]),
+              const Spacer(flex: 2),
+            ],
           ),
-        ),
+        )),
       ]),
     );
   }
