@@ -11,6 +11,7 @@ import '../../core/state/store_context.dart';
 import '../../core/widgets/clinical_components.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../patients/new_patient_screen.dart';
+import '../onboarding/medisuivi_welcome_gate.dart';
 import '../patients/patient_detail_screen.dart';
 import '../settings/settings_screen.dart';
 import '../notifications/clinical_alerts_screen.dart';
@@ -131,18 +132,28 @@ class HomeScreen extends StatelessWidget {
         ),
         const SizedBox(width: 7),
         Tooltip(
-          message: 'Profil et paramètres',
+          message: PractitionerPreviewScope.maybeOf(context)?.displayName.isNotEmpty == true
+              ? PractitionerPreviewScope.maybeOf(context)!.displayName
+              : 'Profil et paramètres',
           child: InkWell(
             key: const Key('header-profile'),
             borderRadius: BorderRadius.circular(28),
             onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
               builder: (_) => const SettingsScreen())),
-            child: CircleAvatar(
-              radius: 22,
-              backgroundColor: p.brandPrimarySoft,
-              child: Icon(Icons.person_rounded,
-                size: 24, color: p.brandPrimary),
-            ),
+            child: Builder(builder: (context) {
+              final profile = PractitionerPreviewScope.maybeOf(context);
+              return CircleAvatar(
+                key: const Key('home-practitioner-avatar'),
+                radius: 22,
+                backgroundColor: p.brandPrimarySoft,
+                foregroundImage: profile?.photo == null
+                    ? null : MemoryImage(profile!.photo!),
+                child: profile?.photo == null
+                    ? Icon(Icons.person_rounded,
+                        size: 24, color: p.brandPrimary)
+                    : null,
+              );
+            }),
           ),
         ),
       ],
