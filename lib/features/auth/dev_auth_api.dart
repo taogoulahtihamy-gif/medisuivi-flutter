@@ -229,6 +229,9 @@ class DevAuthApi {
     switch (code) {
       case 401:
         throw const DevApiException('Identifiants invalides ou session expirée.');
+      case 429:
+        throw const DevApiException(
+          'Trop de tentatives. Patientez quelques minutes avant de réessayer.');
       case 403:
         throw const DevApiException(
           'Cette opération est désactivée sur le serveur de développement.');
