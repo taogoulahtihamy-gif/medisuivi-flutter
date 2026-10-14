@@ -49,10 +49,10 @@ class ClinicalSidebar extends StatelessWidget {
           width: panelWidth,
           decoration: BoxDecoration(
             color: palette.surface.withValues(
-              alpha: palette.isDark ? .80 : .87),
+              alpha: palette.isDark ? .80 : .96),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: palette.border.withValues(alpha: .76)),
+              color: palette.border.withValues(alpha: palette.isDark ? .76 : .97)),
             boxShadow: [
               BoxShadow(
                 color: palette.night.withValues(

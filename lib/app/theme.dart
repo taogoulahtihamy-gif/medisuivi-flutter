@@ -112,9 +112,15 @@ abstract final class MediTheme {
       onErrorContainer: p.ink,
       surface: p.surface,
       onSurface: p.ink,
-      surfaceVariant: p.tealSoft,
+      surfaceDim: p.canvas,
+      surfaceBright: p.raisedSurface,
+      surfaceContainerLowest: p.raisedSurface,
+      surfaceContainerLow: p.canvas,
+      surfaceContainer: p.surface,
+      surfaceContainerHigh: p.raisedSurface,
+      surfaceContainerHighest: p.tealSoft,
       onSurfaceVariant: p.muted,
-      outline: p.border,
+      outline: p.isDark ? p.border : ClinicalColors.lightBorderStrong,
       outlineVariant: p.border,
       shadow: p.ink,
       inverseSurface: p.ink,
@@ -126,6 +132,8 @@ abstract final class MediTheme {
       colorScheme: scheme,
       brightness: p.isDark ? Brightness.dark : Brightness.light,
     );
+    final inputStroke = p.isDark
+        ? p.border : ClinicalColors.lightBorderStrong;
 
     final text = const TextTheme(
       headlineLarge: TextStyle(fontSize: 27, height: 1.13,
@@ -172,20 +180,30 @@ abstract final class MediTheme {
         fillColor: p.raisedSurface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16, vertical: 16),
-        hintStyle: TextStyle(color: p.muted, fontSize: 13),
-        labelStyle: TextStyle(color: p.muted, fontSize: 13),
+        hintStyle: TextStyle(color: p.muted, fontSize: 13.5),
+        labelStyle: TextStyle(color: p.muted, fontSize: 13.5),
+        floatingLabelStyle: TextStyle(color: p.forest, fontSize: 13.5),
         prefixIconColor: p.muted,
+        suffixIconColor: p.muted,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: p.border),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: inputStroke),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: p.border),
+          borderSide: BorderSide(color: inputStroke),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: p.forest, width: 1.5),
+          borderSide: BorderSide(color: p.forest, width: 1.7),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: p.danger, width: 1.4),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: p.danger, width: 1.7),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -233,6 +251,49 @@ abstract final class MediTheme {
         ),
       ),
       iconTheme: IconThemeData(color: p.ink),
+      listTileTheme: p.isDark ? null : ListTileThemeData(
+        textColor: p.ink,
+        iconColor: p.forest,
+        titleTextStyle: TextStyle(
+          color: p.ink, fontSize: 14.5, fontWeight: FontWeight.w600),
+        subtitleTextStyle: TextStyle(
+          color: p.muted, fontSize: 12.8, height: 1.35),
+      ),
+      switchTheme: p.isDark ? null : SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) =>
+          states.contains(WidgetState.selected) ? p.raisedSurface : p.muted),
+        trackColor: WidgetStateProperty.resolveWith((states) =>
+          states.contains(WidgetState.selected)
+            ? p.forest : p.tealSoft),
+        trackOutlineColor: WidgetStateProperty.all(inputStroke),
+      ),
+      checkboxTheme: p.isDark ? null : CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) =>
+          states.contains(WidgetState.selected) ? p.forest : Colors.transparent),
+        checkColor: WidgetStateProperty.all(p.white),
+        side: BorderSide(color: inputStroke, width: 1.4),
+      ),
+      progressIndicatorTheme: p.isDark ? null : ProgressIndicatorThemeData(
+        color: p.forest, linearTrackColor: p.tealSoft),
+      floatingActionButtonTheme: p.isDark ? null : FloatingActionButtonThemeData(
+        backgroundColor: p.forest, foregroundColor: p.white),
+      popupMenuTheme: p.isDark ? null : PopupMenuThemeData(
+        color: p.raisedSurface,
+        surfaceTintColor: Colors.transparent,
+        textStyle: TextStyle(color: p.ink, fontSize: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(17),
+          side: BorderSide(color: p.border))),
+      dialogTheme: p.isDark ? null : DialogThemeData(
+        backgroundColor: p.raisedSurface,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: TextStyle(
+          color: p.ink, fontWeight: FontWeight.w700, fontSize: 19),
+        contentTextStyle: TextStyle(
+          color: p.muted, fontSize: 14, height: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(color: p.border))),
       dividerColor: p.border,
       chipTheme: ChipThemeData(
         backgroundColor: p.surface,

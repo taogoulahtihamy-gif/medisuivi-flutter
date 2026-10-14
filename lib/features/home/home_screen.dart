@@ -636,7 +636,7 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       color: p.inkMuted,
-                      fontSize: narrow ? 10 : 11,
+                      fontSize: narrow ? (p.isDark ? 10 : 11) : 11.5,
                     )),
                   const SizedBox(height: 3),
                   Text('Vos dossiers',
@@ -655,7 +655,7 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                     textAlign: TextAlign.left,
                     style: TextStyle(
                       color: p.inkMuted,
-                      fontSize: narrow ? 10.5 : 12,
+                      fontSize: narrow ? (p.isDark ? 10.5 : 11.5) : 12.2,
                       height: 1.25,
                     )),
                 ],
@@ -674,9 +674,9 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                 child: Container(
                   height: 46,
                   decoration: BoxDecoration(
-                    color: p.surface.withValues(alpha: p.isDark ? .86 : .94),
+                    color: p.surface.withValues(alpha: p.isDark ? .86 : 1.0),
                     borderRadius: BorderRadius.circular(23),
-                    border: Border.all(color: p.border.withValues(alpha: .80)),
+                    border: Border.all(color: p.border.withValues(alpha: p.isDark ? .80 : 1.0)),
                   ),
                   child: TextField(
                     key: const Key('home-patient-search'),
@@ -693,7 +693,8 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                       focusedBorder: InputBorder.none,
                       hintText: narrow ? 'Patient…' : 'Chercher un patient',
                       hintStyle: TextStyle(
-                        color: p.inkMuted, fontSize: narrow ? 11 : 12),
+                        color: p.inkMuted,
+                        fontSize: narrow ? (p.isDark ? 11 : 11.8) : 12),
                       prefixIcon: Icon(Icons.search_rounded,
                         size: 19, color: p.inkMuted),
                       prefixIconConstraints: const BoxConstraints(

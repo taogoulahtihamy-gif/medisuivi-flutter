@@ -55,6 +55,8 @@ abstract final class ClinicalTheme {
   static ThemeData dark() => _buildTheme(_darkPalette);
 
   static ThemeData _buildTheme(ClinicalPalette p) {
+    final inputStroke = p.isDark
+        ? p.border : ClinicalColors.lightBorderStrong;
 
     final scheme = ColorScheme(
       brightness: p.brightness,
@@ -74,9 +76,15 @@ abstract final class ClinicalTheme {
       onErrorContainer: p.ink,
       surface: p.surface,
       onSurface: p.ink,
-      surfaceVariant: p.brandPrimarySoft,
+      surfaceDim: p.background,
+      surfaceBright: p.surfaceElevated,
+      surfaceContainerLowest: p.surfaceElevated,
+      surfaceContainerLow: p.background,
+      surfaceContainer: p.surface,
+      surfaceContainerHigh: p.surfaceElevated,
+      surfaceContainerHighest: p.brandPrimarySoft,
       onSurfaceVariant: p.inkMuted,
-      outline: p.border,
+      outline: p.isDark ? p.border : ClinicalColors.lightBorderStrong,
       outlineVariant: p.border,
       shadow: p.shadow,
       inverseSurface: p.ink,
@@ -135,13 +143,14 @@ abstract final class ClinicalTheme {
         labelStyle: TextStyle(color: p.inkMuted, fontSize: 13),
         prefixIconColor: p.inkMuted,
         suffixIconColor: p.inkMuted,
+        floatingLabelStyle: TextStyle(color: p.brandPrimary, fontSize: 13.5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ClinicalRadius.input),
-          borderSide: BorderSide(color: p.border),
+          borderSide: BorderSide(color: inputStroke),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ClinicalRadius.input),
-          borderSide: BorderSide(color: p.border),
+          borderSide: BorderSide(color: inputStroke),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ClinicalRadius.input),

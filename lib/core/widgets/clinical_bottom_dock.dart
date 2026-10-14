@@ -39,13 +39,13 @@ class ClinicalBottomDock extends StatelessWidget {
                 height: 68,
                 padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
                 decoration: BoxDecoration(
-                  color: p.raisedSurface.withValues(alpha: p.isDark ? .79 : .86),
+                  color: p.raisedSurface.withValues(alpha: p.isDark ? .79 : .97),
                   borderRadius: BorderRadius.circular(29),
                   border: Border.all(
-                    color: p.border.withValues(alpha: p.isDark ? .78 : .72)),
+                    color: p.border.withValues(alpha: p.isDark ? .78 : .98)),
                   boxShadow: [
                     BoxShadow(
-                      color: p.ink.withValues(alpha: p.isDark ? .18 : .07),
+                      color: p.ink.withValues(alpha: p.isDark ? .18 : .10),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
                     ),
@@ -174,7 +174,7 @@ class _DockItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: active ? p.ink : p.muted,
-                      fontSize: 10,
+                      fontSize: p.isDark ? 10 : 11.1,
                       height: 1.15,
                       fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                     ),

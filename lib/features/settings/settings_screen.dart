@@ -334,9 +334,9 @@ class _SettingsGroup extends StatelessWidget {
     final p = Palette.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: p.surface.withValues(alpha: p.isDark ? .65 : .92),
+        color: p.surface.withValues(alpha: p.isDark ? .65 : .98),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: p.border.withValues(alpha: .74)),
+        border: Border.all(color: p.border.withValues(alpha: p.isDark ? .74 : .98)),
       ),
       child: Column(children: children),
     );

@@ -7,26 +7,28 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Palette de couleurs sémantiques — Nocturne Clinique
 abstract final class ClinicalColors {
-  // ===== MODE CLAIR — "Papier Encre" =====
-  static const Color lightBackground = Color(0xFFF0EBD9);
-  static const Color lightSurface = Color(0xFFF5F0E2);
-  static const Color lightSurfaceElevated = Color(0xFFFBF7EC);
-  static const Color lightInk = Color(0xFF292820);
-  static const Color lightInkMuted = Color(0xFF59564C);
-  static const Color lightInkSubtle = Color(0xFF6C675B);
-  static const Color lightBrandPrimary = Color(0xFF33483D);
+  // ===== MODE CLAIR — "Sauge & Lin" (surfaces mates à hiérarchie lisible) =====
+  static const Color lightBackground = Color(0xFFE9E8E0);
+  static const Color lightSurface = Color(0xFFF3F2EA);
+  static const Color lightSurfaceElevated = Color(0xFFFAF8F2);
+  static const Color lightInk = Color(0xFF1D3027);
+  static const Color lightInkMuted = Color(0xFF465B50);
+  static const Color lightInkSubtle = Color(0xFF52665A);
+  static const Color lightBrandPrimary = Color(0xFF285642);
   // Actions : olive profond, moins saturé que la couleur d'accent.
   // Fond et texte distincts pour conserver une lisibilité élevée.
-  static const Color lightActionFill = Color(0xFF354A40);
+  static const Color lightActionFill = Color(0xFF285642);
   static const Color darkActionFill = Color(0xFF3A5F4F);
   static const Color actionOnDarkFill = Color(0xFFF7F8F5);
-  static const Color lightBrandPrimarySoft = Color(0xFFE2E8D9);
-  static const Color lightAccentAmber = Color(0xFF785C18);
-  static const Color lightAccentAmberSoft = Color(0xFFEFE3BF);
-  static const Color lightCritical = Color(0xFFA43835);
-  static const Color lightCriticalSoft = Color(0xFFF1DCD4);
-  static const Color lightBorder = Color(0xFFD1C6AB);
-  static const Color lightBorderFocus = Color(0xFF425545);
+  static const Color lightBrandPrimarySoft = Color(0xFFDAE9DE);
+  static const Color lightAccentAmber = Color(0xFF79500B);
+  static const Color lightAccentAmberSoft = Color(0xFFF2E5CA);
+  static const Color lightCritical = Color(0xFF9C3836);
+  static const Color lightCriticalSoft = Color(0xFFF0DFDA);
+  static const Color lightBorder = Color(0xFFB0BDB0);
+  static const Color lightBorderFocus = Color(0xFF285642);
+  // Bordure des champs : >= 3:1 sur la surface de saisie.
+  static const Color lightBorderStrong = Color(0xFF7C907E);
   static const Color lightShadow = Color(0x141C1A18); // 8% opacity
   static const Color lightShadowStrong = Color(0x291C1A18); // 16% opacity
 
