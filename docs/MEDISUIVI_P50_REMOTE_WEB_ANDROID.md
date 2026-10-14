@@ -75,7 +75,7 @@ Quand la CI passe :
 1. Ouvrir la dernière exécution réussie.
 2. Télécharger l'artefact `medisuivi-p50-render-connected-android-debug-apk`.
 3. Décompresser l'archive ZIP, récupérer `app-debug.apk`.
-4. Sur un téléphone Android **de test**, autoriser ponctuellement l'installation depuis cette source fiable et installer l'APK. Ne pas désinstaller une version précédente qui contient des données importantes. La signature debug de CI peut être différente de la signature d'une ancienne APK.
+4. Sur un téléphone Android **de test**, autoriser ponctuellement l'installation depuis cette source fiable et installer l'APK. L'APK distante porte l'identifiant distinct `com.example.medisuivi.sandbox` et le nom **MediSuivi Test** afin de ne pas écraser une éventuelle application MediSuivi locale. Ne pas désinstaller une version précédente qui contient des données importantes. La signature debug de CI peut être différente de la signature d'une ancienne APK.
 5. Ouvrir MediSuivi et utiliser le même compte fictif que dans Firefox. L'APK pointe directement vers l'API distante sur HTTPS. Elle ne nécessite pas d'ordinateur allumé.
 
 Quand les secrets de signature officielle sont configurés dans le dépôt et qu'une recette physique est complète, un **APK release signé stable** pourra remplacer le debug. Ne pas publier dans un store mobile à ce stade.
