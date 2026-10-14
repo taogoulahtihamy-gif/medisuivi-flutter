@@ -326,6 +326,8 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   final TextEditingController _search = TextEditingController();
   bool _working = false;
   String? _error;
+  int _selectedTab = 0;
+  Future<List<_PendingFollowUp>>? _followUps;
 
   @override
   void initState() {
@@ -374,9 +376,14 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
     ));
   }
 
-  void _reload() => setState(() {
-    _patients = widget.api.listPatients(widget.session);
-  });
+  void _reload() {
+    if (!widget.session.isActive || !mounted) return;
+    setState(() {
+      _patients = widget.api.listPatients(widget.session);
+      _followUps = null;
+      if (_selectedTab == 2) _followUps = _loadFollowUps();
+    });
+  }
 
   Future<void> _addSyntheticPatient() async {
     if (_working) return;
@@ -454,24 +461,518 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
     }
   }
 
+  Future<List<_PendingFollowUp>> _loadFollowUps() async {
+    final patients = await _patients;
+    // Only practitioner-owned patients returned by this session's API.
+    final bundles = await Future.wait(patients.map((patient) =>
+        widget.api.getPatientClinical(widget.session, patient)));
+    final result = <_PendingFollowUp>[];
+    for (var index = 0; index < patients.length; index++) {
+      for (final followUp in bundles[index].followUps) {
+        if (followUp.status == 'planned') {
+          result.add(_PendingFollowUp(patients[index], followUp));
+        }
+      }
+    }
+    result.sort((a, b) =>
+        a.followUp.scheduledAt.compareTo(b.followUp.scheduledAt));
+    return result;
+  }
+
+  void _selectTab(int index) {
+    if (_working || !widget.session.isActive) return;
+    setState(() {
+      _selectedTab = index;
+      if (index == 2 && _followUps == null) {
+        _followUps = _loadFollowUps();
+      }
+    });
+  }
+
+  Future<void> _openPatient(DevPatient patient) async {
+    if (!widget.session.isActive) return;
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => DevPatientDetail(
+        api: widget.api,
+        session: widget.session,
+        patient: patient,
+      ),
+    ));
+    if (mounted && widget.session.isActive) _reload();
+  }
+
+  Widget _patientTile(DevPatient patient, PaletteData p) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Material(
+      color: p.surface,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(17),
+        side: BorderSide(color: p.border)),
+      child: InkWell(
+        key: Key('dev-open-patient-${patient.id}'),
+        onTap: () => _openPatient(patient),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+          child: Row(children: [
+            Container(
+              height: 40, width: 40,
+              decoration: BoxDecoration(
+                color: p.tealSoft, borderRadius: BorderRadius.circular(13)),
+              child: Icon(Icons.folder_shared_outlined,
+                color: p.forest, size: 20),
+            ),
+            const SizedBox(width: 13),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(patient.displayName,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: p.ink,
+                    fontSize: 13.5, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 3),
+                Text('${patient.age} ans · Dossier clinique',
+                  style: TextStyle(color: p.muted, fontSize: 12)),
+              ],
+            )),
+            Icon(Icons.chevron_right_rounded, color: p.muted, size: 21),
+          ]),
+        ),
+      ),
+    ),
+  );
+
+  Widget _quickAction({
+    required String title,
+    required IconData icon,
+    required VoidCallback action,
+    required PaletteData palette,
+    Key? key,
+  }) => Expanded(
+    child: Material(
+      color: palette.surface,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        key: key,
+        borderRadius: BorderRadius.circular(16),
+        onTap: action,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 17, horizontal: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: palette.border),
+            borderRadius: BorderRadius.circular(16)),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Icon(icon, color: palette.forest, size: 23),
+            const SizedBox(height: 10),
+            Text(title, textAlign: TextAlign.center,
+              style: TextStyle(color: palette.ink,
+                fontSize: 12.5, fontWeight: FontWeight.w600)),
+          ]),
+        ),
+      ),
+    ),
+  );
+
+  Widget _patientsContent(PaletteData p, {
+    required bool overview,
+  }) => FutureBuilder<List<DevPatient>>(
+    key: Key(overview ? 'dev-patients-home' : 'dev-patients-loader'),
+    future: _patients,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState != ConnectionState.done) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 42),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      if (snapshot.hasError) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Impossible de charger les dossiers de ce compte.',
+              key: const Key('dev-patients-error'),
+              style: TextStyle(color: p.danger, fontSize: 13)),
+            TextButton.icon(
+              key: const Key('dev-patients-retry'),
+              onPressed: _reload,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Réessayer'),
+            ),
+          ],
+        );
+      }
+      final source = snapshot.data ?? const <DevPatient>[];
+      final term = overview ? '' : _search.text.trim().toLowerCase();
+      final patients = source.where((patient) =>
+        patient.displayName.toLowerCase().contains(term)).toList();
+      if (patients.isEmpty) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 17),
+          child: Text(source.isEmpty
+              ? 'Aucun patient fictif dans ce compte.'
+              : 'Aucun dossier fictif ne correspond à cette recherche.',
+            key: const Key('dev-patients-empty'),
+            style: TextStyle(color: p.muted, fontSize: 13.5)),
+        );
+      }
+      final visible = overview ? patients.take(3).toList() : patients;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!overview) ...[
+            Text('${patients.length} dossier(s) fictif(s)',
+              style: TextStyle(color: p.muted, fontSize: 12)),
+            const SizedBox(height: 11),
+          ],
+          for (final patient in visible) _patientTile(patient, p),
+        ],
+      );
+    },
+  );
+
+  Widget _createButton(PaletteData p) => SizedBox(
+    width: double.infinity,
+    child: FilledButton.icon(
+      key: const Key('dev-add-synthetic-patient'),
+      onPressed: _working ? null : _addSyntheticPatient,
+      icon: const Icon(Icons.add_rounded, size: 19),
+      label: const Text('Nouveau dossier fictif'),
+    ),
+  );
+
+  Widget _home(PaletteData p) => ListView(
+    key: const Key('dev-tab-home'),
+    padding: const EdgeInsets.fromLTRB(23, 20, 23, 36),
+    children: [
+      Text('ESPACE PRATICIEN',
+        style: TextStyle(color: p.forest, fontSize: 10.5,
+          fontWeight: FontWeight.w700, letterSpacing: 1.35)),
+      const SizedBox(height: 9),
+      Text(_profile.displayName, key: const Key('dev-workspace-name'),
+        style: TextStyle(color: p.ink, fontSize: 26,
+          height: 1.2, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 5),
+      Text('Vue d’ensemble de vos dossiers',
+        style: TextStyle(color: p.muted, fontSize: 13)),
+      const SizedBox(height: 25),
+      FutureBuilder<List<DevPatient>>(
+        future: _patients,
+        builder: (_, snapshot) => Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: p.surface,
+            borderRadius: BorderRadius.circular(21),
+            border: Border.all(color: p.border)),
+          child: Row(children: [
+            Container(
+              height: 51, width: 51,
+              decoration: BoxDecoration(
+                color: p.tealSoft, borderRadius: BorderRadius.circular(15)),
+              child: Icon(Icons.folder_copy_outlined,
+                size: 25, color: p.forest)),
+            const SizedBox(width: 16),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(snapshot.hasData
+                    ? '${snapshot.data!.length}'
+                    : snapshot.hasError ? '—' : '…',
+                  key: const Key('dev-summary-patient-count'),
+                  style: TextStyle(color: p.ink,
+                    fontSize: 27, fontWeight: FontWeight.w700)),
+                Text('Dossiers de votre compte',
+                  style: TextStyle(color: p.muted, fontSize: 12.5)),
+              ],
+            )),
+            IconButton(
+              key: const Key('dev-workspace-refresh'),
+              tooltip: 'Actualiser les dossiers',
+              onPressed: _reload,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ]),
+        ),
+      ),
+      const SizedBox(height: 25),
+      Text('Accès rapide', style: TextStyle(
+        color: p.ink, fontSize: 17, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 13),
+      Row(children: [
+        _quickAction(
+          key: const Key('dev-quick-patients'),
+          title: 'Dossiers',
+          icon: Icons.folder_shared_outlined,
+          action: () => _selectTab(1), palette: p),
+        const SizedBox(width: 10),
+        _quickAction(
+          key: const Key('dev-quick-followups'),
+          title: 'Suivis',
+          icon: Icons.event_note_outlined,
+          action: () => _selectTab(2), palette: p),
+        const SizedBox(width: 10),
+        _quickAction(
+          key: const Key('dev-quick-profile'),
+          title: 'Mon compte',
+          icon: Icons.person_outline_rounded,
+          action: () => _selectTab(3), palette: p),
+      ]),
+      const SizedBox(height: 27),
+      Row(children: [
+        Expanded(child: Text('Dossiers récents',
+          style: TextStyle(color: p.ink,
+            fontSize: 17, fontWeight: FontWeight.w700))),
+        TextButton(
+          onPressed: () => _selectTab(1),
+          child: const Text('Voir tout')),
+      ]),
+      const SizedBox(height: 11),
+      _patientsContent(p, overview: true),
+      const SizedBox(height: 15),
+      _createButton(p),
+      if (_error != null) ...[
+        const SizedBox(height: 12),
+        Text(_error!, key: const Key('dev-workspace-error'),
+          style: TextStyle(color: p.danger, fontSize: 13)),
+      ],
+      const SizedBox(height: 22),
+      Text('Version de test · Dossiers fictifs uniquement',
+        style: TextStyle(color: p.muted, fontSize: 11.5)),
+    ],
+  );
+
+  Widget _registry(PaletteData p) => ListView(
+    key: const Key('dev-tab-patients'),
+    padding: const EdgeInsets.fromLTRB(23, 22, 23, 38),
+    children: [
+      Text('Dossiers patients', style: TextStyle(
+        color: p.ink, fontSize: 23, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 7),
+      Text('Retrouvez et consultez vos dossiers.',
+        style: TextStyle(color: p.muted, fontSize: 13)),
+      const SizedBox(height: 23),
+      TextField(
+        key: const Key('dev-search-patients'),
+        controller: _search,
+        onChanged: (_) => setState(() {}),
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: 'Rechercher un dossier',
+          prefixIcon: const Icon(Icons.search_rounded, size: 20),
+          suffixIcon: _search.text.isEmpty ? null : IconButton(
+            tooltip: 'Effacer la recherche',
+            onPressed: () {
+              _search.clear();
+              setState(() {});
+            },
+            icon: const Icon(Icons.close_rounded, size: 18),
+          ),
+        ),
+      ),
+      const SizedBox(height: 21),
+      _patientsContent(p, overview: false),
+      const SizedBox(height: 16),
+      _createButton(p),
+      if (_error != null) ...[
+        const SizedBox(height: 12),
+        Text(_error!, key: const Key('dev-workspace-error'),
+          style: TextStyle(color: p.danger, fontSize: 13)),
+      ],
+    ],
+  );
+
+  Widget _followUpPage(PaletteData p) => ListView(
+    key: const Key('dev-tab-followups'),
+    padding: const EdgeInsets.fromLTRB(23, 22, 23, 38),
+    children: [
+      Row(children: [
+        Expanded(child: Text('Suivis à venir',
+          style: TextStyle(color: p.ink,
+            fontSize: 23, fontWeight: FontWeight.w700))),
+        IconButton(
+          key: const Key('dev-followups-refresh'),
+          tooltip: 'Actualiser les suivis',
+          onPressed: _reload, icon: const Icon(Icons.refresh_rounded)),
+      ]),
+      const SizedBox(height: 7),
+      Text('Rendez-vous enregistrés dans vos dossiers.',
+        style: TextStyle(color: p.muted, fontSize: 13)),
+      const SizedBox(height: 24),
+      FutureBuilder<List<_PendingFollowUp>>(
+        future: _followUps,
+        builder: (_, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 48),
+              child: Center(child: CircularProgressIndicator()));
+          }
+          if (snapshot.hasError) {
+            return Text('Impossible de charger les suivis. Réessayez.',
+              key: const Key('dev-followups-error'),
+              style: TextStyle(color: p.danger, fontSize: 13));
+          }
+          final followUps = snapshot.data ?? const <_PendingFollowUp>[];
+          if (followUps.isEmpty) {
+            return Text('Aucun suivi programmé pour ce compte.',
+              key: const Key('dev-followups-empty'),
+              style: TextStyle(color: p.muted, fontSize: 13.5));
+          }
+          return Column(children: [
+            for (final item in followUps)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Material(
+                  color: p.surface,
+                  borderRadius: BorderRadius.circular(17),
+                  child: InkWell(
+                    key: Key('dev-open-followup-${item.followUp.id}'),
+                    borderRadius: BorderRadius.circular(17),
+                    onTap: () => _openPatient(item.patient),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: p.border),
+                        borderRadius: BorderRadius.circular(17)),
+                      padding: const EdgeInsets.all(16),
+                      child: Row(children: [
+                        Icon(Icons.event_available_outlined,
+                          size: 22, color: p.forest),
+                        const SizedBox(width: 13),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.followUp.reason,
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: p.ink,
+                                fontWeight: FontWeight.w700)),
+                            const SizedBox(height: 5),
+                            Text(item.patient.displayName,
+                              style: TextStyle(color: p.muted, fontSize: 12)),
+                            Text(_formatDate(item.followUp.scheduledAt),
+                              style: TextStyle(color: p.muted, fontSize: 12)),
+                          ],
+                        )),
+                        Icon(Icons.chevron_right_rounded,
+                          color: p.muted, size: 21),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+          ]);
+        },
+      ),
+    ],
+  );
+
+  String _formatDate(DateTime date) {
+    final value = date.toLocal();
+    return '${value.day.toString().padLeft(2, '0')}/'
+        '${value.month.toString().padLeft(2, '0')}/${value.year}';
+  }
+
+  Widget _accountPage(PaletteData p) => ListView(
+    key: const Key('dev-tab-account'),
+    padding: const EdgeInsets.fromLTRB(23, 22, 23, 38),
+    children: [
+      Text('Mon compte', style: TextStyle(
+        color: p.ink, fontSize: 23, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 21),
+      Container(
+        padding: const EdgeInsets.all(19),
+        decoration: BoxDecoration(
+          color: p.surface,
+          border: Border.all(color: p.border),
+          borderRadius: BorderRadius.circular(19)),
+        child: Row(children: [
+          CircleAvatar(
+            radius: 27, backgroundColor: p.tealSoft,
+            foregroundImage: _avatar == null ? null : MemoryImage(_avatar!),
+            child: _avatar == null
+              ? Icon(Icons.person_outline_rounded,
+                  size: 26, color: p.forest) : null),
+          const SizedBox(width: 15),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_profile.displayName,
+                style: TextStyle(color: p.ink,
+                  fontWeight: FontWeight.w700, fontSize: 17)),
+              const SizedBox(height: 4),
+              Text(_profile.email,
+                maxLines: 2, style: TextStyle(
+                  color: p.muted, fontSize: 12.5)),
+            ],
+          )),
+        ]),
+      ),
+      const SizedBox(height: 23),
+      OutlinedButton.icon(
+        key: const Key('dev-account-edit'),
+        onPressed: _working ? null : _openProfile,
+        icon: const Icon(Icons.edit_outlined),
+        label: const Text('Modifier mon profil'),
+      ),
+      const SizedBox(height: 12),
+      OutlinedButton.icon(
+        key: const Key('dev-account-switch'),
+        onPressed: _working ? null : () => _signOut(),
+        icon: const Icon(Icons.switch_account_rounded),
+        label: const Text('Changer de praticien'),
+      ),
+      const SizedBox(height: 12),
+      TextButton.icon(
+        key: const Key('dev-account-signout-all'),
+        onPressed: _working ? null : _confirmSignOutEverywhere,
+        icon: const Icon(Icons.phonelink_erase_outlined),
+        label: const Text('Déconnecter tous les appareils'),
+      ),
+      const SizedBox(height: 20),
+      Text('Vos dossiers sont accessibles uniquement '
+          'avec votre session authentifiée.',
+        style: TextStyle(color: p.muted, fontSize: 12.5)),
+    ],
+  );
+
   @override
   Widget build(BuildContext context) {
+    if (!widget.session.isActive) {
+      return const Scaffold(
+        body: Center(child: Text('Session terminée.')),
+      );
+    }
     final p = Palette.of(context);
+    final compact = MediaQuery.sizeOf(context).width < 640;
+    final content = switch (_selectedTab) {
+      1 => _registry(p),
+      2 => _followUpPage(p),
+      3 => _accountPage(p),
+      _ => _home(p),
+    };
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MediSuivi'),
+        titleSpacing: 18,
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 31, height: 31,
+            decoration: BoxDecoration(
+              color: p.tealSoft,
+              borderRadius: BorderRadius.circular(10)),
+            child: Icon(Icons.health_and_safety_outlined,
+              size: 18, color: p.forest),
+          ),
+          const SizedBox(width: 10),
+          const Text('MediSuivi'),
+        ]),
         actions: [
           IconButton(
             key: const Key('dev-workspace-profile'),
             tooltip: 'Mon profil',
-            onPressed: _openProfile,
+            onPressed: _working ? null : _openProfile,
             icon: CircleAvatar(
-              radius: 17,
-              backgroundColor: p.tealSoft,
+              radius: 16, backgroundColor: p.tealSoft,
               foregroundImage: _avatar == null ? null : MemoryImage(_avatar!),
               child: _avatar == null
-                ? Icon(Icons.person_outline_rounded, color: p.forest, size: 20)
-                : null,
+                ? Icon(Icons.person_outline_rounded,
+                    color: p.forest, size: 19) : null,
             ),
           ),
           PopupMenuButton<String>(
@@ -482,22 +983,10 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
             itemBuilder: (_) => const [
               PopupMenuItem<String>(
                 value: 'switch',
-                child: Row(children: [
-                  Icon(Icons.switch_account_outlined, size: 20),
-                  SizedBox(width: 10),
-                  Expanded(child: Text('Changer de praticien',
-                    softWrap: true, maxLines: 2)),
-                ]),
-              ),
+                child: Text('Changer de praticien')),
               PopupMenuItem<String>(
                 value: 'all',
-                child: Row(children: [
-                  Icon(Icons.phonelink_erase_rounded, size: 20),
-                  SizedBox(width: 10),
-                  Expanded(child: Text('Déconnecter tous les appareils',
-                    softWrap: true, maxLines: 2)),
-                ]),
-              ),
+                child: Text('Déconnecter tous les appareils')),
             ],
             icon: const Icon(Icons.more_vert_rounded),
           ),
@@ -507,168 +996,69 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
             tooltip: 'Se déconnecter',
             icon: const Icon(Icons.logout_rounded),
           ),
+          const SizedBox(width: 6),
         ],
       ),
-      body: SafeArea(child: Center(child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(22, 16, 22, 38),
-          children: [
-            Text('ESPACE PERSONNEL',
-              style: TextStyle(color: p.forest,
-                letterSpacing: 1.2, fontWeight: FontWeight.w700, fontSize: 11)),
-            const SizedBox(height: 10),
-            Text(_profile.displayName,
-              key: const Key('dev-workspace-name'),
-              style: TextStyle(color: p.ink,
-                height: 1.18, fontWeight: FontWeight.w700, fontSize: 25)),
-            const SizedBox(height: 5),
-            Text(_profile.specialty.isNotEmpty
-                ? _profile.specialty
-                : _profile.email,
-              style: TextStyle(color: p.muted, fontSize: 13)),
-            const SizedBox(height: 24),
-            Row(children: [
-              Expanded(child: Text('Dossiers du compte',
-                style: TextStyle(color: p.ink, fontSize: 18,
-                  fontWeight: FontWeight.w700))),
-              IconButton(
-                tooltip: 'Actualiser les dossiers',
-                onPressed: _reload,
-                icon: const Icon(Icons.refresh_rounded)),
-            ]),
-            const SizedBox(height: 6),
-            Text('Les dossiers affichés appartiennent uniquement à ce compte.',
-              style: TextStyle(color: p.muted, fontSize: 12.5)),
-            const SizedBox(height: 16),
-            TextField(
-              key: const Key('dev-search-patients'),
-              controller: _search,
-              onChanged: (_) => setState(() {}),
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: 'Rechercher un dossier fictif',
-                prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                suffixIcon: _search.text.isEmpty ? null : IconButton(
-                  tooltip: 'Effacer la recherche',
-                  onPressed: () {
-                    _search.clear();
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.close_rounded, size: 18),
+      body: SafeArea(
+        child: Center(child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: AnimatedSwitcher(
+            duration: MediaQuery.disableAnimationsOf(context)
+              ? Duration.zero : const Duration(milliseconds: 210),
+            child: content,
+          ),
+        )),
+      ),
+      bottomNavigationBar: SafeArea(top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            compact ? 10 : 28, 5, compact ? 10 : 28, 7),
+          child: Center(
+            heightFactor: 1,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 740),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: NavigationBar(
+                  key: const Key('dev-connected-navigation'),
+                  selectedIndex: _selectedTab,
+                  height: 69,
+                  labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+                  onDestinationSelected: _selectTab,
+                  destinations: const [
+                    NavigationDestination(
+                      key: Key('dev-nav-home'),
+                      icon: Icon(Icons.space_dashboard_outlined),
+                      selectedIcon: Icon(Icons.space_dashboard_rounded),
+                      label: 'Accueil'),
+                    NavigationDestination(
+                      key: Key('dev-nav-patients'),
+                      icon: Icon(Icons.folder_open_outlined),
+                      selectedIcon: Icon(Icons.folder_rounded),
+                      label: 'Dossiers'),
+                    NavigationDestination(
+                      key: Key('dev-nav-followups'),
+                      icon: Icon(Icons.event_note_outlined),
+                      selectedIcon: Icon(Icons.event_note_rounded),
+                      label: 'Suivis'),
+                    NavigationDestination(
+                      key: Key('dev-nav-account'),
+                      icon: Icon(Icons.person_outline_rounded),
+                      selectedIcon: Icon(Icons.person_rounded),
+                      label: 'Compte'),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            FutureBuilder<List<DevPatient>>(
-              key: const Key('dev-patients-loader'),
-              future: _patients,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Impossible de charger les dossiers de ce compte.',
-                        key: const Key('dev-patients-error'),
-                        style: TextStyle(color: p.danger, fontSize: 13)),
-                      TextButton.icon(
-                        key: const Key('dev-patients-retry'),
-                        onPressed: _reload,
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('Réessayer'),
-                      ),
-                    ],
-                  );
-                }
-                final source = snapshot.data ?? const <DevPatient>[];
-                final term = _search.text.trim().toLowerCase();
-                final patients = source.where((p) =>
-                  p.displayName.toLowerCase().contains(term)).toList();
-                if (patients.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    child: Text(source.isEmpty
-                        ? 'Aucun patient fictif dans ce compte.'
-                        : 'Aucun dossier fictif ne correspond à cette recherche.',
-                      key: const Key('dev-patients-empty'),
-                      style: TextStyle(color: p.muted, fontSize: 14)),
-                  );
-                }
-                return Column(children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text('${patients.length} dossier(s) fictif(s)',
-                        style: TextStyle(color: p.muted, fontSize: 12)),
-                    ),
-                  ),
-                  for (final patient in patients)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 9),
-                      child: Material(
-                        color: p.surface.withValues(alpha: .70),
-                        clipBehavior: Clip.antiAlias,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                          side: BorderSide(color: p.border, width: .8),
-                        ),
-                        child: InkWell(
-                          key: Key('dev-open-patient-${patient.id}'),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(builder: (_) =>
-                              DevPatientDetail(
-                                api: widget.api,
-                                session: widget.session,
-                                patient: patient,
-                              ))),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 13, vertical: 16),
-                            child: Row(children: [
-                              Icon(Icons.folder_shared_outlined,
-                                color: p.forest, size: 19),
-                              const SizedBox(width: 12),
-                              Expanded(child: Text(patient.displayName,
-                                maxLines: 2, overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: p.ink,
-                                  fontSize: 14.5, fontWeight: FontWeight.w600))),
-                              Text('${patient.age} ans',
-                                style: TextStyle(color: p.muted, fontSize: 12.5)),
-                              const SizedBox(width: 5),
-                              Icon(Icons.chevron_right_rounded,
-                                color: p.muted, size: 19),
-                            ]),
-                          ),
-                        ),
-                      ),
-                    ),
-                ]);
-              },
-            ),
-            const SizedBox(height: 18),
-            FilledButton.icon(
-              key: const Key('dev-add-synthetic-patient'),
-              onPressed: _working ? null : _addSyntheticPatient,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('Créer un dossier FICTIF'),
-            ),
-            if (_error != null) ...[
-              const SizedBox(height: 14),
-              Text(_error!, key: const Key('dev-workspace-error'),
-                style: TextStyle(color: p.danger, fontSize: 13)),
-            ],
-            const SizedBox(height: 21),
-            Text('Environnement de développement · patients fictifs uniquement. '
-              'Les fonctionnalités cliniques complètes restent en validation.',
-              style: TextStyle(color: p.muted, fontSize: 12.5,
-                height: 1.5)),
-          ],
+          ),
         ),
-      ))),
+      ),
     );
   }
+}
+
+class _PendingFollowUp {
+  const _PendingFollowUp(this.patient, this.followUp);
+  final DevPatient patient;
+  final DevFollowUp followUp;
 }
