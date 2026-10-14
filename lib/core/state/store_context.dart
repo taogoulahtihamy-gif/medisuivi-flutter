@@ -8,6 +8,7 @@ library;
 import 'package:flutter/widgets.dart';
 
 import 'clinical_store.dart';
+import 'connected_clinical_store.dart';
 import 'demo_store.dart';
 import 'persistent_store_stub.dart'
     if (dart.library.io) 'persistent_store.dart';
@@ -21,13 +22,16 @@ extension StoreContext on BuildContext {
     // dependOnInheritedWidgetOfExactType enregistre la dépendance.
     // Les écrans sont donc reconstruits lors des notifications du store,
     // y compris après une écriture asynchrone Drift.
+    final connected =
+        dependOnInheritedWidgetOfExactType<ConnectedClinicalScope>();
+    if (connected != null) return connected.notifier!;
     final demoScope = dependOnInheritedWidgetOfExactType<DemoScope>();
     if (demoScope != null) return demoScope.notifier!;
     final persistentScope = dependOnInheritedWidgetOfExactType<PersistentScope>();
     if (persistentScope != null) return persistentScope.notifier!;
     throw StateError(
       'Aucun store disponible dans le contexte. '
-      'Vérifiez que DemoScope ou PersistentScope enveloppe MaterialApp.',
+      'Vérifiez qu’un store clinique enveloppe les écrans.',
     );
   }
 }
