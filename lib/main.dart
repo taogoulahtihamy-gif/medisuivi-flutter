@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'app/medisuivi_app.dart';
 import 'app/theme_v2.dart';
+import 'app/theme_controller.dart';
 import 'core/persistence/database_initializer.dart';
 import 'core/persistence/persistence_types.dart';
 import 'core/state/demo_store.dart';
@@ -26,6 +27,7 @@ class MediSuiviApp extends StatefulWidget {
 }
 
 class _MediSuiviAppState extends State<MediSuiviApp> {
+  final ThemeModeController _themeController = ThemeModeController();
   DemoStore? _demoStore;
   PersistentStore? _persistentStore;
   DatabaseInitResult? _initResult;
@@ -35,6 +37,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
   @override
   void initState() {
     super.initState();
+    unawaited(_themeController.load());
     _initializeApp();
   }
 
@@ -128,6 +131,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
 
   @override
   void dispose() {
+    _themeController.dispose();
     _demoStore?.dispose();
     final store = _persistentStore;
     store?.dispose();
@@ -136,7 +140,15 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ClinicalThemeScope(
+    controller: _themeController,
+    child: AnimatedBuilder(
+      animation: _themeController,
+      builder: (context, _) => _buildApp(context),
+    ),
+  );
+
+  Widget _buildApp(BuildContext context) {
     // Écran de chargement / erreur pendant l'initialisation
     if (_isInitializing) {
       return MaterialApp(
@@ -144,7 +156,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         debugShowCheckedModeBanner: false,
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
-        themeMode: ThemeMode.system,
+        themeMode: _themeController.value,
         home: const _LoadingScreen(),
       );
     }
@@ -157,7 +169,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         debugShowCheckedModeBanner: false,
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
-        themeMode: ThemeMode.system,
+        themeMode: _themeController.value,
         home: _ErrorScreen(
           message: _errorMessage ?? 'Erreur inconnue',
           onRetry: _initializeApp,
@@ -175,7 +187,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
           debugShowCheckedModeBanner: false,
           theme: ClinicalTheme.light(),
           darkTheme: ClinicalTheme.dark(),
-          themeMode: ThemeMode.system,
+          themeMode: _themeController.value,
           home: const MainShell(),
         ),
       );
@@ -189,7 +201,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
         debugShowCheckedModeBanner: false,
         theme: ClinicalTheme.light(),
         darkTheme: ClinicalTheme.dark(),
-        themeMode: ThemeMode.system,
+        themeMode: _themeController.value,
         home: const MainShell(),
       ),
     );
