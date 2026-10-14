@@ -34,7 +34,7 @@ void main() {
   });
 
   for (final mode in [ThemeMode.light, ThemeMode.dark]) {
-    testWidgets('Accueil ${mode.name} : recherche à gauche et titre à droite',
+    testWidgets('Accueil ${mode.name} : titre à gauche et recherche à droite',
         (tester) async {
       tester.view.physicalSize = const Size(320, 740);
       tester.view.devicePixelRatio = 1;
@@ -50,7 +50,10 @@ void main() {
       expect(title, findsOneWidget);
       expect(find.byKey(const Key('home-greeting-date')), findsOneWidget);
       expect(tester.getTopLeft(title).dx,
-        greaterThan(tester.getTopLeft(search).dx));
+        lessThan(tester.getTopLeft(search).dx));
+      final date = find.byKey(const Key('home-greeting-date'));
+      expect(tester.getTopLeft(date).dx,
+        lessThan(tester.getTopLeft(search).dx));
       expect(tester.takeException(), isNull);
 
       await tester.enterText(search, 'Aminata');
