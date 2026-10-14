@@ -1,0 +1,13 @@
+# Automatic Let's Encrypt TLS; DNS must resolve to the VPS.
+# Restrict source IPs at the VPS firewall before opening port 443.
+{$STAGING_API_DOMAIN} {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "no-referrer"
+        Cache-Control "no-store"
+        -Server
+    }
+    reverse_proxy api:8000
+}
