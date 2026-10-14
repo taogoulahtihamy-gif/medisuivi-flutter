@@ -1,7 +1,11 @@
+import 'dart:async' show unawaited;
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import 'dev_auth_api.dart';
+import 'dev_profile_editor.dart';
 
 /// These screens never use DemoScope/PersistentScope. Remote patients
 /// originate only from the signed-in API session.
@@ -228,13 +232,43 @@ class DevConnectedWorkspace extends StatefulWidget {
 
 class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   late Future<List<DevPatient>> _patients;
+  late DevPractitioner _profile;
+  Uint8List? _avatar;
   bool _working = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
+    _profile = widget.session.practitioner;
     _patients = widget.api.listPatients(widget.session);
+    if (_profile.hasAvatar) unawaited(_loadAvatar());
+  }
+
+  Future<void> _loadAvatar() async {
+    try {
+      final bytes = await widget.api.loadAvatar(widget.session);
+      if (mounted) setState(() => _avatar = bytes);
+    } catch (_) {
+      // Do not block the entire workspace if a profile photo is unavailable.
+    }
+  }
+
+  Future<void> _openProfile() async {
+    await Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => DevProfileEditor(
+        api: widget.api,
+        session: widget.session,
+        initial: _profile,
+        avatar: _avatar,
+        onChanged: (updated, bytes) {
+          if (mounted) setState(() {
+            _profile = updated;
+            _avatar = bytes;
+          });
+        },
+      ),
+    ));
   }
 
   void _reload() => setState(() {
@@ -273,8 +307,21 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
     final p = Palette.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Espace de test privé'),
+        title: const Text('MediSuivi'),
         actions: [
+          IconButton(
+            key: const Key('dev-workspace-profile'),
+            tooltip: 'Mon profil',
+            onPressed: _openProfile,
+            icon: CircleAvatar(
+              radius: 17,
+              backgroundColor: p.tealSoft,
+              foregroundImage: _avatar == null ? null : MemoryImage(_avatar!),
+              child: _avatar == null
+                ? Icon(Icons.person_outline_rounded, color: p.forest, size: 20)
+                : null,
+            ),
+          ),
           IconButton(
             key: const Key('dev-workspace-logout'),
             onPressed: _working ? null : _signOut,
@@ -288,27 +335,19 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(22, 16, 22, 38),
           children: [
-            CircleAvatar(
-              radius: 35, backgroundColor: p.tealSoft,
-              child: Icon(Icons.person_outline_rounded,
-                color: p.forest, size: 34)),
-            const SizedBox(height: 13),
-            Text(widget.session.practitioner.displayName,
+            Text('ESPACE PERSONNEL',
+              style: TextStyle(color: p.forest,
+                letterSpacing: 1.2, fontWeight: FontWeight.w700, fontSize: 11)),
+            const SizedBox(height: 10),
+            Text(_profile.displayName,
               key: const Key('dev-workspace-name'),
-              textAlign: TextAlign.center,
               style: TextStyle(color: p.ink,
-                fontWeight: FontWeight.w700, fontSize: 22)),
-            const SizedBox(height: 4),
-            Text(widget.session.practitioner.email,
-              textAlign: TextAlign.center,
+                height: 1.18, fontWeight: FontWeight.w700, fontSize: 25)),
+            const SizedBox(height: 5),
+            Text(_profile.specialty.isNotEmpty
+                ? _profile.specialty
+                : _profile.email,
               style: TextStyle(color: p.muted, fontSize: 13)),
-            const SizedBox(height: 18),
-            Text('Espace de développement authentifié. Les dossiers de '
-              'démonstration ne sont jamais mélangés avec ce compte. '
-              'N’utilisez aucun patient réel.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: p.muted,
-                fontSize: 13, height: 1.5)),
             const SizedBox(height: 24),
             Row(children: [
               Expanded(child: Text('Dossiers du compte',
@@ -319,7 +358,10 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 onPressed: _reload,
                 icon: const Icon(Icons.refresh_rounded)),
             ]),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
+            Text('Les dossiers affichés appartiennent uniquement à ce compte.',
+              style: TextStyle(color: p.muted, fontSize: 12.5)),
+            const SizedBox(height: 16),
             FutureBuilder<List<DevPatient>>(
               key: const Key('dev-patients-loader'),
               future: _patients,
@@ -379,8 +421,8 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 style: TextStyle(color: p.danger, fontSize: 13)),
             ],
             const SizedBox(height: 21),
-            Text('Photo de profil et accès clinique complet : à intégrer '
-              'après les migrations et la validation de sécurité.',
+            Text('Environnement de développement · patients fictifs uniquement. '
+              'Les fonctionnalités cliniques complètes restent en validation.',
               style: TextStyle(color: p.muted, fontSize: 12.5,
                 height: 1.5)),
           ],
