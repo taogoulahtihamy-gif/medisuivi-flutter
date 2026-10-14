@@ -26,10 +26,19 @@ void main() {
 
       await tester.pumpWidget(_entry());
       expect(find.byKey(const Key('welcome-progress')), findsOneWidget);
+      expect(find.byKey(const Key('welcome-splash-photo')), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 1300));
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('onboarding-pages')), findsOneWidget);
+      expect(find.byKey(const Key('onboarding-clinical-image-0')), findsOneWidget);
+      expect(find.byKey(const Key('onboarding-title-0')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('onboarding-next')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('onboarding-title-1')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('onboarding-next')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('onboarding-title-2')), findsOneWidget);
       await tester.tap(find.byKey(const Key('onboarding-skip')));
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('welcome-create')), findsOneWidget);
