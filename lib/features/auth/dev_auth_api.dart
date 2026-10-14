@@ -465,6 +465,27 @@ class DevAuthApi {
     _ensureSuccess(response);
   }
 
+  /// Changes the current practitioner's password on the server.
+  /// A successful change invalidates ALL of their devices immediately.
+  /// Nothing is persisted in browser storage.
+  Future<void> changePassword(DevSession session, {
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (newPassword.length < 12 || newPassword.length > 128 ||
+        currentPassword.isEmpty || currentPassword.length > 128) {
+      throw const DevApiException('Mot de passe invalide (12 caractères minimum).');
+    }
+    final response = await _request('PUT', '/api/v1/me/password',
+        session: session, body: {
+          'current_password': currentPassword,
+          'new_password': newPassword,
+        });
+    _ensureSuccess(response, expected: 204);
+    session.clear();
+    _refreshing.remove(session);
+  }
+
   Future<void> signOut(DevSession session) async {
     try {
       final result = await _request('POST', '/api/v1/auth/logout',
