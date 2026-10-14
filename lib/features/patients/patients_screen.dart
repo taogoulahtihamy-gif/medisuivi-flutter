@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/theme.dart';
+import '../../app/design_tokens.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
@@ -43,9 +44,9 @@ class _PatientsScreenState extends State<PatientsScreen> {
                   builder: (_) => const NewPatientScreen())),
                 style: IconButton.styleFrom(
                   backgroundColor: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF3A5F4F)
-                      : const Color(0xFF354A40),
-                  foregroundColor: const Color(0xFFF7F8F5),
+                      ? ClinicalColors.darkActionFill
+                      : ClinicalColors.lightActionFill,
+                  foregroundColor: ClinicalColors.actionOnDarkFill,
                   minimumSize: const Size(46, 46)),
                 icon: const Icon(Icons.add_rounded),
               ),
