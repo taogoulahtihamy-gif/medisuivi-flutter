@@ -4,6 +4,8 @@ import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
 import '../../core/widgets/medical_ui.dart';
+import '../exams/exams_screen.dart';
+import '../followup/followup_screen.dart';
 
 /// Alertes tirées exclusivement du stockage local : pas de serveur push.
 class ClinicalAlertsScreen extends StatelessWidget {
@@ -34,23 +36,31 @@ class ClinicalAlertsScreen extends StatelessWidget {
                     'Aucune notification serveur n’est activée.',
                   style: TextStyle(color: p.muted, fontSize: 13)),
                 const SizedBox(height: 18),
-                if (exams > 0)
-                  SurfaceCard(child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.biotech_outlined),
-                    title: Text('$exams examen(s) en attente'),
-                    subtitle: const Text('Consultez vos bilans pour les traiter.'),
-                  )),
-                if (exams > 0 && overdue > 0) const SizedBox(height: 10),
-                if (overdue > 0)
-                  SurfaceCard(child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.event_busy_outlined),
-                    title: Text('$overdue suivi(s) en retard'),
-                    subtitle: const Text('Consultez votre planning de suivi.'),
-                  )),
-                if (exams == 0 && overdue == 0)
-                  const SurfaceCard(child: Text('Aucune alerte clinique locale.')),
+                if (exams > 0 || overdue > 0)
+                  ClinicalGroupedList(children: [
+                    if (exams > 0)
+                      ClinicalListRow(
+                        title: '$exams examen(s) en attente',
+                        subtitle: 'Consultez les bilans pour les traiter.',
+                        leading: Icon(Icons.biotech_outlined, color: p.forest),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const ExamsScreen())),
+                      ),
+                    if (overdue > 0)
+                      ClinicalListRow(
+                        title: '$overdue suivi(s) en retard',
+                        subtitle: 'Consultez votre planning de suivi.',
+                        leading: Icon(Icons.event_busy_outlined, color: p.forest),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const FollowupScreen())),
+                      ),
+                  ])
+                else
+                  const EmptyResults(title: 'Aucune alerte clinique locale',
+                    detail: 'Aucune action urgente pour le moment.',
+                    icon: Icons.notifications_none_rounded),
               ],
             ),
           ),
