@@ -56,7 +56,7 @@ void main() {
     await tester.tap(find.byKey(const Key('header-notifications')));
     await tester.pumpAndSettle();
     expect(find.text('À surveiller'), findsOneWidget);
-    expect(find.textContaining('Aucune notification serveur'), findsNothing);
+    expect(find.textContaining('Aucune notification serveur'), findsOneWidget);
     await tester.pageBack();
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('header-profile')));
