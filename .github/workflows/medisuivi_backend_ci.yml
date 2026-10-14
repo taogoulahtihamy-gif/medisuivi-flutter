@@ -7,6 +7,9 @@ on:
       - feat/medisuivi-p2-clinical-isolation
       - feat/medisuivi-p3-dev-auth-ui
       - feat/medisuivi-p32-profile-avatar
+      - feat/medisuivi-p33-connected-clinical
+      - feat/medisuivi-p34-auth-design
+      - feat/medisuivi-p35-session-rotation
       - feat/medisuivi-p32-profile-avatar
     paths:
       - "backend/**"
@@ -35,7 +38,7 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install -r requirements.txt
       - name: Test fail-closed config and two-account isolation
-        run: python -m pytest tests/test_auth_isolation.py tests/test_clinical_isolation.py tests/test_private_profile.py -q
+        run: python -m pytest tests/test_auth_isolation.py tests/test_clinical_isolation.py tests/test_private_profile.py tests/test_sessions_rotation.py -q
       - name: Python compile check
         run: python -m compileall -q app scripts
   postgres-isolation:

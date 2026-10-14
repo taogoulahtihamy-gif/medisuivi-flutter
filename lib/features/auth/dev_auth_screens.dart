@@ -321,14 +321,22 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   Future<void> _signOut() async {
     if (_working) return;
     setState(() { _working = true; _error = null; });
+    String? failure;
     try {
       await widget.api.signOut(widget.session);
-      if (mounted) widget.onSignedOut();
-    } on DevApiException catch (error) {
-      if (mounted) setState(() => _error =
-          '${error.message} La déconnexion n’a pas été confirmée.');
+    } on DevApiException {
+      failure = 'Déconnexion locale effectuée. La révocation serveur '
+          'n’a pas pu être confirmée.';
     } finally {
-      if (mounted) setState(() => _working = false);
+      // NEVER keep displaying former account's clinical data after logout,
+      // including when the network is unavailable.
+      if (mounted) {
+        if (failure != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(failure)));
+        }
+        widget.onSignedOut();
+      }
     }
   }
 

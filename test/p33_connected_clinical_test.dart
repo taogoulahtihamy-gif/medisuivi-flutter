@@ -12,7 +12,7 @@ void main() {
   const practitioner = DevPractitioner(
     id: 'alpha-owner', email: 'alpha@medisuvi-ci.org',
     firstName: 'Awa', lastName: 'Fictive');
-  const session = DevSession(
+  final session = DevSession(
     practitioner: practitioner, accessToken: 'valid-account-alpha');
   const patient = DevPatient(
     id: 'patient-alpha', displayName: 'PATIENT FICTIF A', age: 30);
