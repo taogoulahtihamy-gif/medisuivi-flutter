@@ -158,6 +158,7 @@ class DevAuthApi {
   final Uri _baseUri;
   final http.Client _client;
   final DevSessionPersistence? _persistence;
+  int _restoreGeneration = 0;
   bool get canRestoreSession => _persistence != null;
   String get _audience => _baseUri.toString().replaceAll(RegExp(r'/+$'), '');
 
@@ -177,12 +178,20 @@ class DevAuthApi {
       _assertSession(session, revision);
     } catch (_) {
       session.clear();
+      // Best-effort erase any previously persisted account after an unsafe
+      // secure-storage write. Never fall back to plaintext preferences.
+      try {
+        await _persistence.clear();
+      } catch (_) {
+        // The application will fail closed on subsequent secure-store access.
+      }
       throw const DevApiException(
         'Stockage sécurisé indisponible : connexion interrompue.');
     }
   }
 
   Future<void> forgetSavedSession() async {
+    ++_restoreGeneration;
     if (_persistence == null) return;
     try {
       await _persistence.clear();
@@ -196,12 +205,14 @@ class DevAuthApi {
   /// Never show saved patient data when offline.
   Future<DevSession?> restoreSavedSession() async {
     if (_persistence == null) return null;
+    final generation = _restoreGeneration;
     final SavedDevSession? saved;
     try {
       saved = await _persistence.read();
     } catch (_) {
       throw const DevApiException('Stockage sécurisé du téléphone indisponible.');
     }
+    if (generation != _restoreGeneration) return null;
     if (saved == null) return null;
     if (saved.api != _audience) {
       await forgetSavedSession();
@@ -209,6 +220,7 @@ class DevAuthApi {
     }
     final response = await _request('POST', '/api/v1/auth/refresh',
       body: {'refresh_token': saved.refreshToken});
+    if (generation != _restoreGeneration) return null;
     if (response.statusCode == 401 || response.statusCode == 403) {
       await forgetSavedSession();
       return null;
@@ -218,6 +230,7 @@ class DevAuthApi {
     final access = payload['access_token'] as String;
     final rotated = payload['refresh_token'] as String;
     final me = await _request('GET', '/api/v1/me', token: access);
+    if (generation != _restoreGeneration) return null;
     if (me.statusCode == 401 || me.statusCode == 403) {
       await forgetSavedSession();
       return null;
@@ -233,6 +246,7 @@ class DevAuthApi {
       accessToken: access,
       refreshToken: rotated,
     );
+    if (generation != _restoreGeneration) return null;
     await _remember(session);
     return session;
   }
@@ -378,6 +392,7 @@ class DevAuthApi {
       jsonDecode(response.body) as Map<String, dynamic>;
 
   Future<DevSession> signIn(String email, String password) async {
+    ++_restoreGeneration;
     final result = await _request('POST', '/api/v1/auth/login',
         body: {'email': email.trim(), 'password': password});
     if (result.statusCode == 403) {
