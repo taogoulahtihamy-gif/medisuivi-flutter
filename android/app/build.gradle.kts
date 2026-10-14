@@ -54,6 +54,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Install the public-HTTPS sandbox alongside an existing MediSuivi
+            // rather than replacing a different signed or offline build.
+            if (System.getenv("MEDISUIVI_REMOTE_SANDBOX_APK") == "true") {
+                applicationIdSuffix = ".sandbox"
+                versionNameSuffix = "-sandbox"
+            }
+        }
         release {
             // Never silently sign a distributable release with a debug key.
             // Dedicated CI enforces pinned cert and refuses missing secrets.
