@@ -78,38 +78,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 34),
           child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
-          EntranceReveal(child: Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Palette.of(context).surface,
-              border: Border.all(color: Palette.of(context).border),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Row(children: [
-              PatientAvatar(patient: patient, size: 54, hero: true),
-              const SizedBox(width: 12),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(patient.name,
-                    style: TextStyle(fontSize: 19,
-                      color: Palette.of(context).ink, fontWeight: FontWeight.w700,
-                      letterSpacing: -.6)),
-                  const SizedBox(height: 6),
-                  Text('${patient.id} · ${patient.age} ans',
-                    style: TextStyle(
-                      color: Palette.of(context).muted, fontSize: 13.5)),
-                  if (patient.followUp) ...[
-                    const SizedBox(height: 8),
-                    Text('Visite de suivi à prévoir',
-                      style: TextStyle(color: Palette.of(context).muted,
-                        fontSize: 12.5, fontWeight: FontWeight.w600)),
-                  ],
-                ],
-              )),
-            ]),
-          )),
-          const SizedBox(height: 12),
+          EntranceReveal(
+            child: _PatientProfileHeader(patient: patient),
+          ),
+          const SizedBox(height: 16),
           Row(children: [
             Expanded(child: SizedBox(height: 46, child: ElevatedButton.icon(
               onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
@@ -322,6 +294,83 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           ])),
           ],
         ]))])),
+    );
+  }
+}
+
+/// Couverture compacte du dossier : identité centrée sans carte latérale.
+class _PatientProfileHeader extends StatelessWidget {
+  const _PatientProfileHeader({required this.patient});
+
+  final Patient patient;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = Palette.of(context);
+    final sex = switch (patient.sex) {
+      'F' => 'Féminin',
+      'M' => 'Masculin',
+      _ => 'Non précisé',
+    };
+    return SizedBox(
+      key: const Key('patient-profile-header'),
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Hero(
+            tag: 'patient-${patient.id}',
+            child: Container(
+              key: const Key('patient-profile-avatar'),
+              width: 74,
+              height: 74,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: palette.tealSoft,
+                border: Border.all(color: palette.border, width: 1.25),
+              ),
+              alignment: Alignment.center,
+              child: Icon(Icons.person_rounded, size: 36,
+                color: palette.forest),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            patient.name,
+            key: const Key('patient-profile-name'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              height: 1.2,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.55,
+              color: palette.ink,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text('${patient.age} ans  ·  $sex',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: palette.muted, fontSize: 12.5)),
+          const SizedBox(height: 3),
+          Text('Dossier ${patient.id}',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: palette.muted, fontSize: 11.5)),
+          if (patient.followUp) ...[
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.event_repeat_rounded, size: 15,
+                  color: palette.forest),
+                const SizedBox(width: 5),
+                Text('Visite de suivi à prévoir',
+                  style: TextStyle(color: palette.forest,
+                    fontSize: 12, fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
