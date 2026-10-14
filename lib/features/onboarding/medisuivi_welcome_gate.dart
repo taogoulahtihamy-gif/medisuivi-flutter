@@ -172,6 +172,7 @@ class _WelcomePhoto extends StatelessWidget {
         fit: BoxFit.cover,
         alignment: alignment,
         filterQuality: FilterQuality.medium,
+        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
         excludeFromSemantics: true,
         errorBuilder: (context, error, stackTrace) => DecoratedBox(
           decoration: const BoxDecoration(
