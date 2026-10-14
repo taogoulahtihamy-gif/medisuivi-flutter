@@ -11,6 +11,7 @@ import '../features/patients/patients_screen.dart';
 import 'theme.dart';
 import 'theme_controller.dart';
 import 'design_tokens.dart';
+import 'display_preferences.dart';
 
 class MediSuiviApp extends StatefulWidget {
   const MediSuiviApp({super.key, this.themeMode = ThemeMode.system});
@@ -25,6 +26,7 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
   final DemoStore _store = DemoStore();
   late final ThemeModeController _themeController =
       ThemeModeController(initial: widget.themeMode);
+  final DisplayPreferencesController _displayPreferences = DisplayPreferencesController();
 
   @override
   void initState() {
@@ -32,29 +34,43 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
     if (widget.themeMode == ThemeMode.system) {
       _themeController.load();
     }
+    _displayPreferences.load();
   }
 
   @override
   void dispose() {
     _store.dispose();
     _themeController.dispose();
+    _displayPreferences.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => ClinicalThemeScope(
     controller: _themeController,
-    child: AnimatedBuilder(
-      animation: _themeController,
-      builder: (context, _) => DemoScope(
-        store: _store,
-        child: MaterialApp(
-          title: 'MediSuivi',
-          debugShowCheckedModeBanner: false,
-          theme: MediTheme.light(),
-          darkTheme: MediTheme.dark(),
-          themeMode: _themeController.value,
-          home: const MainShell(),
+    child: DisplayPreferencesScope(
+      controller: _displayPreferences,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([_themeController, _displayPreferences]),
+        builder: (context, _) => DemoScope(
+          store: _store,
+          child: MaterialApp(
+            title: 'MediSuivi',
+            debugShowCheckedModeBanner: false,
+            theme: MediTheme.light(),
+            darkTheme: MediTheme.dark(),
+            themeMode: _themeController.value,
+            builder: (context, child) {
+              final current = MediaQuery.of(context);
+              final reduceMotion = current.disableAnimations ||
+                  _displayPreferences.value.reduceMotion;
+              return MediaQuery(
+                data: current.copyWith(disableAnimations: reduceMotion),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
+            home: const MainShell(),
+          ),
         ),
       ),
     ),
