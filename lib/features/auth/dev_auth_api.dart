@@ -58,15 +58,18 @@ class DevSession {
 
 class DevPatient {
   const DevPatient({required this.id, required this.displayName,
-      required this.age});
+      required this.age, this.createdAt});
   final String id;
   final String displayName;
   final int age;
+  final DateTime? createdAt;
 
   factory DevPatient.fromJson(Map<String, dynamic> json) =>
       DevPatient(id: json['id'] as String,
         displayName: json['display_name'] as String,
-        age: json['age'] as int);
+        age: json['age'] as int,
+        createdAt: json['created_at'] is String
+          ? DateTime.parse(json['created_at'] as String) : null);
 }
 
 /// Data returned by the authenticated backend, never by DemoStore.
@@ -74,12 +77,14 @@ class DevVisit {
   const DevVisit({
     required this.id, required this.reason, required this.createdAt,
     this.temperature, this.systolic, this.diastolic, this.pulse, this.spo2,
+    this.notes = '',
   });
   final String id;
   final String reason;
   final DateTime createdAt;
   final double? temperature;
   final int? systolic, diastolic, pulse, spo2;
+  final String notes;
   factory DevVisit.fromJson(Map<String, dynamic> data) => DevVisit(
     id: data['id'] as String, reason: data['reason'] as String,
     createdAt: DateTime.parse(data['created_at'] as String),
@@ -88,40 +93,48 @@ class DevVisit {
     diastolic: (data['diastolic'] as num?)?.toInt(),
     pulse: (data['pulse'] as num?)?.toInt(),
     spo2: (data['spo2'] as num?)?.toInt(),
+    notes: data['notes'] as String? ?? '',
   );
 }
 
 class DevExam {
   const DevExam({required this.id, required this.title,
-    required this.status, this.result, this.resultRecordedAt});
+    required this.status, this.result, this.resultRecordedAt,
+    this.createdAt});
   final String id;
   final String title;
   final String status;
   final String? result;
   final DateTime? resultRecordedAt;
+  final DateTime? createdAt;
   factory DevExam.fromJson(Map<String, dynamic> data) => DevExam(
     id: data['id'] as String, title: data['title'] as String,
     status: data['status'] as String,
     result: data['result'] as String?,
     resultRecordedAt: data['result_recorded_at'] is String
       ? DateTime.parse(data['result_recorded_at'] as String) : null,
+    createdAt: data['created_at'] is String
+      ? DateTime.parse(data['created_at'] as String) : null,
   );
 }
 
 class DevFollowUp {
   const DevFollowUp({required this.id, required this.reason,
-    required this.status, required this.scheduledAt, this.completedAt});
+    required this.status, required this.scheduledAt, this.completedAt,
+    this.notes = ''});
   final String id;
   final String reason;
   final String status;
   final DateTime scheduledAt;
   final DateTime? completedAt;
+  final String notes;
   factory DevFollowUp.fromJson(Map<String, dynamic> data) => DevFollowUp(
     id: data['id'] as String, reason: data['reason'] as String,
     status: data['status'] as String,
     scheduledAt: DateTime.parse(data['scheduled_at'] as String),
     completedAt: data['completed_at'] is String
       ? DateTime.parse(data['completed_at'] as String) : null,
+    notes: data['notes'] as String? ?? '',
   );
 }
 
