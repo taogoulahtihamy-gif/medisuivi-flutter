@@ -68,6 +68,8 @@ void main() {
       'Synthetic-staging-password-2026');
     await tester.enterText(
       find.byKey(const Key('sandbox-invite-code')), invite);
+    await tester.ensureVisible(find.byKey(const Key('dev-auth-submit')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('dev-auth-submit')));
     await tester.pumpAndSettle();
 
