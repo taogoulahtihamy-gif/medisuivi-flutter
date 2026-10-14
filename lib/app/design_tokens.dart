@@ -8,25 +8,25 @@ import 'package:google_fonts/google_fonts.dart';
 /// Palette de couleurs sémantiques — Nocturne Clinique
 abstract final class ClinicalColors {
   // ===== MODE CLAIR — "Papier Encre" =====
-  static const Color lightBackground = Color(0xFFF2EFEA);
-  static const Color lightSurface = Color(0xFFFAF8F5);
-  static const Color lightSurfaceElevated = Color(0xFFFFFFFF);
-  static const Color lightInk = Color(0xFF1C1A18);
-  static const Color lightInkMuted = Color(0xFF5C5650);
-  static const Color lightInkSubtle = Color(0xFF9C948A);
-  static const Color lightBrandPrimary = Color(0xFF2D3A35);
+  static const Color lightBackground = Color(0xFFF0EBD9);
+  static const Color lightSurface = Color(0xFFF5F0E2);
+  static const Color lightSurfaceElevated = Color(0xFFFBF7EC);
+  static const Color lightInk = Color(0xFF292820);
+  static const Color lightInkMuted = Color(0xFF59564C);
+  static const Color lightInkSubtle = Color(0xFF6C675B);
+  static const Color lightBrandPrimary = Color(0xFF33483D);
   // Actions : olive profond, moins saturé que la couleur d'accent.
   // Fond et texte distincts pour conserver une lisibilité élevée.
   static const Color lightActionFill = Color(0xFF354A40);
   static const Color darkActionFill = Color(0xFF3A5F4F);
   static const Color actionOnDarkFill = Color(0xFFF7F8F5);
-  static const Color lightBrandPrimarySoft = Color(0xFFE8EDEB);
-  static const Color lightAccentAmber = Color(0xFFC49A2A);
-  static const Color lightAccentAmberSoft = Color(0xFFF5ECDB);
-  static const Color lightCritical = Color(0xFFB83D3D);
-  static const Color lightCriticalSoft = Color(0xFFF2DADA);
-  static const Color lightBorder = Color(0xFFD8D0C6);
-  static const Color lightBorderFocus = Color(0xFF2D3A35);
+  static const Color lightBrandPrimarySoft = Color(0xFFE2E8D9);
+  static const Color lightAccentAmber = Color(0xFF785C18);
+  static const Color lightAccentAmberSoft = Color(0xFFEFE3BF);
+  static const Color lightCritical = Color(0xFFA43835);
+  static const Color lightCriticalSoft = Color(0xFFF1DCD4);
+  static const Color lightBorder = Color(0xFFD1C6AB);
+  static const Color lightBorderFocus = Color(0xFF425545);
   static const Color lightShadow = Color(0x141C1A18); // 8% opacity
   static const Color lightShadowStrong = Color(0x291C1A18); // 16% opacity
 
