@@ -11,6 +11,7 @@ on:
       - feat/medisuivi-p34-auth-design
       - feat/medisuivi-p35-session-rotation
       - feat/medisuivi-p36-login-throttling
+      - feat/medisuivi-p41-email-verification-reset
       - feat/medisuivi-p32-profile-avatar
     paths:
       - "backend/**"
