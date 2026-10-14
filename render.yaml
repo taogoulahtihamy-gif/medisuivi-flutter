@@ -1,0 +1,25 @@
+# P4.7 staging only. Never connect this public endpoint to real patient data.
+# The Neon database must be NEW and EMPTY, not the local Docker volume.
+services:
+  - type: web
+    name: medisuivi-api-staging
+    runtime: python
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    branch: feat/medisuivi-p47-render-neon-staging
+    autoDeployTrigger: off
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT --no-server-header
+    healthCheckPath: /ready
+    envVars:
+      - key: APP_ENV
+        value: staging
+      - key: APP_ALLOW_DEVELOPMENT_REGISTRATION
+        value: "false"
+      - key: APP_ENABLE_EMAIL_AUTH
+        value: "false"
+      - key: APP_DATABASE_URL
+        sync: false
+      - key: APP_JWT_SECRET
+        generateValue: true
