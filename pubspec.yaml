@@ -37,6 +37,11 @@ flutter:
     - assets/illustrations/
     - assets/images/home_hero_hd.webp
     - assets/images/onboarding/
+  # Même typographie sur Web, Android, iOS et hors connexion.
+  fonts:
+    - family: DM Sans
+      fonts:
+        - asset: assets/fonts/DMSans-Variable.ttf
 
 # Build hooks for SQLite3MultipleCiphers (encryption support)
 hooks:

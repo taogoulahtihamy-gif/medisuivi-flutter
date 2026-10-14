@@ -3,7 +3,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Palette de couleurs sémantiques — Nocturne Clinique
 abstract final class ClinicalColors {
@@ -57,14 +56,14 @@ abstract final class ClinicalColors {
 /// Tokens de typographie
 abstract final class ClinicalTypography {
   // Font families
-  static const String fontFamilyDisplay = 'Fraunces';
+  static const String fontFamilyDisplay = 'DM Sans';
   static const String fontFamilyUI = 'DM Sans';
-  static const String fontFamilyMono = 'JetBrains Mono';
+  static const String fontFamilyMono = 'DM Sans';
 
   // Fallback stacks (si polices non chargées)
-  static const String fontFamilyDisplayFallback = 'Playfair Display, Georgia, serif';
-  static const String fontFamilyUIFallback = 'Inter, system-ui, -apple-system, sans-serif';
-  static const String fontFamilyMonoFallback = 'SF Mono, Fira Code, monospace';
+  static const String fontFamilyDisplayFallback = 'DM Sans, sans-serif';
+  static const String fontFamilyUIFallback = 'DM Sans, sans-serif';
+  static const String fontFamilyMonoFallback = 'DM Sans, sans-serif';
 
   // Échelle mobile (base)
   static const TextStyle display = TextStyle(
@@ -178,6 +177,18 @@ abstract final class ClinicalTypography {
     height: 1.35,
     letterSpacing: 0.15,
   );
+}
+
+/// Échelle commune d'écriture pour tous les modules MediSuivi.
+abstract final class ClinicalTypeScale {
+  static const double hero = 32;
+  static const double page = 23;
+  static const double section = 17;
+  static const double rowTitle = 16;
+  static const double body = 14;
+  static const double secondary = 13.5;
+  static const double caption = 12;
+  static const double nav = 11;
 }
 
 /// Tokens d'espacement (base 4px)
@@ -316,9 +327,6 @@ abstract final class ClinicalShadow {
   ];
 }
 
-/// Résolveur de polices Google Fonts — utilisé pour le rendu runtime
-final GoogleFonts googleFonts = GoogleFonts();
-
 // Tokens d'animations
 abstract final class ClinicalMotion {
   static const Duration instant = Duration(milliseconds: 0);
@@ -335,30 +343,28 @@ abstract final class ClinicalMotion {
   static const Duration staggerMax = Duration(milliseconds: 400);
 }
 
-// Google Fonts — rendu runtime (fractionné au démarrage)
-// Ces styles ne sont PAS const car GoogleFonts résout les polices à l'exécution.
-// Elles sont disponible via ClinicalTypographyGoogleFonts.xxx si besoin.
+// Compatibilité des anciens styles : tous utilisent la police locale DM Sans.
 class ClinicalTypographyGoogleFonts {
   // Display — Fraunces
-  static TextStyle display = GoogleFonts.fraunces(
+  static TextStyle display = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 40,
     fontWeight: FontWeight.w700,
     height: 1.05,
     letterSpacing: -1.2,
   );
-  static TextStyle headlineLarge = GoogleFonts.fraunces(
+  static TextStyle headlineLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 28,
     fontWeight: FontWeight.w600,
     height: 1.15,
     letterSpacing: -0.6,
   );
-  static TextStyle headlineMedium = GoogleFonts.fraunces(
+  static TextStyle headlineMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 22,
     fontWeight: FontWeight.w500,
     height: 1.2,
     letterSpacing: -0.3,
   );
-  static TextStyle headlineSmall = GoogleFonts.fraunces(
+  static TextStyle headlineSmall = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 18,
     fontWeight: FontWeight.w500,
     height: 1.25,
@@ -366,31 +372,31 @@ class ClinicalTypographyGoogleFonts {
   );
 
   // UI — DM Sans
-  static TextStyle titleLarge = GoogleFonts.dmSans(
+  static TextStyle titleLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.35,
     letterSpacing: 0,
   );
-  static TextStyle titleMedium = GoogleFonts.dmSans(
+  static TextStyle titleMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.4,
     letterSpacing: 0.1,
   );
-  static TextStyle bodyLarge = GoogleFonts.dmSans(
+  static TextStyle bodyLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 15.5,
     fontWeight: FontWeight.w400,
     height: 1.6,
     letterSpacing: 0,
   );
-  static TextStyle bodyMedium = GoogleFonts.dmSans(
+  static TextStyle bodyMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.55,
     letterSpacing: 0,
   );
-  static TextStyle bodySmall = GoogleFonts.dmSans(
+  static TextStyle bodySmall = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 13,
     fontWeight: FontWeight.w400,
     height: 1.5,
@@ -398,19 +404,19 @@ class ClinicalTypographyGoogleFonts {
   );
 
   // Mono — JetBrains Mono
-  static TextStyle monoLarge = GoogleFonts.jetBrainsMono(
+  static TextStyle monoLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.2,
     letterSpacing: 0,
   );
-  static TextStyle monoMedium = GoogleFonts.jetBrainsMono(
+  static TextStyle monoMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 15,
     fontWeight: FontWeight.w500,
     height: 1.3,
     letterSpacing: 0,
   );
-  static TextStyle monoSmall = GoogleFonts.jetBrainsMono(
+  static TextStyle monoSmall = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.35,
@@ -418,13 +424,13 @@ class ClinicalTypographyGoogleFonts {
   );
 
   // Étiquettes — DM Sans
-  static TextStyle labelLarge = GoogleFonts.dmSans(
+  static TextStyle labelLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.3,
     letterSpacing: 0.1,
   );
-  static TextStyle labelMedium = GoogleFonts.dmSans(
+  static TextStyle labelMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.35,
