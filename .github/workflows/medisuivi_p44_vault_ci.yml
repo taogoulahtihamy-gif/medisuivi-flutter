@@ -1,0 +1,40 @@
+name: MediSuivi P4.4 vault isolation
+
+on:
+  push:
+    branches:
+      - test/medisuivi-p44-vault-isolation-regressions
+    paths:
+      - "lib/core/persistence/account_scoped_vault.dart"
+      - "test/p44_account_vault_isolation_test.dart"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/medisuivi_p44_vault_ci.yml"
+  pull_request:
+    paths:
+      - "lib/core/persistence/account_scoped_vault.dart"
+      - "test/p44_account_vault_isolation_test.dart"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - ".github/workflows/medisuivi_p44_vault_ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  vault-isolation:
+    name: Flutter account vault regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Verify vault isolation regressions
+        run: flutter test test/p44_account_vault_isolation_test.dart
+      - name: Analyze vault test and implementation
+        run: dart analyze lib/core/persistence/account_scoped_vault.dart test/p44_account_vault_isolation_test.dart
