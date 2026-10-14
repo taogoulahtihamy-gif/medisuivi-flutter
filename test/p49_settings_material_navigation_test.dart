@@ -26,9 +26,17 @@ Future<void> openSettings(WidgetTester tester) async {
 
 Future<void> openSettingsItem(
     WidgetTester tester, String key) async {
+  // Return to top: calling scrollUntilVisible with positive delta from the
+  // bottom can never find an earlier entry after navigating back.
+  final scrollable = find.descendant(
+    of: find.byKey(const Key('settings-page-list')),
+    matching: find.byType(Scrollable),
+  ).first;
+  tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+  await tester.pumpAndSettle();
   await tester.scrollUntilVisible(
     find.byKey(Key(key)), 160,
-    scrollable: find.byType(Scrollable).first,
+    scrollable: scrollable,
   );
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(Key(key)));
