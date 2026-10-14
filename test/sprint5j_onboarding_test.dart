@@ -7,8 +7,10 @@ import 'package:medisuivi/app/theme.dart';
 import 'package:medisuivi/core/assets/clinical_hero_photo.dart';
 import 'package:medisuivi/features/onboarding/medisuivi_welcome_gate.dart';
 
-Widget _entry() => MaterialApp(
+Widget _entry({ThemeMode themeMode = ThemeMode.light}) => MaterialApp(
   theme: MediTheme.light(),
+  darkTheme: MediTheme.dark(),
+  themeMode: themeMode,
   home: const MediSuiviWelcomeGate(
     isWebDemo: true,
     child: demo.MediSuiviApp(themeMode: ThemeMode.light),
@@ -55,6 +57,25 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('5J : contraste et mise en page sombre sur mobile compact',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(_entry(themeMode: ThemeMode.dark));
+    expect(find.byKey(const Key('welcome-splash-photo')), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 1300));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('onboarding-clinical-image-0')), findsOneWidget);
+    expect(find.byKey(const Key('onboarding-title-0')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('onboarding-next')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('onboarding-title-1')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets('5J : profil rempli visible dans les Réglages et en en-tête',
       (tester) async {
