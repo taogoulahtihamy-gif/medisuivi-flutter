@@ -230,12 +230,15 @@ class _IntroductionState extends State<_Introduction> {
             Row(children: [
               Icon(Icons.medical_services_outlined, color: p.forest, size: 23),
               const SizedBox(width: 9),
-              Text('MediSuivi', style: TextStyle(color: p.ink,
-                fontSize: 17, fontWeight: FontWeight.w700)),
-              const Spacer(),
+              Expanded(child: Text('MediSuivi',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: p.ink,
+                  fontSize: 17, fontWeight: FontWeight.w700))),
               TextButton(
                 key: const Key('onboarding-skip'),
                 onPressed: widget.onFinished,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 10)),
                 child: const Text('Passer')),
             ]),
             const SizedBox(height: 20),
