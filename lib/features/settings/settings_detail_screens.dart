@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/theme.dart';
 import '../../core/models/medical_models.dart';
 import '../../core/state/store_context.dart';
+import '../../core/state/connected_clinical_store.dart';
 import '../../core/widgets/medical_ui.dart';
 import '../../core/widgets/clinical_tab_route.dart';
 import '../patients/patients_screen.dart';
@@ -34,6 +35,7 @@ class _SettingsDataPageState extends State<SettingsDataPage> {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final store = context.store;
+    final connected = store is ConnectedClinicalStore;
     final patients = store.patients.length;
     final exams = store.exams.length;
     final pending = store.exams.where((e) => e.status == ExamStatus.pending).length;
@@ -42,10 +44,12 @@ class _SettingsDataPageState extends State<SettingsDataPage> {
       body: SafeArea(child: ListView(
         padding: const EdgeInsets.fromLTRB(21, 14, 21, 36),
         children: [
-          Text('Sur cet appareil', style: TextStyle(
+          Text(connected ? 'Votre compte' : 'Sur cet appareil', style: TextStyle(
             color: p.ink, fontSize: 24, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
-          Text(kIsWeb ? 'Données de démonstration du navigateur.'
+          Text(connected
+              ? 'Dossiers fictifs du praticien connecté, stockés sur le serveur de développement.'
+              : kIsWeb ? 'Données de démonstration du navigateur.'
               : 'État actuel des données locales.',
             style: TextStyle(color: p.muted, fontSize: 13.5)),
           const SizedBox(height: 24),
@@ -107,9 +111,11 @@ class _SettingsDataPageState extends State<SettingsDataPage> {
             ),
             const SizedBox(height: 18),
           ],
-          Text(kIsWeb
-            ? 'La démonstration n’est pas un compte personnel permanent.'
-            : 'Aucun transfert, export ou sauvegarde cloud automatique n’est activé.',
+          Text(connected
+            ? 'Données fictives uniquement. Le stockage hors ligne et la synchronisation ne sont pas activés.'
+            : kIsWeb
+              ? 'La démonstration n’est pas un compte personnel permanent.'
+              : 'Aucun transfert, export ou sauvegarde cloud automatique n’est activé.',
             style: TextStyle(color: p.muted, fontSize: 12.5, height: 1.45)),
         ],
       )),
@@ -153,6 +159,7 @@ class SettingsSyncPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final connected = context.store is ConnectedClinicalStore;
     return Scaffold(
       appBar: AppBar(title: const Text('Synchronisation')),
       body: SafeArea(child: ListView(
@@ -161,14 +168,18 @@ class SettingsSyncPage extends StatelessWidget {
           Text('État des synchronisations', style: TextStyle(
             fontSize: 23, fontWeight: FontWeight.w700, color: p.ink)),
           const SizedBox(height: 10),
-          Text('Aucun serveur distant n’est connecté.',
+          Text(connected
+              ? 'Compte relié au serveur de développement. La synchronisation hors ligne reste désactivée.'
+              : 'Aucun serveur distant n’est connecté.',
             style: TextStyle(fontSize: 14, color: p.muted)),
           const SizedBox(height: 22),
           ClinicalGroupedList(children: [
             ClinicalListRow(
               leading: Icon(Icons.phonelink_lock_outlined, color: p.forest),
               title: 'Données sur cet appareil',
-              subtitle: kIsWeb ? 'Démonstration temporaire dans le navigateur'
+              subtitle: connected
+                ? 'Dossiers fictifs sur le serveur du compte'
+                : kIsWeb ? 'Démonstration temporaire dans le navigateur'
                 : 'Dossiers conservés dans le stockage local',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -177,14 +188,18 @@ class SettingsSyncPage extends StatelessWidget {
             ClinicalListRow(
               leading: Icon(Icons.cloud_off_outlined, color: p.forest),
               title: 'Compte et serveur',
-              subtitle: 'Non configurés : aucun transfert automatique',
+              subtitle: connected
+                ? 'Connexion active · Pas de synchronisation hors ligne'
+                : 'Non configurés : aucun transfert automatique',
               onTap: () => showDialog<void>(
                 context: context,
                 builder: (_) => AlertDialog(
-                  title: const Text('Aucun serveur connecté'),
-                  content: const Text(
-                    'Le service de comptes sécurisés n’est pas encore disponible. '
-                    'Il n’est pas possible d’activer la synchronisation actuellement.'),
+                  title: Text(connected
+                    ? 'Serveur de développement connecté'
+                    : 'Aucun serveur connecté'),
+                  content: Text(connected
+                    ? 'Vos dossiers fictifs sont chargés depuis votre compte. La synchronisation hors ligne ne peut pas encore être activée.'
+                    : 'Le service de comptes sécurisés n’est pas encore disponible. La synchronisation ne peut pas être activée actuellement.'),
                   actions: [TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('Fermer'))],
@@ -208,6 +223,7 @@ class SettingsPrivacyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final connected = context.store is ConnectedClinicalStore;
     return Scaffold(
       appBar: AppBar(title: const Text('Confidentialité')),
       body: SafeArea(child: ListView(
@@ -224,22 +240,26 @@ class SettingsPrivacyPage extends StatelessWidget {
             ClinicalListRow(
               leading: Icon(Icons.storage_rounded, color: p.forest),
               title: 'Mes données locales',
-              subtitle: 'Consulter les dossiers présents sur cet appareil',
+              subtitle: connected
+                ? 'Consulter les dossiers fictifs de votre compte'
+                : 'Consulter les dossiers présents sur cet appareil',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(builder: (_) => const SettingsDataPage())),
             ),
             ClinicalListRow(
               leading: Icon(Icons.cloud_off_outlined, color: p.forest),
               title: 'Connexions distantes',
-              subtitle: 'Aucune synchronisation activée',
+              subtitle: connected
+                ? 'Serveur du compte connecté · Pas de mode hors ligne'
+                : 'Aucune synchronisation activée',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute<void>(builder: (_) => const SettingsSyncPage())),
             ),
           ]),
           const SizedBox(height: 25),
-          Text('Cette version n’est pas validée pour la saisie de données '
-            'patients réelles. Le contrôle d’accès par compte et la '
-            'restauration sécurisée restent à développer.',
+          Text(connected
+            ? 'Cette version de développement n’est pas validée pour les données médicales réelles. Les dossiers fictifs sont isolés par praticien. La synchronisation hors ligne et les contrôles de production restent à valider.'
+            : 'Cette version n’est pas validée pour la saisie de données patients réelles. Le contrôle d’accès par compte et la restauration sécurisée restent à développer.',
             style: TextStyle(color: p.muted, fontSize: 13, height: 1.5)),
         ],
       )),
@@ -252,6 +272,7 @@ class SettingsAboutPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
+    final connected = context.store is ConnectedClinicalStore;
     return Scaffold(
       appBar: AppBar(title: const Text('À propos')),
       body: SafeArea(child: ListView(
@@ -284,7 +305,9 @@ class SettingsAboutPage extends StatelessWidget {
             ),
           ]),
           const SizedBox(height: 21),
-          Text('Aucun compte utilisateur ni serveur médical réel connecté.',
+          Text(connected
+            ? 'Compte connecté au serveur de développement MediSuivi. Aucun usage médical réel autorisé.'
+            : 'Aucun compte utilisateur ni serveur médical réel connecté.',
             style: TextStyle(color: p.muted, fontSize: 12.5)),
         ],
       )),
