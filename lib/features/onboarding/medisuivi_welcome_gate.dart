@@ -77,7 +77,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
   @override
   void initState() {
     super.initState();
-    _splashTimer = Timer(const Duration(milliseconds: 1200), () {
+    _splashTimer = Timer(const Duration(milliseconds: 2800), () {
       if (mounted && _step == _EntryStep.splash) {
         setState(() => _step = _EntryStep.introduction);
       }
@@ -144,12 +144,12 @@ abstract final class _ClinicalPhoto {
 /// Splash éditorial : image clinique, ombre latérale et progression discrète.
 
 abstract final class _WelcomePhotos {
-  // Visuels Pexels, scènes distinctes (données publiques uniquement).
-  static const splash = 'https://images.pexels.com/photos/19957218/pexels-photo-19957218.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
-  static const records = 'https://images.pexels.com/photos/5452252/pexels-photo-5452252.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
-  static const followup = 'https://images.pexels.com/photos/5214997/pexels-photo-5214997.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
-  static const privacy = 'https://images.pexels.com/photos/32254527/pexels-photo-32254527.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
-  static const access = 'https://images.pexels.com/photos/19957215/pexels-photo-19957215.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
+  // Images intégrées en WebP HD : aucun accès réseau pendant l'onboarding.
+  static const splash = 'assets/images/onboarding/splash.webp';
+  static const records = 'assets/images/onboarding/records.webp';
+  static const followup = 'assets/images/onboarding/followup.webp';
+  static const privacy = 'assets/images/onboarding/privacy.webp';
+  static const access = 'assets/images/onboarding/access.webp';
 }
 
 class _WelcomePhoto extends StatelessWidget {
@@ -163,37 +163,14 @@ class _WelcomePhoto extends StatelessWidget {
   final Alignment alignment;
 
   @override
-  Widget build(BuildContext context) => Stack(
-    fit: StackFit.expand, children: [
-      const ColoredBox(color: Color(0xFF0A1612)),
-      Image.network(
-        imageUrl,
-        key: imageKey,
-        fit: BoxFit.cover,
-        alignment: alignment,
-        filterQuality: FilterQuality.medium,
-        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
-        excludeFromSemantics: true,
-        errorBuilder: (context, error, stackTrace) => DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF365F4D), Color(0xFF122920), Color(0xFF08120F)],
-            ),
-          ),
-          child: Opacity(
-            opacity: .70,
-            child: Image.memory(
-              _ClinicalPhoto.bytes,
-              alignment: alignment,
-              fit: BoxFit.cover,
-              excludeFromSemantics: true,
-            ),
-          ),
-        ),
-      ),
-    ],
+  Widget build(BuildContext context) => Image.asset(
+    imageUrl,
+    key: imageKey,
+    fit: BoxFit.cover,
+    alignment: alignment,
+    filterQuality: FilterQuality.high,
+    excludeFromSemantics: true,
+    errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF12271F)),
   );
 }
 
@@ -211,7 +188,7 @@ class _WelcomePhotoShade extends StatelessWidget {
           colors: [
             Color(0x8A07130E),
             Color(0x2407130E),
-            Color(0x1707130E),
+            Color(0x6007130E),
             Color(0xBD07120E),
             Color(0xF107100D),
             Color(0xFF070F0D),
@@ -259,33 +236,33 @@ class _IntroSplash extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _WelcomeBrand(),
-              const Spacer(flex: 6),
+              const Spacer(flex: 3),
               const Text('Le suivi médical,\nà portée de main.',
                 key: Key('welcome-splash-title'),
                 style: TextStyle(
-                  color: Colors.white, fontSize: 33,
+                  color: Colors.white, fontSize: 35,
                   height: 1.15, letterSpacing: -.95,
                   fontWeight: FontWeight.w700,
                 )),
               const SizedBox(height: 11),
               const Text('Une pratique plus claire.\nDes dossiers mieux organisés.',
                 style: TextStyle(color: Color(0xFFDCE6E0),
-                  fontSize: 13, height: 1.5)),
-              const SizedBox(height: 29),
+                  fontSize: 15, height: 1.5)),
+              const SizedBox(height: 24),
               Row(children: [
                 TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: 1),
                   duration: reduced ? Duration.zero :
-                    const Duration(milliseconds: 1080),
+                    const Duration(milliseconds: 2580),
                   curve: Curves.easeInOutCubic,
                   builder: (context, value, _) => SizedBox(
-                    width: 70,
+                    width: 94,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
                         key: const Key('welcome-progress'),
                         value: value,
-                        minHeight: 3,
+                        minHeight: 4,
                         color: const Color(0xFF9CE5C4),
                         backgroundColor: const Color(0x75E2EBE5),
                       ),
@@ -298,7 +275,7 @@ class _IntroSplash extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Color(0xFFDCE6E0),
-                    fontSize: 11.5,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w500,
                   ))),
               ]),
@@ -476,7 +453,7 @@ class _OnboardPage extends StatelessWidget {
       ),
       const _WelcomePhotoShade(),
       SafeArea(child: Padding(
-        padding: const EdgeInsets.fromLTRB(25, 88, 25, 151),
+        padding: const EdgeInsets.fromLTRB(25, 88, 25, 175),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -491,7 +468,7 @@ class _OnboardPage extends StatelessWidget {
               key: Key('onboarding-title-$index'),
               style: TextStyle(
                 color: Colors.white,
-                fontSize: narrow ? 27 : 30,
+                fontSize: narrow ? 29 : 33,
                 height: 1.13, letterSpacing: -.9,
                 fontWeight: FontWeight.w700,
               )),
@@ -500,7 +477,7 @@ class _OnboardPage extends StatelessWidget {
               key: Key('onboarding-description-$index'),
               style: const TextStyle(
                 color: Color(0xFFDBE4DD),
-                fontSize: 13.2, height: 1.48,
+                fontSize: 14.3, height: 1.44,
                 fontWeight: FontWeight.w400,
               )),
           ],
