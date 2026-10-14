@@ -82,22 +82,31 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             child: _PatientProfileHeader(patient: patient),
           ),
           const SizedBox(height: 16),
-          Row(children: [
-            Expanded(child: SizedBox(height: 46, child: ElevatedButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
-                builder: (_) => NewConsultationScreen(patient: patient))),
-              icon: const Icon(Icons.add_rounded, size: 19),
-              label: const Text('Nouvelle consultation',
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-            ))),
-            const SizedBox(width: 9),
-            SizedBox(height: 48, width: 49, child: IconButton.outlined(
-              tooltip: 'Prescrire un bilan',
-              icon: const Icon(Icons.biotech_outlined),
-              onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
-                builder: (_) => ExamEditorScreen(patientId: patientId))),
-            )),
-          ]),
+          Center(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  key: const Key('new-consultation-cta'),
+                  onPressed: () => Navigator.push(context,
+                    MaterialPageRoute<void>(builder: (_) =>
+                      NewConsultationScreen(patient: patient))),
+                  icon: const Icon(Icons.add_rounded, size: 19),
+                  label: const Text('Nouvelle consultation'),
+                ),
+                SizedBox(width: 46, height: 46, child: IconButton.outlined(
+                  tooltip: 'Prescrire un bilan',
+                  icon: const Icon(Icons.biotech_outlined),
+                  onPressed: () => Navigator.push(context,
+                    MaterialPageRoute<void>(builder: (_) =>
+                      ExamEditorScreen(patientId: patientId))),
+                )),
+              ],
+            ),
+          ),
           const SizedBox(height: 13),
           SurfaceCard(
             padding: const EdgeInsets.symmetric(vertical: 11, horizontal: 12),
