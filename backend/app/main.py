@@ -239,6 +239,11 @@ class LoginIn(StrictModel):
     password: str
 
 
+class ChangePasswordIn(StrictModel):
+    current_password: str = Field(min_length=1, max_length=128)
+    new_password: str = Field(min_length=12, max_length=128)
+
+
 class MeOut(StrictModel):
     id: str
     email: EmailStr
@@ -605,6 +610,47 @@ def api_app() -> FastAPI:
         db.commit()
         db.refresh(user)
         return MeOut.model_validate(user, from_attributes=True)
+
+    @app.put("/api/v1/me/password", status_code=204)
+    def change_my_password(data: ChangePasswordIn,
+                           user: User = Depends(current_user),
+                           db: Session = Depends(get_db)):
+        """Authenticated password change revokes ALL practitioner sessions.
+
+        Password recovery by email is intentionally not implemented here:
+        there is not yet an approved email-delivery/verification provider.
+        """
+        dev_write_only()
+        now = datetime.now(timezone.utc)
+        attempt = login_attempt_row(db, user.email, now)
+        if attempt.blocked_until is not None and utc(attempt.blocked_until) > now:
+            raise throttled_login(attempt.blocked_until, now)
+        try:
+            valid_current = bool(hasher.verify(
+                user.password_hash, data.current_password))
+        except (VerificationError, ValueError):
+            valid_current = False
+        if not valid_current:
+            attempt.failed_count += 1
+            if attempt.failed_count >= LOGIN_FAILURE_LIMIT:
+                attempt.blocked_until = now + LOGIN_LOCKOUT
+            db.commit()
+            if attempt.blocked_until is not None:
+                raise throttled_login(attempt.blocked_until, now)
+            raise HTTPException(status_code=401,
+                                detail="Mot de passe actuel incorrect")
+        if hmac.compare_digest(
+                data.current_password.encode("utf-8"),
+                data.new_password.encode("utf-8")):
+            raise HTTPException(status_code=422,
+                                detail="Choisissez un nouveau mot de passe différent")
+        user.password_hash = hasher.hash(data.new_password)
+        user.session_version += 1
+        attempt.failed_count = 0
+        attempt.blocked_until = None
+        attempt.window_started_at = now
+        db.commit()
+        # All previously issued JWT access/refresh credentials are rejected.
 
     @app.get("/api/v1/me/avatar")
     def get_my_avatar(user: User = Depends(current_user)):
