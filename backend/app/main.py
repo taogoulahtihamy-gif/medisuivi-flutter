@@ -451,7 +451,11 @@ def login_attempt_row(db: Session, normalized_email: str,
         LoginAttempt.key == key).with_for_update())
     if row is None:
         raise RuntimeError("Unable to obtain login attempt lock")
-    if utc(row.window_started_at) + LOGIN_WINDOW <= now:
+    active_lock = row.blocked_until is not None and utc(row.blocked_until) > now
+    # Do not reset an active 15-minute lock just because the original
+    # failure-counting window has expired.
+    if not active_lock and (row.blocked_until is not None or
+                            utc(row.window_started_at) + LOGIN_WINDOW <= now):
         row.failed_count = 0
         row.window_started_at = now
         row.blocked_until = None
