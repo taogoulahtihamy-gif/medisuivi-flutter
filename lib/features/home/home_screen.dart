@@ -12,6 +12,7 @@ import '../../core/widgets/medical_ui.dart';
 import '../patients/new_patient_screen.dart';
 import '../patients/patient_detail_screen.dart';
 import '../settings/settings_screen.dart';
+import '../notifications/clinical_alerts_screen.dart';
 
 /// Accueil — Nocturne Clinique.
 /// Présente immédiatement les informations cliniques utiles :
@@ -116,15 +117,32 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: 'Paramètres',
+          key: const Key('header-notifications'),
+          tooltip: 'Notifications locales',
           style: IconButton.styleFrom(
             backgroundColor: p.surfaceElevated,
             side: BorderSide(color: p.border),
             foregroundColor: p.ink,
           ),
-          icon: const Icon(Icons.tune_rounded),
+          icon: const Icon(Icons.notifications_none_rounded, size: 22),
           onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-            builder: (_) => const SettingsScreen())),
+            builder: (_) => const ClinicalAlertsScreen())),
+        ),
+        const SizedBox(width: 7),
+        Tooltip(
+          message: 'Profil et paramètres',
+          child: InkWell(
+            key: const Key('header-profile'),
+            borderRadius: BorderRadius.circular(28),
+            onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => const SettingsScreen())),
+            child: CircleAvatar(
+              radius: 22,
+              backgroundColor: p.brandPrimarySoft,
+              child: Icon(Icons.person_rounded,
+                size: 24, color: p.brandPrimary),
+            ),
+          ),
         ),
       ],
     );
