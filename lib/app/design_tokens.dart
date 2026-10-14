@@ -21,7 +21,7 @@ abstract final class ClinicalColors {
   static const Color darkActionFill = Color(0xFF3A5F4F);
   static const Color actionOnDarkFill = Color(0xFFF7F8F5);
   static const Color lightBrandPrimarySoft = Color(0xFFE2E8D9);
-  static const Color lightAccentAmber = Color(0xFF8A6B19);
+  static const Color lightAccentAmber = Color(0xFF785C18);
   static const Color lightAccentAmberSoft = Color(0xFFEFE3BF);
   static const Color lightCritical = Color(0xFFA43835);
   static const Color lightCriticalSoft = Color(0xFFF1DCD4);
