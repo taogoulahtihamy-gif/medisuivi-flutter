@@ -7,20 +7,22 @@ No shared clinical credentials, no implicit team access, no PHI logging.
 from __future__ import annotations
 
 import os
+from io import BytesIO
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 from uuid import uuid4
 
 import jwt
+from PIL import Image, UnidentifiedImageError
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy import (
     Boolean, CheckConstraint, DateTime, Float, ForeignKey, ForeignKeyConstraint,
-    Integer, String, Text, UniqueConstraint, create_engine, event, select, text,
+    Integer, LargeBinary, String, Text, UniqueConstraint, create_engine, event, select, text,
 )
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship, sessionmaker
@@ -74,6 +76,14 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(512), nullable=False)
     first_name: Mapped[str] = mapped_column(String(120), nullable=False)
     last_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    phone: Mapped[str] = mapped_column(String(25), nullable=False, default="")
+    specialty: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    avatar_webp: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+
+    @property
+    def has_avatar(self) -> bool:
+        return self.avatar_webp is not None
+
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     session_version: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
@@ -189,6 +199,16 @@ class MeOut(StrictModel):
     email: EmailStr
     first_name: str
     last_name: str
+    phone: str
+    specialty: str
+    has_avatar: bool
+
+
+class UpdateProfileIn(StrictModel):
+    first_name: str = Field(min_length=1, max_length=120)
+    last_name: str = Field(min_length=1, max_length=120)
+    phone: str = Field(default="", max_length=25)
+    specialty: str = Field(default="", max_length=120)
 
 
 class TokenOut(StrictModel):
@@ -355,7 +375,7 @@ def api_app() -> FastAPI:
             CORSMiddleware,
             allow_origins=["http://127.0.0.1:8080", "http://localhost:8080"],
             allow_credentials=False,
-            allow_methods=["GET", "POST", "PUT", "OPTIONS"],
+            allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             allow_headers=["Authorization", "Content-Type"],
             max_age=600,
         )
@@ -410,6 +430,72 @@ def api_app() -> FastAPI:
     @app.get("/api/v1/me", response_model=MeOut)
     def me(user: User = Depends(current_user)):
         return MeOut.model_validate(user, from_attributes=True)
+
+    @app.put("/api/v1/me", response_model=MeOut)
+    def update_profile(data: UpdateProfileIn, user: User = Depends(current_user),
+                       db: Session = Depends(get_db)):
+        dev_write_only()
+        user.first_name = clean_text(data.first_name)
+        user.last_name = clean_text(data.last_name)
+        user.phone = data.phone.strip()
+        user.specialty = data.specialty.strip()
+        db.commit()
+        db.refresh(user)
+        return MeOut.model_validate(user, from_attributes=True)
+
+    @app.get("/api/v1/me/avatar")
+    def get_my_avatar(user: User = Depends(current_user)):
+        if user.avatar_webp is None:
+            raise HTTPException(status_code=404, detail="Photo introuvable")
+        return Response(content=user.avatar_webp, media_type="image/webp",
+                        headers={"Cache-Control": "no-store, private",
+                                 "X-Content-Type-Options": "nosniff"})
+
+    @app.put("/api/v1/me/avatar", response_model=MeOut)
+    async def upload_my_avatar(request: Request, user: User = Depends(current_user),
+                               db: Session = Depends(get_db)):
+        dev_write_only()
+        supported = {"image/jpeg", "image/png", "image/webp"}
+        if request.headers.get("content-type", "").split(";")[0].lower() not in supported:
+            raise HTTPException(status_code=415, detail="Format de photo invalide")
+        # Stream with early cutoff, so a malicious upload cannot be arbitrarily large.
+        payload = bytearray()
+        async for chunk in request.stream():
+            payload.extend(chunk)
+            if len(payload) > 2 * 1024 * 1024:
+                raise HTTPException(status_code=413, detail="Photo trop volumineuse")
+        if not payload:
+            raise HTTPException(status_code=422, detail="Photo vide")
+        try:
+            with Image.open(BytesIO(payload)) as original:
+                if original.format not in {"JPEG", "PNG", "WEBP"}:
+                    raise ValueError("Unsupported image")
+                if original.width < 32 or original.height < 32:
+                    raise ValueError("Image dimensions invalid")
+                if original.width * original.height > 4_000_000:
+                    raise ValueError("Too many pixels")
+                original.verify()
+            with Image.open(BytesIO(payload)) as original:
+                picture = original.convert("RGB")
+                picture.thumbnail((512, 512), Image.Resampling.LANCZOS)
+                output = BytesIO()
+                picture.save(output, format="WEBP", quality=82, method=5)
+                safe_webp = output.getvalue()  # Re-encoding strips EXIF/metadata.
+        except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as exc:
+            raise HTTPException(status_code=422, detail="Image illisible") from exc
+        if len(safe_webp) > 500_000:
+            raise HTTPException(status_code=413, detail="Photo trop volumineuse")
+        user.avatar_webp = safe_webp
+        db.commit()
+        db.refresh(user)
+        return MeOut.model_validate(user, from_attributes=True)
+
+    @app.delete("/api/v1/me/avatar", status_code=204)
+    def delete_my_avatar(user: User = Depends(current_user),
+                         db: Session = Depends(get_db)):
+        dev_write_only()
+        user.avatar_webp = None
+        db.commit()
 
     @app.post("/api/v1/auth/logout", status_code=204)
     def logout(user: User = Depends(current_user), db: Session = Depends(get_db)):
