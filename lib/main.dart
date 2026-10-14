@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'app/medisuivi_app.dart';
 import 'features/onboarding/medisuivi_welcome_gate.dart';
+import 'features/auth/dev_auth_api.dart';
 import 'app/theme_v2.dart';
 import 'app/theme_controller.dart';
 import 'core/persistence/database_initializer.dart';
@@ -43,8 +44,12 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
   }
 
   Future<void> _initializeApp() async {
-    if (kIsWeb) {
-      // Sur le web : utiliser DemoStore avec données fictives
+    // An authenticated mobile API build MUST NOT open the legacy
+    // device-wide medisuivi.db before a practitioner has signed in.
+    // Clinical data for such builds comes only from scoped API requests.
+    // The optional demo remains synthetic/in-memory in this mode.
+    if (kIsWeb || DevAuthApi.devBaseUrl.trim().isNotEmpty) {
+      // Web or connected-mode Android/iOS: in-memory synthetic demo only.
       _demoStore = DemoStore();
       _initResult = DatabaseInitResult.notSupported;
       _isInitializing = false;
@@ -180,7 +185,8 @@ class _MediSuiviAppState extends State<MediSuiviApp> {
 
     // Application principale avec le bon store
     if (kIsWeb || _initResult == DatabaseInitResult.notSupported) {
-      // Mode démo Web
+      // Explicit synthetic demo only; server accounts use their own API.
+      // Do not mount a legacy PersistentScope in connected mobile mode.
       return DemoScope(
         store: _demoStore!,
         child: MaterialApp(
