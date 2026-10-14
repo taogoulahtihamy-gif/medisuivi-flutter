@@ -618,9 +618,47 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
+              flex: narrow ? 6 : 5,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${shortDate(_clock)} · '
+                    '${_clock.hour.toString().padLeft(2, '0')}:'
+                    '${_clock.minute.toString().padLeft(2, '0')}',
+                    key: const Key('home-greeting-date'),
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: p.inkMuted,
+                      fontSize: narrow ? 10 : 11,
+                    )),
+                  const SizedBox(height: 3),
+                  Text('Vos dossiers',
+                    key: const Key('home-greeting-title'),
+                    maxLines: 1,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: p.ink,
+                      fontSize: narrow ? 19 : 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -.45,
+                    )),
+                  const SizedBox(height: 3),
+                  Text('Vos prochaines actions cliniques.',
+                    maxLines: 2,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: p.inkMuted,
+                      fontSize: narrow ? 10.5 : 12,
+                      height: 1.25,
+                    )),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
               flex: narrow ? 5 : 6,
               child: Align(
-                alignment: Alignment.centerLeft,
+                alignment: Alignment.centerRight,
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child: Semantics(
@@ -672,44 +710,6 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                 ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: narrow ? 6 : 5,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('${shortDate(_clock)} · '
-                    '${_clock.hour.toString().padLeft(2, '0')}:'
-                    '${_clock.minute.toString().padLeft(2, '0')}',
-                    key: const Key('home-greeting-date'),
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: p.inkMuted,
-                      fontSize: narrow ? 10 : 11,
-                    )),
-                  const SizedBox(height: 3),
-                  Text('Vos dossiers',
-                    key: const Key('home-greeting-title'),
-                    maxLines: 1,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: p.ink,
-                      fontSize: narrow ? 19 : 24,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -.45,
-                    )),
-                  const SizedBox(height: 3),
-                  Text('Vos prochaines actions cliniques.',
-                    maxLines: 2,
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: p.inkMuted,
-                      fontSize: narrow ? 10.5 : 12,
-                      height: 1.25,
-                    )),
-                ],
               ),
             ),
           ],
