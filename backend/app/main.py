@@ -252,6 +252,15 @@ class FollowUpIn(StrictModel):
 
 
 class FollowUpOut(FollowUpIn):
+    # SQLite test runner drops timezone metadata; input validation still
+    # REQUIRES a timezone, but persisted UTC timestamps are restored on read.
+    @field_validator("scheduled_at", mode="before")
+    @classmethod
+    def persisted_utc(cls, value):
+        if isinstance(value, datetime) and value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+
     id: str
     patient_id: str
     status: Literal["planned", "completed", "cancelled"]
