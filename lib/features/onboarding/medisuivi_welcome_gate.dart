@@ -95,6 +95,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
     setState(() {
       if (_resumeSession != null) {
         _authenticatedSession = _resumeSession;
+        _useAuthenticatedProfile(_resumeSession!);
         _resumeSession = null;
         _step = _EntryStep.authenticated;
       } else if (_resumeError != null) {
@@ -184,18 +185,37 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
     _step = _EntryStep.verifyEmail;
   });
 
-  void _onAuthenticated(DevSession session) => setState(() {
-    _resumeAttempt++;
-    _authenticatedSession?.clear();
-    _authenticatedSession = session;
-    _step = _EntryStep.authenticated;
-  });
+  void _useAuthenticatedProfile(DevSession session) {
+    final practitioner = session.practitioner;
+    _practitioner.update(
+      firstName: practitioner.firstName,
+      lastName: practitioner.lastName,
+      email: practitioner.email,
+      phone: practitioner.phone,
+      specialty: practitioner.specialty,
+    );
+  }
 
-  void _onSignedOut() => setState(() {
+  void _onAuthenticated(DevSession session) {
+    _useAuthenticatedProfile(session);
+    setState(() {
+      _resumeAttempt++;
+      _authenticatedSession?.clear();
+      _authenticatedSession = session;
+      _step = _EntryStep.authenticated;
+    });
+  }
+
+  void _onSignedOut() {
     _authenticatedSession?.clear();
-    _authenticatedSession = null;
-    _step = _EntryStep.access;
-  });
+    _practitioner.update(
+      firstName: '', lastName: '', email: '', phone: '', specialty: '',
+    );
+    setState(() {
+      _authenticatedSession = null;
+      _step = _EntryStep.access;
+    });
+  }
 
   @override
   Widget build(BuildContext context) => PractitionerPreviewScope(
