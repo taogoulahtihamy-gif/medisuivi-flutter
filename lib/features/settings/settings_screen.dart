@@ -5,6 +5,7 @@ import '../../app/theme.dart';
 import '../../app/theme_controller.dart';
 import '../../core/state/store_context.dart';
 import '../notifications/clinical_alerts_screen.dart';
+import 'settings_detail_screens.dart';
 import '../onboarding/medisuivi_welcome_gate.dart';
 
 /// Profil personnel et préférences : sections lisibles plutôt qu'une pile
@@ -50,54 +51,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ));
   }
 
-  void _openStorage() {
-    _open(_SettingsDetailPage(
-      title: 'Données et stockage',
-      icon: Icons.storage_outlined,
-      heading: kIsWeb ? 'Démonstration locale' : 'Dossiers conservés sur cet appareil',
-      description: kIsWeb
-          ? 'Le navigateur utilise des dossiers fictifs temporaires. '
-            'Ils ne sont liés à aucun compte et peuvent disparaître à la fermeture.'
-          : 'Vos dossiers sont stockés localement. La sauvegarde, '
-            'la restauration et la migration vers un compte sécurisé '
-            'doivent être validées avant un usage médical réel.',
-      extra: kIsWeb ? null : _PendingSyncInfo(future: _pendingSyncCountFuture),
-    ));
-  }
-
-  void _openSync() {
-    _open(const _SettingsDetailPage(
-      title: 'Synchronisation',
-      icon: Icons.cloud_off_outlined,
-      heading: 'Synchronisation non disponible',
-      description: 'Aucun serveur ni compte distant n’est connecté. '
-          'Les dossiers ne sont pas transférés automatiquement. '
-          'La synchronisation sécurisée sera ajoutée dans un sprint ultérieur.',
-    ));
-  }
-
-  void _openPrivacy() {
-    _open(const _SettingsDetailPage(
-      title: 'Confidentialité',
-      icon: Icons.shield_outlined,
-      heading: 'La confidentialité avant tout',
-      description: 'MediSuivi est encore en développement. '
-          'N’enregistrez pas de données patients réelles dans cette version. '
-          'La gestion sécurisée des comptes, les contrôles d’accès et '
-          'la restauration feront l’objet de validations distinctes.',
-    ));
-  }
-
-  void _openAbout() {
-    _open(const _SettingsDetailPage(
-      title: 'À propos',
-      icon: Icons.info_outline_rounded,
-      heading: 'MediSuivi',
-      description: 'Version de développement 0.1.0. '
-          'Application de suivi clinique en cours de conception. '
-          'Les fonctions de compte et de synchronisation ne sont pas encore actives.',
-    ));
-  }
+  void _openStorage() => _open(const SettingsDataPage());
+  void _openSync() => _open(const SettingsSyncPage());
+  void _openPrivacy() => _open(const SettingsPrivacyPage());
+  void _openAbout() => _open(const SettingsAboutPage());
 
   @override
   Widget build(BuildContext context) {
@@ -553,27 +510,6 @@ class _SettingsDetailPage extends StatelessWidget {
       ))),
     );
   }
-}
-
-class _PendingSyncInfo extends StatelessWidget {
-  const _PendingSyncInfo({required this.future});
-  final Future<int>? future;
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder<int>(
-    future: future,
-    builder: (context, snapshot) {
-      final message = snapshot.hasError
-          ? 'Impossible de lire les opérations en attente.'
-          : snapshot.data == null
-              ? 'Lecture des opérations locales…'
-              : snapshot.data == 0
-                  ? 'Aucune opération en attente.'
-                  : '${snapshot.data} opération(s) locale(s) en attente.';
-      return Text(message, style: TextStyle(
-        color: Palette.of(context).ink, fontSize: 13));
-    },
-  );
 }
 
 class _MoreSettingsPage extends StatelessWidget {
