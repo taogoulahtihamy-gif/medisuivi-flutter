@@ -227,13 +227,19 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
       top: false,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-        child: SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton.icon(
+        child: Center(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 300),
+            child: SizedBox(
+              width: double.infinity,
+              height: 46,
+              child: ElevatedButton.icon(
             onPressed: _saving ? null : save,
             icon: const Icon(Icons.check_rounded),
             label: Text(_saving ? 'Enregistrement…' : 'Ajouter le patient'),
+              ),
+            ),
           ),
         ),
       ),

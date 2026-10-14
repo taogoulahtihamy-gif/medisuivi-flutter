@@ -131,12 +131,15 @@ class _ExamEditorScreenState extends State<ExamEditorScreen> {
                 ),
               ],
               const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: _saving ? null : _save,
-                icon: const Icon(Icons.check_rounded),
-                label: Text(isResult ? 'Enregistrer le résultat'
-                  : 'Ajouter la prescription'),
-              ),
+              Center(child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 300),
+                child: ElevatedButton.icon(
+                  onPressed: _saving ? null : _save,
+                  icon: const Icon(Icons.check_rounded),
+                  label: Text(isResult ? 'Enregistrer le résultat'
+                    : 'Ajouter la prescription'),
+                ),
+              )),
               const SizedBox(height: 12),
               Text(
                 kIsWeb ? 'Version Web : saisie fictive temporaire.' : 'Bilan enregistré localement ; synchronisation distante indisponible.',

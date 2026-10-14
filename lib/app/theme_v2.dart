@@ -158,42 +158,46 @@ abstract final class ClinicalTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: p.brandPrimary,
-          foregroundColor: p.surfaceElevated,
+          backgroundColor: p.isDark
+              ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill,
+          foregroundColor: ClinicalColors.actionOnDarkFill,
           elevation: 0,
-          minimumSize: const Size(0, 48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(ClinicalRadius.button),
-          ),
-          textStyle: ClinicalTypography.labelLarge.copyWith(
-            color: p.surfaceElevated,
-          ),
+          minimumSize: const Size(0, 46),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+          shape: const StadiumBorder(),
+          textStyle: ClinicalTypography.labelLarge,
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: p.brandPrimary,
-          foregroundColor: p.surfaceElevated,
-          minimumSize: const Size(0, 48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(ClinicalRadius.button),
-          ),
+          backgroundColor: p.isDark
+              ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill,
+          foregroundColor: ClinicalColors.actionOnDarkFill,
+          minimumSize: const Size(0, 46),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+          shape: const StadiumBorder(),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: p.brandPrimary,
-          side: BorderSide(color: p.borderFocus, width: 1.5),
-          minimumSize: const Size(0, 48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(ClinicalRadius.button),
-          ),
+          foregroundColor: p.ink,
+          side: BorderSide(color: p.border, width: 1),
+          minimumSize: const Size(0, 46),
+          padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 11),
+          shape: const StadiumBorder(),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: p.brandPrimary,
+          foregroundColor: p.ink,
+          shape: const StadiumBorder(),
           textStyle: ClinicalTypography.labelMedium,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: p.ink,
+          shape: const CircleBorder(),
         ),
       ),
       iconTheme: IconThemeData(color: p.ink),
