@@ -399,7 +399,6 @@ class _AppearanceQuickChoice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = ClinicalThemeScope.maybeOf(context);
-    final p = Palette.of(context);
     final selected = controller?.value ?? ThemeMode.system;
     return Padding(
       padding: const EdgeInsets.fromLTRB(13, 8, 13, 14),
