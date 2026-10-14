@@ -521,9 +521,10 @@ def api_app() -> FastAPI:
         redoc_url=None,
     )
 
-    # Exact local development origins. No wildcard and no credentials/cookies.
-    # Do NOT enable public origins until the production security review.
-    if settings.environment == "development":
+    # Exact loopback origins for the Flutter Web app hosted on the developer
+    # laptop. HTTPS staging is read-only and does not accept public signups.
+    # Android native applications are not subject to browser CORS.
+    if settings.environment in {"development", "staging"}:
         app.add_middleware(
             CORSMiddleware,
             allow_origins=["http://127.0.0.1:8080", "http://localhost:8080"],
