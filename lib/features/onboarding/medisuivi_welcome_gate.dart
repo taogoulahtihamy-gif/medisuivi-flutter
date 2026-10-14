@@ -651,11 +651,17 @@ class _AccessChoice extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 24),
-        FilledButton(key: const Key('welcome-create'),
-          onPressed: onCreate, child: const Text('Créer un compte')),
+        _OnboardPrimaryButton(
+          key: const Key('welcome-create'),
+          label: 'Créer un compte',
+          onTap: onCreate,
+        ),
         const SizedBox(height: 12),
-        OutlinedButton(key: const Key('welcome-login'),
-          onPressed: onSignIn, child: const Text('Se connecter')),
+        _OnboardSecondaryButton(
+          key: const Key('welcome-login'),
+          label: 'Se connecter',
+          onTap: onSignIn,
+        ),
         const SizedBox(height: 18),
         TextButton(key: const Key('welcome-demo'),
           onPressed: onLocalAccess,
@@ -694,11 +700,11 @@ class _SignInPending extends StatelessWidget {
         Text('Aucun mot de passe n’est demandé ni conservé dans cette version.',
           style: TextStyle(color: p.muted, fontSize: 12)),
         const SizedBox(height: 25),
-        OutlinedButton(
+        _OnboardSecondaryButton(
           key: const Key('login-local-access'),
-          onPressed: onLocalAccess,
-          child: Text(isWebDemo
-            ? 'Explorer la démonstration' : 'Accéder aux dossiers locaux'),
+          onTap: onLocalAccess,
+          label: isWebDemo
+            ? 'Explorer la démonstration' : 'Accéder aux dossiers locaux',
         ),
       ]),
     );
@@ -900,12 +906,12 @@ class _PractitionerPreviewFormState extends State<PractitionerPreviewForm> {
                 controller: _specialty,
                 decoration: const InputDecoration(labelText: 'Spécialité (facultatif)')),
               const SizedBox(height: 22),
-              FilledButton(
+              _OnboardPrimaryButton(
                 key: const Key('practitioner-save-preview'),
-                onPressed: _save,
-                child: Text(widget.isWebDemo
+                onTap: _save,
+                label: widget.isWebDemo
                   ? 'Voir mon espace de démonstration'
-                  : 'Continuer vers mon espace local')),
+                  : 'Continuer vers mon espace local'),
               const SizedBox(height: 12),
               Text(widget.isWebDemo
                 ? 'Ces informations et votre photo restent en mémoire jusqu’à la fermeture.'
