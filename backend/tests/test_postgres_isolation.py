@@ -98,3 +98,34 @@ def test_composite_ownership_in_real_postgresql():
         assert client.post("/api/v1/auth/logout", headers=a).status_code == 204
         assert client.get(f"/api/v1/patients/{patient_id}/visits",
                           headers=a).status_code == 401
+
+
+def test_postgres_rate_limit_survives_new_sessions_and_keeps_other_accounts_open():
+    """Exercise the real PostgreSQL 17 login-guard table after Alembic upgrade."""
+    from app.main import LoginAttempt, _login_key
+    email = "rate-guard@medisuvi-ci.org"
+    neighbor = "rate-neighbor@medisuvi-ci.org"
+    with TestClient(app) as client:
+        for address in [email, neighbor]:
+            signup = client.post("/api/v1/auth/register", json={
+                "email": address, "password": "synthetic-strong-password-123",
+                "first_name": "Synthetic", "last_name": "Practitioner",
+            })
+            assert signup.status_code == 201, signup.text
+        for index in range(5):
+            failed = client.post("/api/v1/auth/login", json={
+                "email": email, "password": "bad-password",
+            })
+            assert failed.status_code == (429 if index == 4 else 401)
+        assert client.post("/api/v1/auth/login", json={
+            "email": email, "password": "synthetic-strong-password-123",
+        }).status_code == 429
+        allowed = client.post("/api/v1/auth/login", json={
+            "email": neighbor, "password": "synthetic-strong-password-123",
+        })
+        assert allowed.status_code == 200, allowed.text
+    with SessionLocal() as db:
+        guard = db.get(LoginAttempt, _login_key(email))
+        assert guard is not None and guard.failed_count == 5
+        assert guard.blocked_until is not None
+        assert db.get(LoginAttempt, _login_key(neighbor)).failed_count == 0
