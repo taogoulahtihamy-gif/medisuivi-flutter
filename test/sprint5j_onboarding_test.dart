@@ -4,7 +4,7 @@ import 'package:medisuivi/app/medisuivi_app.dart' as demo;
 import 'package:medisuivi/app/theme.dart';
 import 'package:medisuivi/features/onboarding/medisuivi_welcome_gate.dart';
 
-Widget _entry({double width = 360}) => MaterialApp(
+Widget _entry() => MaterialApp(
   theme: MediTheme.light(),
   home: const MediSuiviWelcomeGate(
     isWebDemo: true,
@@ -21,7 +21,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      await tester.pumpWidget(_entry(width: width));
+      await tester.pumpWidget(_entry());
       expect(find.byKey(const Key('welcome-progress')), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 1300));
       await tester.pumpAndSettle();
