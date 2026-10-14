@@ -124,6 +124,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   controller: practitioner,
                   onEdit: () => _editProfile(practitioner),
                 ),
+                if (!kIsWeb) ...[
+                  const SizedBox(height: 21),
+                  _OfflineOperationsSummary(future: _pendingSyncCountFuture),
+                ],
                 const SizedBox(height: 27),
                 const _GroupHeading('PERSONNALISATION'),
                 const SizedBox(height: 8),
@@ -294,6 +298,54 @@ class _ProfileHeader extends StatelessWidget {
         ),
       ),
     ]);
+  }
+}
+
+/// Statut des écritures locales toujours disponible sur Android.
+class _OfflineOperationsSummary extends StatelessWidget {
+  const _OfflineOperationsSummary({required this.future});
+  final Future<int>? future;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = Palette.of(context);
+    return FutureBuilder<int>(
+      future: future,
+      builder: (context, snapshot) {
+        final count = snapshot.data;
+        final details = snapshot.hasError
+            ? 'Impossible de vérifier les opérations locales.'
+            : count == null
+                ? 'Vérification des opérations locales…'
+                : count == 0
+                    ? 'Aucune modification en attente. Aucun serveur distant connecté.'
+                    : '$count modification(s) conservée(s) sur ce téléphone, en attente d’un futur envoi.';
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(14, 13, 14, 14),
+          decoration: BoxDecoration(
+            color: p.surface,
+            border: Border.all(color: p.border),
+            borderRadius: BorderRadius.circular(17),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Modifications à envoyer',
+              style: TextStyle(color: p.ink, fontSize: 12.5,
+                fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text(details, style: TextStyle(
+              color: p.muted, fontSize: 11.5, height: 1.4)),
+            const SizedBox(height: 10),
+            Text('Synchronisation distante',
+              style: TextStyle(color: p.ink, fontSize: 12.5,
+                fontWeight: FontWeight.w700)),
+            const SizedBox(height: 3),
+            Text('Non configurée. Aucune transmission automatique à un serveur.',
+              style: TextStyle(color: p.muted, fontSize: 11.5, height: 1.4)),
+          ]),
+        );
+      },
+    );
   }
 }
 
