@@ -142,6 +142,99 @@ abstract final class _ClinicalPhoto {
 }
 
 /// Splash éditorial : image clinique, ombre latérale et progression discrète.
+
+abstract final class _WelcomePhotos {
+  // Visuels Pexels, scènes distinctes (données publiques uniquement).
+  static const splash = 'https://images.pexels.com/photos/19957218/pexels-photo-19957218.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
+  static const records = 'https://images.pexels.com/photos/5452252/pexels-photo-5452252.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
+  static const followup = 'https://images.pexels.com/photos/5214997/pexels-photo-5214997.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
+  static const privacy = 'https://images.pexels.com/photos/32254527/pexels-photo-32254527.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
+  static const access = 'https://images.pexels.com/photos/19957215/pexels-photo-19957215.jpeg?auto=compress&cs=tinysrgb&w=900&h=1450&fit=crop';
+}
+
+class _WelcomePhoto extends StatelessWidget {
+  const _WelcomePhoto({
+    required this.imageUrl,
+    required this.imageKey,
+    this.alignment = Alignment.topCenter,
+  });
+  final String imageUrl;
+  final Key imageKey;
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    fit: StackFit.expand, children: [
+      const ColoredBox(color: Color(0xFF0A1612)),
+      Image.network(
+        imageUrl,
+        key: imageKey,
+        fit: BoxFit.cover,
+        alignment: alignment,
+        filterQuality: FilterQuality.medium,
+        excludeFromSemantics: true,
+        errorBuilder: (context, error, stackTrace) => DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF365F4D), Color(0xFF122920), Color(0xFF08120F)],
+            ),
+          ),
+          child: Opacity(
+            opacity: .70,
+            child: Image.memory(
+              _ClinicalPhoto.bytes,
+              alignment: alignment,
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+            ),
+          ),
+        ),
+      ),
+    ],
+  );
+}
+
+class _WelcomePhotoShade extends StatelessWidget {
+  const _WelcomePhotoShade();
+
+  @override
+  Widget build(BuildContext context) => const IgnorePointer(
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: [0, .15, .40, .63, .78, 1],
+          colors: [
+            Color(0x8A07130E),
+            Color(0x2407130E),
+            Color(0x1707130E),
+            Color(0xBD07120E),
+            Color(0xF107100D),
+            Color(0xFF070F0D),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _WelcomeBrand extends StatelessWidget {
+  const _WelcomeBrand();
+
+  @override
+  Widget build(BuildContext context) => const Row(children: [
+    Icon(Icons.medical_services_outlined, size: 22, color: Color(0xFF9CE5C4)),
+    SizedBox(width: 9),
+    Text('MediSuivi', key: Key('welcome-brand'),
+      style: TextStyle(
+        color: Colors.white, fontSize: 17, letterSpacing: -.4,
+        fontWeight: FontWeight.w700)),
+  ]);
+}
+
 class _IntroSplash extends StatelessWidget {
   const _IntroSplash({super.key});
 
