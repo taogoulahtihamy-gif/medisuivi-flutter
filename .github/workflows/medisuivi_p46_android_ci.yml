@@ -10,6 +10,7 @@ on:
       - "test/p42_*"
       - "test/p45_clinical_session_race_test.dart"
       - "test/p46_connected_auth_gate_test.dart"
+      - "test/p46_android_api_transport_test.dart"
       - "scripts/check_android_p46_security.py"
       - ".github/workflows/medisuivi_p46_android_ci.yml"
       - "pubspec.yaml"
@@ -21,6 +22,7 @@ on:
       - "test/p42_*"
       - "test/p45_clinical_session_race_test.dart"
       - "test/p46_connected_auth_gate_test.dart"
+      - "test/p46_android_api_transport_test.dart"
       - "scripts/check_android_p46_security.py"
       - ".github/workflows/medisuivi_p46_android_ci.yml"
       - "pubspec.yaml"
@@ -51,7 +53,7 @@ jobs:
       - name: Resolve Flutter dependencies
         run: flutter pub get
       - name: Check login restore and stale clinical replies
-        run: flutter test test/p42_secure_session_resume_test.dart test/p42_session_gate_test.dart test/p45_clinical_session_race_test.dart test/p46_connected_auth_gate_test.dart
+        run: flutter test test/p42_secure_session_resume_test.dart test/p42_session_gate_test.dart test/p45_clinical_session_race_test.dart test/p46_connected_auth_gate_test.dart test/p46_android_api_transport_test.dart
       - name: Build USB loopback-connected debug APK
         run: flutter build apk --debug --no-pub --dart-define=MEDISUIVI_DEV_API_BASE_URL=http://127.0.0.1:8027
       - name: Verify APK and INTERNET permission
