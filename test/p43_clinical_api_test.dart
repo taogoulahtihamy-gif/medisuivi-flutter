@@ -36,7 +36,7 @@ void main() {
             'scheduled_at': '2026-10-21T10:00:00Z',
           }]), 200);
         }
-        return http.Response('{}', 200);
+        return http.Response('{}', r.method == 'POST' ? 201 : 200);
       }));
     final session = DevSession(
       practitioner: const DevPractitioner(
