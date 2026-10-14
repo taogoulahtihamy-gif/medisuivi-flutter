@@ -15,6 +15,8 @@ class DevAuthScreen extends StatefulWidget {
     super.key, required this.api, required this.isRegister,
     required this.onAuthenticated, required this.onBack,
     required this.onToggle,
+    this.onVerificationRequired,
+    this.onForgotPassword,
   });
 
   final DevAuthApi api;
@@ -22,6 +24,8 @@ class DevAuthScreen extends StatefulWidget {
   final ValueChanged<DevSession> onAuthenticated;
   final VoidCallback onBack;
   final VoidCallback onToggle;
+  final ValueChanged<String>? onVerificationRequired;
+  final VoidCallback? onForgotPassword;
 
   @override
   State<DevAuthScreen> createState() => _DevAuthScreenState();
@@ -59,6 +63,14 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
               firstName: _first.text, lastName: _last.text)
           : await widget.api.signIn(_email.text, _password.text);
       if (mounted) widget.onAuthenticated(session);
+    } on DevVerificationRequired catch (error) {
+      if (mounted) {
+        if (widget.onVerificationRequired != null) {
+          widget.onVerificationRequired!(error.email);
+        } else {
+          setState(() => _error = 'Vérifiez votre adresse e-mail avant de vous connecter.');
+        }
+      }
     } on DevApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
     } catch (_) {
@@ -228,6 +240,12 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
                     : Text(widget.isRegister
                         ? 'Créer un compte de test' : 'Se connecter'),
                 ),
+                if (!widget.isRegister && widget.onForgotPassword != null)
+                  TextButton(
+                    key: const Key('dev-auth-forgot-password'),
+                    onPressed: _busy ? null : widget.onForgotPassword,
+                    child: const Text('Mot de passe oublié ?'),
+                  ),
                 const SizedBox(height: 12),
                 TextButton(
                   key: const Key('dev-auth-toggle'),
