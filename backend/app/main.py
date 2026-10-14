@@ -12,6 +12,7 @@ import hmac
 import math
 import secrets
 from io import BytesIO
+from app.email_delivery import send_security_code
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 from uuid import uuid4
@@ -39,6 +40,10 @@ TOKEN_TTL_MINUTES = 15
 LOGIN_FAILURE_LIMIT = 5
 LOGIN_WINDOW = timedelta(minutes=15)
 LOGIN_LOCKOUT = timedelta(minutes=15)
+VERIFY_TTL = timedelta(minutes=30)
+RESET_TTL = timedelta(minutes=15)
+CHALLENGE_COOLDOWN = timedelta(seconds=60)
+CHALLENGE_MAX_ATTEMPTS = 5
 bearer = HTTPBearer(auto_error=False)
 hasher = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=2)
 # A genuine Argon2id verification also occurs for unregistered addresses.
@@ -51,6 +56,9 @@ class Settings:
         self.environment = os.environ.get("APP_ENV", "production").lower()
         self.database_url = os.environ.get("APP_DATABASE_URL", "")
         self.secret = os.environ.get("APP_JWT_SECRET", "")
+        self.email_auth_enabled = (
+            os.environ.get("APP_ENABLE_EMAIL_AUTH", "false").lower() == "true"
+        )
         self.allow_registration = (
             os.environ.get("APP_ALLOW_DEVELOPMENT_REGISTRATION", "false").lower() == "true"
         )
@@ -86,6 +94,7 @@ class User(Base):
         String(36), primary_key=True, default=lambda: str(uuid4()))
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(512), nullable=False)
+    email_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     first_name: Mapped[str] = mapped_column(String(120), nullable=False)
     last_name: Mapped[str] = mapped_column(String(120), nullable=False)
     phone: Mapped[str] = mapped_column(String(25), nullable=False, default="")
@@ -134,6 +143,31 @@ class LoginAttempt(Base):
         DateTime(timezone=True), nullable=False)
     blocked_until: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True)
+
+
+class EmailChallenge(Base):
+    """Purpose-scoped and single-use challenge for synthetic test accounts."""
+    __tablename__ = "email_challenges"
+    __table_args__ = (
+        CheckConstraint("purpose IN ('verify_email','reset_password')",
+                        name="ck_email_challenge_purpose"),
+        CheckConstraint("failed_attempts >= 0",
+                        name="ck_email_challenge_attempts"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True,
+                                    default=lambda: str(uuid4()))
+    user_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("practitioners.id", ondelete="RESTRICT"),
+        nullable=False, index=True)
+    purpose: Mapped[str] = mapped_column(String(20), nullable=False)
+    code_digest: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
+                                                  nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True),
+                                                  nullable=False)
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failed_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
 class Patient(Base):
@@ -239,6 +273,24 @@ class LoginIn(StrictModel):
     password: str
 
 
+class EmailRequestIn(StrictModel):
+    email: EmailStr
+
+
+class EmailCodeIn(EmailRequestIn):
+    code: str = Field(pattern=r"^[0-9]{12}$")
+
+
+class PasswordResetIn(EmailCodeIn):
+    new_password: str = Field(min_length=12, max_length=128)
+
+
+class RegisterOut(StrictModel):
+    id: str
+    email: EmailStr
+    email_verification_required: bool
+
+
 class ChangePasswordIn(StrictModel):
     current_password: str = Field(min_length=1, max_length=128)
     new_password: str = Field(min_length=12, max_length=128)
@@ -247,6 +299,7 @@ class ChangePasswordIn(StrictModel):
 class MeOut(StrictModel):
     id: str
     email: EmailStr
+    email_verified: bool
     first_name: str
     last_name: str
     phone: str
@@ -476,6 +529,71 @@ def throttled_login(blocked_until: datetime, now: datetime) -> HTTPException:
     )
 
 
+def _email_flow_enabled() -> None:
+    if not settings.email_auth_enabled:
+        raise HTTPException(status_code=403, detail="Validation e-mail désactivée")
+    # Check for sender configuration independently of whether the account
+    # exists, so a broken SMTP provider does not reveal account enumeration.
+    if not os.environ.get("APP_SMTP_HOST") or not os.environ.get("APP_SMTP_FROM"):
+        raise HTTPException(status_code=503, detail="Service e-mail indisponible")
+
+
+def _code_digest(user_id: str, purpose: str, code: str) -> str:
+    return hmac.new(settings.secret.encode("utf-8"),
+                    f"medisuivi:challenge:v1:{user_id}:{purpose}:{code}".encode("utf-8"),
+                    hashlib.sha256).hexdigest()
+
+
+def _latest_challenge(db: Session, user_id: str,
+                      purpose: str) -> EmailChallenge | None:
+    return db.scalar(select(EmailChallenge).where(
+        EmailChallenge.user_id == user_id,
+        EmailChallenge.purpose == purpose,
+    ).order_by(EmailChallenge.created_at.desc(),
+               EmailChallenge.id.desc()).limit(1).with_for_update())
+
+
+def _issue_code(db: Session, user: User, purpose: str,
+                now: datetime) -> bool:
+    """Must be called after locking the owning User row."""
+    previous = _latest_challenge(db, user.id, purpose)
+    if previous is not None and previous.consumed_at is None:
+        if utc(previous.created_at) + CHALLENGE_COOLDOWN > now:
+            return False
+        previous.consumed_at = now
+    code = f"{secrets.randbelow(10**12):012d}"
+    challenge = EmailChallenge(
+        user_id=user.id, purpose=purpose,
+        code_digest=_code_digest(user.id, purpose, code),
+        created_at=now,
+        expires_at=now + (VERIFY_TTL if purpose == "verify_email" else RESET_TTL),
+        failed_attempts=0,
+    )
+    db.add(challenge)
+    # Send before commit: SMTP failures roll back issuance and caller
+    # must not return success when no code was delivered.
+    send_security_code(user.email, purpose, code)
+    return True
+
+
+def _check_code(db: Session, user: User, purpose: str,
+                submitted: str, now: datetime) -> bool:
+    """Single-use, max five guesses. Caller commits failures and successes."""
+    item = _latest_challenge(db, user.id, purpose)
+    if (item is None or item.consumed_at is not None
+            or utc(item.expires_at) <= now):
+        return False
+    valid = hmac.compare_digest(item.code_digest,
+                               _code_digest(user.id, purpose, submitted))
+    if not valid:
+        item.failed_attempts += 1
+        if item.failed_attempts >= CHALLENGE_MAX_ATTEMPTS:
+            item.consumed_at = now
+        return False
+    item.consumed_at = now
+    return True
+
+
 def _digest_refresh(raw: str) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
@@ -545,25 +663,116 @@ def api_app() -> FastAPI:
             raise HTTPException(status_code=503, detail="Base indisponible") from exc
         return {"ready": True}
 
-    @app.post("/api/v1/auth/register", response_model=MeOut, status_code=201)
+    @app.post("/api/v1/auth/register", response_model=RegisterOut, status_code=201)
     def register(data: RegisterIn, db: Session = Depends(get_db)):
         if settings.environment != "development" or not settings.allow_registration:
             raise HTTPException(status_code=403, detail="Inscription indisponible")
+        if settings.email_auth_enabled:
+            _email_flow_enabled()
         normalized = str(data.email).strip().lower()
         user = User(
             email=normalized, password_hash=hasher.hash(data.password),
             first_name=data.first_name.strip(), last_name=data.last_name.strip(),
+            email_verified=not settings.email_auth_enabled,
         )
         if not user.first_name or not user.last_name:
             raise HTTPException(status_code=422, detail="Nom et prénom obligatoires")
         db.add(user)
         try:
+            db.flush()
+            if settings.email_auth_enabled:
+                _issue_code(db, user, "verify_email", datetime.now(timezone.utc))
             db.commit()
         except IntegrityError as exc:
             db.rollback()
             raise HTTPException(status_code=409, detail="Compte déjà existant") from exc
+        except Exception as exc:
+            db.rollback()
+            # No SMTP exception content, address or secrets exposed to the client.
+            raise HTTPException(status_code=503,
+                                detail="Service e-mail indisponible") from exc
         db.refresh(user)
-        return MeOut.model_validate(user, from_attributes=True)
+        return RegisterOut(id=user.id, email=user.email,
+                           email_verification_required=not user.email_verified)
+
+    @app.post("/api/v1/auth/email/resend", status_code=202)
+    def resend_email_verification(data: EmailRequestIn, db: Session = Depends(get_db)):
+        _email_flow_enabled()
+        if settings.environment != "development":
+            raise HTTPException(status_code=403, detail="Envoi indisponible")
+        now = datetime.now(timezone.utc)
+        user = db.scalar(select(User).where(
+            User.email == str(data.email).strip().lower()).with_for_update())
+        if user is not None and user.active and not user.email_verified:
+            try:
+                _issue_code(db, user, "verify_email", now)
+                db.commit()
+            except Exception as exc:
+                db.rollback()
+                raise HTTPException(status_code=503,
+                                    detail="Service e-mail indisponible") from exc
+        return {"message": "Si ce compte nécessite une vérification, un code sera envoyé."}
+
+    @app.post("/api/v1/auth/email/verify", status_code=204)
+    def confirm_email(data: EmailCodeIn, db: Session = Depends(get_db)):
+        _email_flow_enabled()
+        now = datetime.now(timezone.utc)
+        user = db.scalar(select(User).where(
+            User.email == str(data.email).strip().lower()).with_for_update())
+        if user is None or not user.active or user.email_verified:
+            raise HTTPException(status_code=400, detail="Code invalide ou expiré")
+        valid = _check_code(db, user, "verify_email", data.code, now)
+        if valid:
+            user.email_verified = True
+        db.commit()
+        if not valid:
+            raise HTTPException(status_code=400, detail="Code invalide ou expiré")
+        return Response(status_code=204)
+
+    @app.post("/api/v1/auth/password/forgot", status_code=202)
+    def forgot_password(data: EmailRequestIn, db: Session = Depends(get_db)):
+        _email_flow_enabled()
+        if settings.environment != "development":
+            raise HTTPException(status_code=403, detail="Envoi indisponible")
+        now = datetime.now(timezone.utc)
+        user = db.scalar(select(User).where(
+            User.email == str(data.email).strip().lower()).with_for_update())
+        if user is not None and user.active and user.email_verified:
+            try:
+                _issue_code(db, user, "reset_password", now)
+                db.commit()
+            except Exception as exc:
+                db.rollback()
+                raise HTTPException(status_code=503,
+                                    detail="Service e-mail indisponible") from exc
+        return {"message": "Si ce compte existe, un code sera envoyé."}
+
+    @app.post("/api/v1/auth/password/reset", status_code=204)
+    def reset_password(data: PasswordResetIn, db: Session = Depends(get_db)):
+        _email_flow_enabled()
+        if settings.environment != "development":
+            raise HTTPException(status_code=403, detail="Récupération indisponible")
+        now = datetime.now(timezone.utc)
+        user = db.scalar(select(User).where(
+            User.email == str(data.email).strip().lower()).with_for_update())
+        if user is None or not user.active or not user.email_verified:
+            raise HTTPException(status_code=400, detail="Code invalide ou expiré")
+        valid = _check_code(db, user, "reset_password", data.code, now)
+        if not valid:
+            db.commit()
+            raise HTTPException(status_code=400, detail="Code invalide ou expiré")
+        try:
+            unchanged = bool(hasher.verify(user.password_hash, data.new_password))
+        except (VerificationError, ValueError):
+            unchanged = False
+        if unchanged:
+            db.commit()
+            raise HTTPException(status_code=422,
+                                detail="Choisissez un nouveau mot de passe")
+        user.password_hash = hasher.hash(data.new_password)
+        user.session_version += 1
+        db.commit()
+        return Response(status_code=204)
 
     @app.post("/api/v1/auth/login", response_model=TokenOut)
     def login(data: LoginIn, db: Session = Depends(get_db)):
@@ -583,6 +792,10 @@ def api_app() -> FastAPI:
             attempt.failed_count = 0
             attempt.blocked_until = None
             attempt.window_started_at = now
+            if settings.email_auth_enabled and not user.email_verified:
+                db.commit()
+                raise HTTPException(status_code=403,
+                                    detail="Adresse e-mail non vérifiée")
             # open_session commits the reset and session in the same transaction.
             return open_session(user, db)
 
