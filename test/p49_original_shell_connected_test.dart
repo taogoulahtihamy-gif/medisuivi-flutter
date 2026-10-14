@@ -7,6 +7,7 @@ import 'package:http/testing.dart';
 import 'package:medisuivi/app/medisuivi_app.dart';
 import 'package:medisuivi/app/theme.dart';
 import 'package:medisuivi/core/state/demo_store.dart';
+import 'package:medisuivi/core/state/store_context.dart';
 import 'package:medisuivi/features/auth/dev_auth_api.dart';
 import 'package:medisuivi/features/auth/original_connected_clinical_gate.dart';
 
@@ -62,4 +63,60 @@ void main() {
         findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+  testWidgets('P4.9 pushed original detail routes retain connected owner scope',
+      (tester) async {
+    final api = DevAuthApi(Uri.parse('https://medisuivi-ci.invalid'),
+      client: MockClient((request) async {
+        if (request.url.path == '/api/v1/patients') {
+          return http.Response(jsonEncode([
+            {'id': 'private-A', 'display_name': 'PATIENT FICTIF PRIVÉ A',
+             'age': 31},
+          ]), 200);
+        }
+        if (request.url.path.startsWith('/api/v1/patients/private-A/')) {
+          return http.Response('[]', 200);
+        }
+        return http.Response('{}', 404);
+      }),
+    );
+    addTearDown(api.close);
+    final session = DevSession(
+      practitioner: const DevPractitioner(
+        id: 'A', email: 'a@medisuvi-ci.org',
+        firstName: 'Compte', lastName: 'Fictif',
+      ),
+      accessToken: 'token-A',
+    );
+    await tester.pumpWidget(MaterialApp(
+      theme: MediTheme.light(),
+      home: OriginalConnectedClinicalGate(
+        api: api,
+        session: session,
+        onSignedOut: () {},
+        child: Builder(builder: (context) => Scaffold(
+          body: TextButton(
+            key: const Key('open-original-detail'),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (routeContext) => Scaffold(
+                  body: Text(
+                    routeContext.store.patients.single.name,
+                    key: const Key('private-patient-detail'),
+                  ),
+                ),
+              ),
+            ),
+            child: const Text('Ouvrir un dossier'),
+          ),
+        )),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-original-detail')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('private-patient-detail')), findsOneWidget);
+    expect(find.text('PATIENT FICTIF PRIVÉ A'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
