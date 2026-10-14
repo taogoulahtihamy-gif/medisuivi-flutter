@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: medisuivi
+      POSTGRES_USER: medisuivi
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set_POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5437:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medisuivi"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  api:
+    build: .
+    environment:
+      APP_ENV: development
+      APP_DATABASE_URL: postgresql+psycopg://medisuivi:${POSTGRES_PASSWORD}@postgres:5432/medisuivi
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?set_APP_JWT_SECRET}
+      APP_ALLOW_DEVELOPMENT_REGISTRATION: ${APP_ALLOW_DEVELOPMENT_REGISTRATION:-false}
+    ports:
+      - "127.0.0.1:8027:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  pgdata:
