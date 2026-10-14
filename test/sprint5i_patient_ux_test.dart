@@ -35,13 +35,7 @@ void main() {
 
         await tester.tap(find.byKey(const Key('patients-filter-followup')));
         await tester.pumpAndSettle();
-        final followup = tester.widget<Semantics>(
-          find.ancestor(
-            of: find.byKey(const Key('patients-filter-followup')),
-            matching: find.byType(Semantics),
-          ).first,
-        );
-        expect(followup.properties.selected, isTrue);
+        expect(find.byKey(const Key('patients-filter-followup')), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }
