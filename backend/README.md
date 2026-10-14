@@ -10,7 +10,7 @@ Depuis `backend/` :
 1. Copier `.env.example` dans `.env` pour référence. **Ne jamais committer les secrets.**
 2. Définir dans le shell `POSTGRES_PASSWORD` et un `APP_JWT_SECRET` unique, aléatoire, de plus de 32 octets.
 3. Démarrer `docker compose up -d --build`.
-4. Initialiser une fois le schéma **de développement** : `docker compose exec api python -m scripts.init_dev_db`.
+4. Initialiser une fois le schéma **de développement** par migrations Alembic : `docker compose exec api python -m scripts.init_dev_db`.
 5. Vérifier `http://127.0.0.1:8027/health` et `http://127.0.0.1:8027/ready`.
 6. Pour créer les comptes fictifs en développement uniquement, définir `APP_ALLOW_DEVELOPMENT_REGISTRATION=true` et recréer le service API.
 
@@ -25,7 +25,11 @@ Les comptes utilisateurs ne sont pas encore reliés aux écrans Flutter.
 - `POST /api/v1/auth/logout` : invalide tous les jetons précédents de ce compte.
 - `GET/POST /api/v1/patients` et `GET /api/v1/patients/{id}` : filtrage serveur obligatoire par `owner_user_id`.
 
-Le schéma de ce prototype est volontairement minimal ; les consultations, bilans et suivis existants dans Flutter devront recevoir le même isolement sur le backend au sprint suivant.
+Les consultations, bilans et suivis disposent désormais de tables serveur avec clés étrangères composites `(patient_id, owner_user_id)`. Leur lecture, leur création et leurs changements d'état sont bornés par l'identité signée.
+
+API P2 : `GET/POST /api/v1/patients/{id}/visits`, `GET/POST /api/v1/patients/{id}/exams`, `PUT /api/v1/exams/{id}/result`, `GET/POST /api/v1/patients/{id}/followups`, `PUT /api/v1/followups/{id}/reschedule|close`.
+
+La migration `alembic/versions/0001_clinical_isolation.py` initialise un schéma **neuf**, elle ne transforme pas automatiquement les anciens fichiers SQLite mobiles et ne doit pas être utilisée comme migration de données réelles.
 
 ### Tests
 
