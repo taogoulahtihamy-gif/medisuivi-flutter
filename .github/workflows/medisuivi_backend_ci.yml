@@ -39,7 +39,7 @@ jobs:
       - name: Install test dependencies
         run: python -m pip install -r requirements.txt
       - name: Test fail-closed config and two-account isolation
-        run: python -m pytest tests/test_auth_isolation.py tests/test_clinical_isolation.py tests/test_private_profile.py tests/test_sessions_rotation.py tests/test_login_throttling.py -q
+        run: python -m pytest tests/test_auth_isolation.py tests/test_clinical_isolation.py tests/test_private_profile.py tests/test_sessions_rotation.py tests/test_login_throttling.py tests/test_password_change.py -q
       - name: Python compile check
         run: python -m compileall -q app scripts
   postgres-isolation:
