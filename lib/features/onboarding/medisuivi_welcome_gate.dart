@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../app/theme.dart';
 import '../../app/design_tokens.dart';
 import '../auth/dev_auth_api.dart';
-import '../auth/dev_auth_screens.dart';
+import '../auth/original_account_access_screen.dart';
 import '../auth/original_connected_clinical_gate.dart';
 import '../auth/dev_email_flows.dart';
 
@@ -288,7 +288,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
               onBack: () => _go(_EntryStep.access),
               onLocalAccess: () => _go(_EntryStep.workspace),
             )
-          : DevAuthScreen(
+          : OriginalAccountAccessScreen(
               key: const ValueKey('dev-signin'),
               api: _authApi, isRegister: false,
               onBack: () => _go(_EntryStep.access),
@@ -297,7 +297,7 @@ class _MediSuiviWelcomeGateState extends State<MediSuiviWelcomeGate> {
               onForgotPassword: () => _go(_EntryStep.recoverPassword),
               onAuthenticated: _onAuthenticated,
             ),
-        _EntryStep.register => DevAuthScreen(
+        _EntryStep.register => OriginalAccountAccessScreen(
           key: const ValueKey('dev-register'),
           api: _authApi!, isRegister: true,
           onBack: () => _go(_EntryStep.access),
