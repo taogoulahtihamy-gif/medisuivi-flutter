@@ -33,3 +33,14 @@ Les informations de prévisualisation, y compris la photo, sont conservées uniq
 - Android réel : déverrouillage chiffré puis onboarding, galerie, avatar, Réglages, fermeture et redémarrage.
 
 **PR Draft sur la branche 5I ; aucune fusion automatique.**
+
+
+## Refonte immersive 5J (14 octobre 2026)
+
+- **Splash** : photo médicale différente, plein écran sans cadre, fondu noir-vert ; chargement discret sous l'accroche, et non collé au bas.
+- **Onboarding** : 3 photos vraiment distinctes ; textes directement sur le dégradé inférieur ; pagination sobre et bouton conservé.
+- **Accès au compte** : cinquième photo plein écran, dégradé sombre pour que les trois actions restent lisibles, aucune carte.
+- Sources de la démonstration : Pexels, photos 19957218 (démarrage), 5452252 (dossiers), 5214997 (suivi), 32254527 (examens), 19957215 (accès).
+- Licence et usages autorisés : https://www.pexels.com/license/ ; ne pas présenter les personnes photographiées comme des utilisateurs ni comme des partenaires ou professionnels affiliés à MediSuivi.
+- **Limite technique actuelle** : les nouvelles photographies sont chargées depuis des URLs publiques et exigent une connexion réseau. Si l'image distante ne charge pas, une photographie clinique de secours intégrée et un dégradé local sont affichés. Pour une véritable édition offline-first, figer et embarquer cinq photos optimisées dans `assets/` avant mise en production.
+- Aucune donnée médicale, aucun dossier et aucune identité de patient ne sont ajoutés aux URLs des images. Néanmoins, une requête d'image communique l'adresse IP de l'appareil au CDN tiers : cette dépendance sera supprimée avant tout usage réel avec des données sensibles.
