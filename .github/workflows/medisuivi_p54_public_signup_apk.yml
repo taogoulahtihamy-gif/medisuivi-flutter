@@ -1,0 +1,66 @@
+name: MediSuivi P5.4 public signup Android APK
+
+on:
+  push:
+    branches:
+      - feat/medisuivi-p54-patient-save-visibility
+    paths:
+      - ".github/workflows/medisuivi_p54_public_signup_apk.yml"
+      - "lib/**"
+      - "android/**"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+      - "test/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-signup-debug-apk:
+    name: Android debug APK (public signup, Vercel HTTPS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+      - name: Verify remote HTTPS endpoint
+        run: python3 scripts/check_remote_api_url.py https://medisuivi-api-staging.vercel.app
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Analyze application
+        run: flutter analyze
+      - name: Run regression tests
+        run: flutter test
+      - name: Compile public signup debug APK
+        run: |
+          flutter build apk --debug --no-pub \
+            --dart-define=MEDISUIVI_DEV_API_BASE_URL=https://medisuivi-api-staging.vercel.app \
+            --dart-define=MEDISUIVI_REMOTE_SANDBOX=true \
+            --dart-define=MEDISUIVI_PUBLIC_SIGNUP=true
+      - name: Validate output and Android signature
+        run: |
+          set -euo pipefail
+          apk=build/app/outputs/flutter-apk/app-debug.apk
+          test -s "$apk"
+          unzip -tq "$apk"
+          python3 scripts/check_p53_apk.py "$apk"
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$build_tools/apksigner" verify --verbose "$apk"
+          "$build_tools/aapt" dump permissions "$apk" | grep -q 'android.permission.INTERNET'
+      - name: Publish APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: medisuivi-p54-public-signup-android-debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 14
+          if-no-files-found: error
