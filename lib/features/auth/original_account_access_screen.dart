@@ -198,7 +198,7 @@ class _OriginalAccountAccessScreenState
                             const SizedBox(height: 13),
                           ],
                           TextFormField(
-                              style: const TextStyle(fontSize: 15),
+                            style: const TextStyle(fontSize: 15),
                             key: const Key('dev-auth-email'),
                             controller: email,
                             keyboardType: TextInputType.emailAddress,
@@ -217,7 +217,7 @@ class _OriginalAccountAccessScreenState
                           ),
                           const SizedBox(height: 13),
                           TextFormField(
-                              style: const TextStyle(fontSize: 15),
+                            style: const TextStyle(fontSize: 15),
                             key: const Key('dev-auth-password'),
                             controller: password,
                             obscureText: !showPassword,
@@ -254,7 +254,7 @@ class _OriginalAccountAccessScreenState
                           if (registering && remoteSandbox) ...[
                             const SizedBox(height: 13),
                             TextFormField(
-                                style: const TextStyle(fontSize: 15),
+                              style: const TextStyle(fontSize: 15),
                               key: const Key('sandbox-invite-code'),
                               controller: invitation,
                               obscureText: true,
