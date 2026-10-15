@@ -92,13 +92,17 @@ class _OriginalAccountAccessScreenState
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final registering = widget.isRegister;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final headlineGap = registering
+        ? (screenHeight * .07).clamp(38.0, 58.0)
+        : (screenHeight * .125).clamp(65.0, 98.0);
     return Scaffold(
       backgroundColor: p.canvas,
       body: SafeArea(
         child: Align(
           alignment: Alignment.topCenter,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 32),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 470),
               child: Column(
@@ -111,7 +115,7 @@ class _OriginalAccountAccessScreenState
                         icon: const Icon(Icons.arrow_back_rounded, size: 20),
                         label: const Text('Retour'),
                       )),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 28),
                   Row(children: [
                     Container(
                         width: 45,
@@ -141,11 +145,11 @@ class _OriginalAccountAccessScreenState
                       ],
                     )),
                   ]),
-                  const SizedBox(height: 32),
+                  SizedBox(height: headlineGap),
                   Text(registering ? 'Créer votre compte' : 'Se connecter',
                       style: TextStyle(
                           color: p.ink,
-                          fontSize: 27,
+                          fontSize: 30,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -.55)),
                   const SizedBox(height: 8),
@@ -155,13 +159,7 @@ class _OriginalAccountAccessScreenState
                           : 'Retrouvez votre espace clinique.',
                       style: TextStyle(
                           color: p.muted, fontSize: 13.5, height: 1.5)),
-                  if (remoteSandbox && registering) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                        'Compte de test : utilisez demo-…@example.com et votre invitation.',
-                        style: TextStyle(color: p.muted, fontSize: 12)),
-                  ],
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 28),
                   Form(
                     key: form,
                     child: AutofillGroup(
@@ -170,6 +168,7 @@ class _OriginalAccountAccessScreenState
                         children: [
                           if (registering) ...[
                             TextFormField(
+                                style: const TextStyle(fontSize: 15),
                                 key: const Key('dev-register-first-name'),
                                 controller: firstName,
                                 textCapitalization: TextCapitalization.words,
@@ -184,6 +183,7 @@ class _OriginalAccountAccessScreenState
                                         : null),
                             const SizedBox(height: 13),
                             TextFormField(
+                                style: const TextStyle(fontSize: 15),
                                 key: const Key('dev-register-last-name'),
                                 controller: lastName,
                                 textInputAction: TextInputAction.next,
@@ -198,6 +198,7 @@ class _OriginalAccountAccessScreenState
                             const SizedBox(height: 13),
                           ],
                           TextFormField(
+                              style: const TextStyle(fontSize: 15),
                             key: const Key('dev-auth-email'),
                             controller: email,
                             keyboardType: TextInputType.emailAddress,
@@ -216,6 +217,7 @@ class _OriginalAccountAccessScreenState
                           ),
                           const SizedBox(height: 13),
                           TextFormField(
+                              style: const TextStyle(fontSize: 15),
                             key: const Key('dev-auth-password'),
                             controller: password,
                             obscureText: !showPassword,
@@ -252,6 +254,7 @@ class _OriginalAccountAccessScreenState
                           if (registering && remoteSandbox) ...[
                             const SizedBox(height: 13),
                             TextFormField(
+                                style: const TextStyle(fontSize: 15),
                               key: const Key('sandbox-invite-code'),
                               controller: invitation,
                               obscureText: true,
@@ -286,9 +289,9 @@ class _OriginalAccountAccessScreenState
                                     style: TextStyle(
                                         color: p.danger, fontSize: 13))),
                           ],
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 24),
                           ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 48),
+                            constraints: const BoxConstraints(minHeight: 54),
                             child: FilledButton(
                               key: const Key('dev-auth-submit'),
                               onPressed: busy ? null : submit,
