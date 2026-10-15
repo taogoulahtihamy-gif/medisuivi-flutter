@@ -1,12 +1,11 @@
 import 'dart:ui' show ImageFilter;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 
 /// Dock flottant translucide. Cinq destinations, sans bouton de création.
-/// L'icône active se soulève ; l'animation respecte Reduce Motion.
+/// Sélection en pastille verte ; l'animation respecte Reduce Motion.
 class ClinicalBottomDock extends StatelessWidget {
   const ClinicalBottomDock({
     super.key,
@@ -20,7 +19,6 @@ class ClinicalBottomDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = Palette.of(context);
-    final ios = Theme.of(context).platform == TargetPlatform.iOS;
 
     return SafeArea(
       top: false,
@@ -30,19 +28,22 @@ class ClinicalBottomDock extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(29),
+            borderRadius: BorderRadius.circular(24),
             child: BackdropFilter(
               key: const Key('clinical-dock-glass'),
               filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
               child: Container(
                 key: const Key('clinical-bottom-dock'),
-                height: 76,
-                padding: const EdgeInsets.fromLTRB(5, 6, 5, 4),
+                height: 64 +
+                    (MediaQuery.textScalerOf(context).scale(11) - 11)
+                        .clamp(0, double.infinity),
+                padding: const EdgeInsets.fromLTRB(6, 5, 6, 5),
                 decoration: BoxDecoration(
-                  color: p.raisedSurface.withValues(alpha: p.isDark ? .79 : .97),
-                  borderRadius: BorderRadius.circular(29),
+                  color:
+                      p.raisedSurface.withValues(alpha: p.isDark ? .79 : .97),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: p.border.withValues(alpha: p.isDark ? .78 : .98)),
+                      color: p.border.withValues(alpha: p.isDark ? .78 : .48)),
                   boxShadow: [
                     BoxShadow(
                       color: p.ink.withValues(alpha: p.isDark ? .18 : .10),
@@ -54,34 +55,44 @@ class ClinicalBottomDock extends StatelessWidget {
                 child: Row(
                   children: [
                     _DockItem(
-                      index: 0, selectedIndex: selectedIndex,
-                      label: 'Accueil', onSelected: onSelected,
-                      icon: ios ? CupertinoIcons.house : Icons.home_outlined,
+                      index: 0,
+                      selectedIndex: selectedIndex,
+                      label: 'Accueil',
+                      onSelected: onSelected,
+                      icon: Icons.home_outlined,
                       selectedIcon: Icons.home_rounded,
                     ),
                     _DockItem(
-                      index: 1, selectedIndex: selectedIndex,
-                      label: 'Patients', onSelected: onSelected,
+                      index: 1,
+                      selectedIndex: selectedIndex,
+                      label: 'Patients',
+                      onSelected: onSelected,
                       icon: Icons.people_outline_rounded,
                       selectedIcon: Icons.people_rounded,
                     ),
                     _DockItem(
-                      index: 2, selectedIndex: selectedIndex,
-                      label: 'Bilans', onSelected: onSelected,
+                      index: 2,
+                      selectedIndex: selectedIndex,
+                      label: 'Bilans',
+                      onSelected: onSelected,
                       icon: Icons.biotech_outlined,
                       selectedIcon: Icons.biotech_rounded,
                     ),
                     _DockItem(
-                      index: 3, selectedIndex: selectedIndex,
-                      label: 'Suivi', onSelected: onSelected,
+                      index: 3,
+                      selectedIndex: selectedIndex,
+                      label: 'Suivi',
+                      onSelected: onSelected,
                       icon: Icons.event_note_outlined,
                       selectedIcon: Icons.event_note_rounded,
                     ),
                     _DockItem(
-                      index: 4, selectedIndex: selectedIndex,
-                      label: 'Réglages', onSelected: onSelected,
-                      icon: Icons.settings_suggest_outlined,
-                      selectedIcon: Icons.settings_suggest_rounded,
+                      index: 4,
+                      selectedIndex: selectedIndex,
+                      label: 'Réglages',
+                      onSelected: onSelected,
+                      icon: Icons.settings_outlined,
+                      selectedIcon: Icons.settings_rounded,
                     ),
                   ],
                 ),
@@ -116,7 +127,8 @@ class _DockItem extends StatelessWidget {
     final p = Palette.of(context);
     final active = index == selectedIndex;
     final duration = MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero : const Duration(milliseconds: 280);
+        ? Duration.zero
+        : const Duration(milliseconds: 200);
 
     return Expanded(
       child: Semantics(
@@ -129,52 +141,56 @@ class _DockItem extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               key: Key('dock-${label.toLowerCase()}'),
-              borderRadius: BorderRadius.circular(23),
+              borderRadius: BorderRadius.circular(18),
               onTap: () => onSelected(index),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   AnimatedSlide(
                     key: Key('dock-lift-${label.toLowerCase()}'),
-                    offset: active ? const Offset(0, -.25) : Offset.zero,
+                    offset: active ? const Offset(0, -.035) : Offset.zero,
                     duration: duration,
-                    curve: Curves.easeOutBack,
+                    curve: Curves.easeOutCubic,
                     child: AnimatedScale(
-                      scale: active ? 1.06 : 1,
+                      scale: active ? 1.04 : 1,
                       duration: duration,
                       curve: Curves.easeOutCubic,
                       child: AnimatedContainer(
                         duration: duration,
                         curve: Curves.easeOutCubic,
-                        width: 46,
-                        height: 43,
+                        width: 48,
+                        height: 30,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(17),
+                          borderRadius: BorderRadius.circular(12),
                           color: active
                               ? p.tealSoft.withValues(alpha: .94)
                               : Colors.transparent,
-                          boxShadow: active ? [
-                            BoxShadow(
-                              color: p.ink.withValues(alpha: p.isDark ? .12 : .06),
-                              blurRadius: 8, offset: const Offset(0, 3)),
-                          ] : null,
+                          boxShadow: active
+                              ? [
+                                  BoxShadow(
+                                      color: p.ink.withValues(
+                                          alpha: p.isDark ? .12 : .06),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 3)),
+                                ]
+                              : null,
                         ),
                         child: Icon(
                           active ? selectedIcon : icon,
-                          size: 21,
+                          size: 22,
                           color: active ? p.forest : p.muted,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 1),
+                  const SizedBox(height: 4),
                   Text(
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: active ? p.ink : p.muted,
-                      fontSize: p.isDark ? 10 : 11.1,
+                      color: active ? p.forest : p.muted,
+                      fontSize: 11,
                       height: 1.15,
                       fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                     ),

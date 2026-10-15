@@ -21,14 +21,14 @@ void main() {
     expect(image.alignment, Alignment.centerRight);
     expect(image.filterQuality, FilterQuality.high);
 
-    final bytes = await rootBundle.load('assets/images/home_hero_hd.webp');
+    final bytes = await rootBundle.load('assets/images/home_hero_pro.webp');
     expect(bytes.lengthInBytes, greaterThan(30000));
     expect(ascii.decode(bytes.buffer.asUint8List(8, 4)), 'WEBP');
     expect(ascii.decode(bytes.buffer.asUint8List(12, 4)), 'VP8 ');
     final width = bytes.getUint16(26, Endian.little) & 0x3fff;
     final height = bytes.getUint16(28, Endian.little) & 0x3fff;
-    expect(width, 1200);
-    expect(height, 868);
+    expect(width, greaterThanOrEqualTo(1600));
+    expect(width / height, closeTo(2.5, 0.05));
     expect(tester.takeException(), isNull);
   });
 }

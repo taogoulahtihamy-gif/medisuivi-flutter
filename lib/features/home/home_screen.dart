@@ -39,15 +39,15 @@ class HomeScreen extends StatelessWidget {
     final store = context.store;
     final patients = store.patients;
     final toReview = patients.where((pt) => pt.followUp).length;
-    final pending =
-        store.exams.where((e) => e.status == ExamStatus.pending).length;
+    final pending = store.exams.where((e) => e.status == ExamStatus.pending).length;
     final today = DateTime.now();
-    final coming =
-        store.plannedFollowUps.where((plan) => !plan.isOverdue(today)).toList();
+    final coming = store.plannedFollowUps
+        .where((plan) => !plan.isOverdue(today))
+        .toList();
     final nextVisit = coming.isEmpty ? null : coming.first;
 
-    void addPatient() => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const NewPatientScreen()));
+    void addPatient() => Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => const NewPatientScreen()));
 
     return ListView(
       key: const ValueKey('medisuivi-home'),
@@ -66,16 +66,15 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _buildGreeting(context, p, today),
               const SizedBox(height: 12),
-              _buildSignatureBanner(
-                  context, p, patients.length, onPatients, addPatient),
+              _buildSignatureBanner(context, p, patients.length, onPatients, addPatient),
               const SizedBox(height: 16),
               if (nextVisit != null) ...[
                 _buildNextVisit(context, p, store, nextVisit, onFollowup),
                 const SizedBox(height: 16),
               ],
               if (toReview > 0 || pending > 0) ...[
-                _buildAttentionRow(
-                    context, p, toReview, pending, onFollowup, onExams),
+                _buildAttentionRow(context, p, toReview, pending,
+                  onFollowup, onExams),
                 const SizedBox(height: 16),
               ],
               _buildRecentSection(context, p, store, patients, onPatients),
@@ -90,14 +89,13 @@ class HomeScreen extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 40, height: 40,
           decoration: BoxDecoration(
             color: p.brandPrimarySoft,
             borderRadius: BorderRadius.circular(ClinicalRadius.sm),
           ),
           child: Icon(Icons.medical_services_outlined,
-              color: p.brandPrimary, size: 22),
+            color: p.brandPrimary, size: 22),
         ),
         const SizedBox(width: ClinicalSpacing.md),
         Expanded(
@@ -105,14 +103,13 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('MediSuivi',
-                  style: ClinicalTypography.titleLarge.copyWith(
-                      color: p.ink,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.4)),
+                style: ClinicalTypography.titleLarge.copyWith(
+                  color: p.ink, fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4)),
               const SizedBox(height: 2),
               Text('Espace clinique personnel',
-                  style:
-                      ClinicalTypography.bodySmall.copyWith(color: p.inkMuted)),
+                style: ClinicalTypography.bodySmall.copyWith(
+                  color: p.inkMuted)),
             ],
           ),
         ),
@@ -126,21 +123,18 @@ class HomeScreen extends StatelessWidget {
           ),
           icon: const Icon(Icons.notifications_none_rounded, size: 22),
           onPressed: () => Navigator.of(context).push(MaterialPageRoute<void>(
-              builder: (_) => const ClinicalAlertsScreen())),
+            builder: (_) => const ClinicalAlertsScreen())),
         ),
         const SizedBox(width: 7),
         Tooltip(
-          message: PractitionerPreviewScope.maybeOf(context)
-                      ?.displayName
-                      .isNotEmpty ==
-                  true
+          message: PractitionerPreviewScope.maybeOf(context)?.displayName.isNotEmpty == true
               ? PractitionerPreviewScope.maybeOf(context)!.displayName
               : 'Profil et paramètres',
           child: InkWell(
             key: const Key('header-profile'),
             borderRadius: BorderRadius.circular(28),
             onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                builder: (_) => const SettingsScreen())),
+              builder: (_) => const SettingsScreen())),
             child: Builder(builder: (context) {
               final profile = PractitionerPreviewScope.maybeOf(context);
               return CircleAvatar(
@@ -148,8 +142,7 @@ class HomeScreen extends StatelessWidget {
                 radius: 22,
                 backgroundColor: p.brandPrimarySoft,
                 foregroundImage: profile?.photo == null
-                    ? null
-                    : MemoryImage(profile!.photo!),
+                    ? null : MemoryImage(profile!.photo!),
                 child: profile?.photo == null
                     ? Icon(Icons.person_rounded,
                         size: 24, color: p.brandPrimary)
@@ -162,8 +155,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGreeting(
-      BuildContext context, ClinicalPalette p, DateTime today) {
+  Widget _buildGreeting(BuildContext context, ClinicalPalette p, DateTime today) {
     return _HomeSearchAndGreeting(palette: p, date: today);
   }
 
@@ -185,9 +177,9 @@ class HomeScreen extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Photo signature — cadrage d'origine conservé
+            // Portrait fictif : espace dégagé à gauche pour les actions.
             Image.asset(
-              'assets/images/home_hero_hd.webp',
+              'assets/images/home_hero_pro.webp',
               key: const Key('home-hero-hd-photo'),
               fit: BoxFit.cover,
               alignment: Alignment.centerRight,
@@ -204,18 +196,18 @@ class HomeScreen extends StatelessWidget {
                   end: Alignment.centerRight,
                   stops: const [0.0, 0.35, 0.65, 1.0],
                   colors: isDark
-                      ? [
-                          p.background.withValues(alpha: 0.92),
-                          p.background.withValues(alpha: 0.75),
-                          p.background.withValues(alpha: 0.25),
-                          p.background.withValues(alpha: 0.05),
-                        ]
-                      : [
-                          p.background.withValues(alpha: 0.90),
-                          p.background.withValues(alpha: 0.70),
-                          p.background.withValues(alpha: 0.20),
-                          p.background.withValues(alpha: 0.05),
-                        ],
+                    ? [
+                        p.background.withValues(alpha: 0.92),
+                        p.background.withValues(alpha: 0.75),
+                        p.background.withValues(alpha: 0.25),
+                        p.background.withValues(alpha: 0.05),
+                      ]
+                    : [
+                        p.background.withValues(alpha: 0.90),
+                        p.background.withValues(alpha: 0.70),
+                        p.background.withValues(alpha: 0.20),
+                        p.background.withValues(alpha: 0.05),
+                      ],
                 ),
               ),
             ),
@@ -232,17 +224,14 @@ class HomeScreen extends StatelessWidget {
                         Text(
                           '$total',
                           style: ClinicalTypography.monoLarge.copyWith(
-                              color: p.ink,
-                              fontWeight: FontWeight.w700,
-                              height: 1.0),
+                            color: p.ink, fontWeight: FontWeight.w700,
+                            height: 1.0),
                         ),
                         const SizedBox(height: ClinicalSpacing.xs),
                         Text(
-                          total == 1
-                              ? 'patient enregistré'
-                              : 'patients enregistrés',
+                          total == 1 ? 'patient enregistré' : 'patients enregistrés',
                           style: ClinicalTypography.bodyMedium.copyWith(
-                              color: p.ink, fontWeight: FontWeight.w500),
+                            color: p.ink, fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: ClinicalSpacing.lg),
                         LayoutBuilder(
@@ -250,8 +239,7 @@ class HomeScreen extends StatelessWidget {
                             // Sur 320 px le double CTA dépassait le bandeau.
                             if (constraints.maxWidth < 310) {
                               return Row(children: [
-                                Expanded(
-                                    child: ClinicalButton(
+                                Expanded(child: ClinicalButton(
                                   label: 'Nouveau patient',
                                   onPressed: onAdd,
                                   level: ClinicalButtonLevel.primary,
@@ -262,12 +250,10 @@ class HomeScreen extends StatelessWidget {
                                 IconButton.outlined(
                                   tooltip: 'Mes dossiers',
                                   onPressed: onPatients,
-                                  icon: const Icon(Icons.folder_open_outlined,
-                                      size: 21),
+                                  icon: const Icon(Icons.folder_open_outlined, size: 21),
                                   style: IconButton.styleFrom(
                                     foregroundColor: p.ink,
-                                    backgroundColor:
-                                        p.surface.withValues(alpha: 0.70),
+                                    backgroundColor: p.surface.withValues(alpha: 0.70),
                                     minimumSize: const Size(44, 44),
                                   ),
                                 ),
@@ -284,8 +270,7 @@ class HomeScreen extends StatelessWidget {
                                 minWidth: 140,
                               ),
                               const SizedBox(width: ClinicalSpacing.sm),
-                              Flexible(
-                                  child: ClinicalButton(
+                              Flexible(child: ClinicalButton(
                                 label: 'Mes dossiers',
                                 onPressed: onPatients,
                                 level: ClinicalButtonLevel.secondary,
@@ -332,14 +317,13 @@ class HomeScreen extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 48, height: 48,
                 decoration: BoxDecoration(
                   color: p.accentAmberSoft,
                   borderRadius: BorderRadius.circular(ClinicalRadius.md),
                 ),
                 child: Icon(Icons.event_available_outlined,
-                    size: 24, color: p.accentAmber),
+                  size: 24, color: p.accentAmber),
               ),
               const SizedBox(width: ClinicalSpacing.md),
               Expanded(
@@ -348,16 +332,16 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Text(
                       patient?.name ?? 'Patient inconnu',
-                      style: ClinicalTypography.titleLarge
-                          .copyWith(color: p.ink, fontWeight: FontWeight.w600),
+                      style: ClinicalTypography.titleLarge.copyWith(
+                        color: p.ink, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: ClinicalSpacing.xs),
                     Text(
                       nextVisit.reason,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: ClinicalTypography.bodyMedium
-                          .copyWith(color: p.inkMuted),
+                      style: ClinicalTypography.bodyMedium.copyWith(
+                        color: p.inkMuted),
                     ),
                     const SizedBox(height: ClinicalSpacing.xs),
                     Text(
@@ -365,7 +349,7 @@ class HomeScreen extends StatelessWidget {
                       '${nextVisit.scheduledAt.hour.toString().padLeft(2, '0')}:'
                       '${nextVisit.scheduledAt.minute.toString().padLeft(2, '0')}',
                       style: ClinicalTypography.monoMedium.copyWith(
-                          color: p.accentAmber, fontWeight: FontWeight.w600),
+                        color: p.accentAmber, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -390,7 +374,7 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const ClinicalSectionHeading(title: 'À consulter'),
+        ClinicalSectionHeading(title: 'À consulter'),
         const SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,8 +383,7 @@ class HomeScreen extends StatelessWidget {
               Expanded(
                 child: _AttentionCard(
                   number: toReview,
-                  label:
-                      toReview == 1 ? 'Patient à revoir' : 'Patients à revoir',
+                  label: toReview == 1 ? 'Patient à revoir' : 'Patients à revoir',
                   icon: Icons.event_repeat_rounded,
                   onTap: onFollowup,
                 ),
@@ -411,8 +394,7 @@ class HomeScreen extends StatelessWidget {
               Expanded(
                 child: _AttentionCard(
                   number: pending,
-                  label:
-                      pending == 1 ? 'Bilan en attente' : 'Bilans en attente',
+                  label: pending == 1 ? 'Bilan en attente' : 'Bilans en attente',
                   icon: Icons.biotech_outlined,
                   onTap: onExams,
                 ),
@@ -454,13 +436,11 @@ class HomeScreen extends StatelessWidget {
                   _RecentPatient(
                     patient: patients[i],
                     onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                            builder: (_) => PatientDetailScreen(
-                                patientId: patients[i].id))),
+                      MaterialPageRoute<void>(
+                        builder: (_) => PatientDetailScreen(patientId: patients[i].id))),
                   ),
                   if (i < patients.take(4).length - 1)
-                    Divider(
-                        height: 1, indent: 70, endIndent: 16, color: p.border),
+                    Divider(height: 1, indent: 70, endIndent: 16, color: p.border),
                 ],
               ],
             ),
@@ -469,8 +449,8 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: ClinicalSpacing.sm),
           Center(
             child: Text('+ ${patients.length - 4} autres dossiers',
-                style:
-                    ClinicalTypography.bodySmall.copyWith(color: p.inkMuted)),
+              style: ClinicalTypography.bodySmall.copyWith(
+                color: p.inkMuted)),
           ),
         ],
       ],
@@ -505,8 +485,8 @@ class _AttentionCard extends StatelessWidget {
     return ClinicalCard(
       variant: ClinicalCardVariant.default_,
       onTap: onTap,
-      padding: const EdgeInsets.fromLTRB(ClinicalSpacing.md, ClinicalSpacing.lg,
-          ClinicalSpacing.md, ClinicalSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+        ClinicalSpacing.md, ClinicalSpacing.lg, ClinicalSpacing.md, ClinicalSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -514,18 +494,19 @@ class _AttentionCard extends StatelessWidget {
             children: [
               Icon(icon, size: 22, color: p.brandPrimary),
               const Spacer(),
-              Icon(Icons.arrow_outward_rounded, size: 19, color: p.inkMuted),
+              Icon(Icons.arrow_outward_rounded,
+                size: 19, color: p.inkMuted),
             ],
           ),
           const SizedBox(height: ClinicalSpacing.lg),
           Text('$number',
-              style: ClinicalTypography.monoLarge.copyWith(
-                  color: p.ink, fontWeight: FontWeight.w700, height: 1.0)),
+            style: ClinicalTypography.monoLarge.copyWith(
+              color: p.ink, fontWeight: FontWeight.w700, height: 1.0)),
           const SizedBox(height: ClinicalSpacing.xs),
           Text(label,
-              maxLines: 2,
-              style: ClinicalTypography.bodySmall
-                  .copyWith(color: p.ink, fontWeight: FontWeight.w500)),
+            maxLines: 2,
+            style: ClinicalTypography.bodySmall.copyWith(
+              color: p.ink, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -552,8 +533,8 @@ class _RecentPatient extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(ClinicalSpacing.md,
-            ClinicalSpacing.md, ClinicalSpacing.md, ClinicalSpacing.md),
+        padding: const EdgeInsets.fromLTRB(
+          ClinicalSpacing.md, ClinicalSpacing.md, ClinicalSpacing.md, ClinicalSpacing.md),
         child: Row(
           children: [
             ClinicalAvatar(initials: patient.initials, size: 44),
@@ -563,20 +544,22 @@ class _RecentPatient extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(patient.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: ClinicalTypography.titleLarge
-                          .copyWith(color: p.ink, fontWeight: FontWeight.w600)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: ClinicalTypography.titleLarge.copyWith(
+                      color: p.ink, fontWeight: FontWeight.w600)),
                   const SizedBox(height: ClinicalSpacing.xs),
                   Text('${patient.id} · ${patient.age} ans',
-                      style: ClinicalTypography.bodySmall
-                          .copyWith(color: p.inkMuted)),
+                    style: ClinicalTypography.bodySmall.copyWith(
+                      color: p.inkMuted)),
                 ],
               ),
             ),
             if (patient.followUp)
-              Icon(Icons.event_repeat_rounded, size: 18, color: p.brandPrimary),
-            Icon(Icons.chevron_right_rounded, color: p.inkMuted, size: 22),
+              Icon(Icons.event_repeat_rounded,
+                size: 18, color: p.brandPrimary),
+            Icon(Icons.chevron_right_rounded,
+              color: p.inkMuted, size: 22),
           ],
         ),
       ),
@@ -631,12 +614,9 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
     final term = _query.trim().toLowerCase();
     final matches = term.isEmpty
         ? <Patient>[]
-        : context.store.patients
-            .where((patient) =>
-                patient.name.toLowerCase().contains(term) ||
-                patient.id.toLowerCase().contains(term))
-            .take(4)
-            .toList();
+        : context.store.patients.where((patient) =>
+            patient.name.toLowerCase().contains(term) ||
+            patient.id.toLowerCase().contains(term)).take(4).toList();
 
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       LayoutBuilder(builder: (context, constraints) {
@@ -649,36 +629,35 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                      '${shortDate(_clock)} · '
-                      '${_clock.hour.toString().padLeft(2, '0')}:'
-                      '${_clock.minute.toString().padLeft(2, '0')}',
-                      key: const Key('home-greeting-date'),
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        color: p.inkMuted,
-                        fontSize: narrow ? (p.isDark ? 10 : 11) : 11.5,
-                      )),
+                  Text('${shortDate(_clock)} · '
+                    '${_clock.hour.toString().padLeft(2, '0')}:'
+                    '${_clock.minute.toString().padLeft(2, '0')}',
+                    key: const Key('home-greeting-date'),
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: p.inkMuted,
+                      fontSize: narrow ? (p.isDark ? 10 : 11) : 11.5,
+                    )),
                   const SizedBox(height: 3),
                   Text('Vos dossiers',
-                      key: const Key('home-greeting-title'),
-                      maxLines: 1,
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        color: p.ink,
-                        fontSize: narrow ? 19 : 24,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -.45,
-                      )),
+                    key: const Key('home-greeting-title'),
+                    maxLines: 1,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: p.ink,
+                      fontSize: narrow ? 19 : 24,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -.45,
+                    )),
                   const SizedBox(height: 3),
                   Text('Vos prochaines actions cliniques.',
-                      maxLines: 2,
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        color: p.inkMuted,
-                        fontSize: narrow ? (p.isDark ? 10.5 : 11.5) : 12.2,
-                        height: 1.25,
-                      )),
+                    maxLines: 2,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      color: p.inkMuted,
+                      fontSize: narrow ? (p.isDark ? 10.5 : 11.5) : 12.2,
+                      height: 1.25,
+                    )),
                 ],
               ),
             ),
@@ -690,59 +669,53 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child: Semantics(
-                    textField: true,
-                    label: 'Rechercher un patient',
-                    child: Container(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color:
-                            p.surface.withValues(alpha: p.isDark ? .86 : 1.0),
-                        borderRadius: BorderRadius.circular(23),
-                        border: Border.all(
-                            color: p.border
-                                .withValues(alpha: p.isDark ? .80 : 1.0)),
-                      ),
-                      child: TextField(
-                        key: const Key('home-patient-search'),
-                        controller: _controller,
-                        onChanged: (value) => setState(() => _query = value),
-                        textInputAction: TextInputAction.search,
-                        maxLines: 1,
-                        style: TextStyle(color: p.ink, fontSize: 12.5),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          filled: false,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          hintText: narrow ? 'Patient…' : 'Chercher un patient',
-                          hintStyle: TextStyle(
-                              color: p.inkMuted,
-                              fontSize: narrow ? (p.isDark ? 11 : 11.8) : 12),
-                          prefixIcon: Icon(Icons.search_rounded,
-                              size: 19, color: p.inkMuted),
-                          prefixIconConstraints:
-                              const BoxConstraints(minWidth: 34, minHeight: 40),
-                          contentPadding: const EdgeInsets.only(
-                              top: 12, bottom: 12, right: 8),
-                          suffixIcon: _query.isEmpty
-                              ? null
-                              : IconButton(
-                                  key: const Key('home-clear-search'),
-                                  tooltip: 'Effacer la recherche',
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                      minWidth: 32, minHeight: 40),
-                                  onPressed: () {
-                                    _controller.clear();
-                                    setState(() => _query = '');
-                                  },
-                                  icon: Icon(Icons.close_rounded,
-                                      size: 16, color: p.inkMuted),
-                                ),
-                        ),
+                textField: true,
+                label: 'Rechercher un patient',
+                child: Container(
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: p.surface.withValues(alpha: p.isDark ? .86 : 1.0),
+                    borderRadius: BorderRadius.circular(23),
+                    border: Border.all(color: p.border.withValues(alpha: p.isDark ? .80 : 1.0)),
+                  ),
+                  child: TextField(
+                    key: const Key('home-patient-search'),
+                    controller: _controller,
+                    onChanged: (value) => setState(() => _query = value),
+                    textInputAction: TextInputAction.search,
+                    maxLines: 1,
+                    style: TextStyle(color: p.ink, fontSize: 12.5),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      hintText: narrow ? 'Patient…' : 'Chercher un patient',
+                      hintStyle: TextStyle(
+                        color: p.inkMuted,
+                        fontSize: narrow ? (p.isDark ? 11 : 11.8) : 12),
+                      prefixIcon: Icon(Icons.search_rounded,
+                        size: 19, color: p.inkMuted),
+                      prefixIconConstraints: const BoxConstraints(
+                        minWidth: 34, minHeight: 40),
+                      contentPadding: const EdgeInsets.only(
+                        top: 12, bottom: 12, right: 8),
+                      suffixIcon: _query.isEmpty ? null : IconButton(
+                        key: const Key('home-clear-search'),
+                        tooltip: 'Effacer la recherche',
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(
+                          minWidth: 32, minHeight: 40),
+                        onPressed: () {
+                          _controller.clear();
+                          setState(() => _query = '');
+                        },
+                        icon: Icon(Icons.close_rounded, size: 16, color: p.inkMuted),
                       ),
                     ),
+                  ),
+                ),
                   ),
                 ),
               ),
@@ -764,7 +737,7 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
               ? Padding(
                   padding: const EdgeInsets.all(9),
                   child: Text('Aucun patient trouvé',
-                      style: TextStyle(color: p.inkMuted, fontSize: 12)),
+                    style: TextStyle(color: p.inkMuted, fontSize: 12)),
                 )
               : Column(
                   children: [
@@ -772,31 +745,25 @@ class _HomeSearchAndGreetingState extends State<_HomeSearchAndGreeting> {
                       Material(
                         type: MaterialType.transparency,
                         child: ListTile(
-                          key: Key('home-result-${patient.id}'),
-                          dense: true,
-                          visualDensity: VisualDensity.compact,
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 7),
-                          leading: Icon(Icons.person_outline_rounded,
-                              color: p.brandPrimary, size: 20),
-                          title: Text(patient.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  color: p.ink,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600)),
-                          subtitle: Text(patient.id,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  TextStyle(color: p.inkMuted, fontSize: 11)),
-                          trailing: Icon(Icons.chevron_right_rounded,
-                              color: p.inkMuted, size: 19),
-                          onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute<void>(
-                                  builder: (_) => PatientDetailScreen(
-                                      patientId: patient.id))),
+                        key: Key('home-result-${patient.id}'),
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 7),
+                        leading: Icon(Icons.person_outline_rounded,
+                          color: p.brandPrimary, size: 20),
+                        title: Text(patient.name,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: p.ink, fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                        subtitle: Text(patient.id,
+                          maxLines: 1, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: p.inkMuted, fontSize: 11)),
+                        trailing: Icon(Icons.chevron_right_rounded,
+                          color: p.inkMuted, size: 19),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) =>
+                              PatientDetailScreen(patientId: patient.id))),
                         ),
                       ),
                   ],
