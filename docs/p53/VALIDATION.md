@@ -41,7 +41,25 @@ Web ou Render, aucune utilisation clinique réelle autorisée.
 
 ## Validation
 
-Les résultats finaux, liens CI et empreinte APK seront consignés après les runs.
+Résultats locaux :
+- `flutter pub get` réussi ; formatage vérifié (0 changement au second passage).
+- `flutter analyze` : aucun diagnostic.
+- `flutter test` : 253 tests réussis.
+- Invitation P5.0 : 2 tests réussis avec `MEDISUIVI_REMOTE_SANDBOX=true`.
+- Matrice P5.3 avec invitation activée : 17 tests réussis supplémentaires.
+- Navigation des trois écrans : 8 tests ; revue visuelle Web locale à 390×844
+  et 320×640, bouton de création accessible par défilement.
+- Vercel réel : health 200, ready 200, me/patients anonymes 401.
+
+Backend : [run réussi](https://github.com/taogoulahtihamy-gif/medisuivi-flutter/actions/runs/38662036426),
+40 tests API et 7 gardes Vercel ; job PostgreSQL et invitation sandbox réussi.
+L’essai local backend ne pouvait pas collecter les tests (FastAPI absent).
+
+[PR P5.3](https://github.com/taogoulahtihamy-gif/medisuivi-flutter/pull/48).
+Les résultats Android et l’APK se trouvent dans le workflow
+`medisuivi_p50_remote_android.yml`, artefact
+`medisuivi-p53-vercel-connected-android-debug-apk`.
+Le bilan de livraison de la PR précise le run final et l’empreinte de l’APK.
 Les tests PostgreSQL utilisent uniquement le service PostgreSQL jetable GitHub.
 Les scénarios Android A/B utilisent des réponses HTTP simulées et des identités
 synthétiques ; les contrôles HTTPS Vercel sont réels et anonymes. Ils ne prouvent

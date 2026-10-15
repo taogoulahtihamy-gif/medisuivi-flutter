@@ -46,6 +46,8 @@ void main() {
 
           await render();
           expect(find.byType(Card), findsNothing);
+          await tester
+              .ensureVisible(find.byTooltip('Afficher le mot de passe'));
           await tester.tap(find.byTooltip('Afficher le mot de passe'));
           await tester.pump();
           expect(
