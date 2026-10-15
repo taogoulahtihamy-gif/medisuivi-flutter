@@ -49,7 +49,7 @@ void main() {
     final quarter = find.widgetWithText(TextFormField, 'Quartier');
     await tester.ensureVisible(quarter);
     await tester.enterText(quarter, 'Quartier de test');
-    final save = find.text('Ajouter le patient');
+    final save = find.byKey(const Key('patient-save-bottom'));
     await tester.ensureVisible(save);
     await tester.tap(save);
     await tester.pumpAndSettle();
