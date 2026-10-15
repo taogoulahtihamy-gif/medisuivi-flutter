@@ -37,14 +37,14 @@ class PatientProfileSupplement {
   final String familyHistory;
 
   Map<String, Object?> toJson() => {
-    'neighborhood': neighborhood,
-    'address': address,
-    'emergencyContactName': emergencyContactName,
-    'emergencyContactPhone': emergencyContactPhone,
-    'currentMedications': currentMedications,
-    'surgicalHistory': surgicalHistory,
-    'familyHistory': familyHistory,
-  };
+        'neighborhood': neighborhood,
+        'address': address,
+        'emergencyContactName': emergencyContactName,
+        'emergencyContactPhone': emergencyContactPhone,
+        'currentMedications': currentMedications,
+        'surgicalHistory': surgicalHistory,
+        'familyHistory': familyHistory,
+      };
 
   factory PatientProfileSupplement.fromJson(Map<String, dynamic> json) =>
       PatientProfileSupplement(
@@ -88,8 +88,10 @@ class ClinicalIntake {
 
   /// Poids en kg. Absence de valeur = non mesuré, pas zéro.
   final double? weightKg;
+
   /// Taille en cm.
   final double? heightCm;
+
   /// Fréquence respiratoire en cycles par minute.
   final int? respiratoryRate;
 
@@ -140,38 +142,40 @@ class ClinicalIntake {
   /// Sérialisation versionnée dans la table chiffrée visit_intakes (v2).
   /// Les champs non renseignés restent explicites.
   Map<String, Object?> toJson() => {
-    'schemaVersion': schemaVersion,
-    'weightKg': weightKg,
-    'heightCm': heightCm,
-    'respiratoryRate': respiratoryRate,
-    'symptomHistory': symptomHistory,
-    'associatedSigns': associatedSigns,
-    'generalCondition': generalCondition,
-    'physicalExamination': physicalExamination,
-    'systemsExamination': systemsExamination,
-    'diagnosticHypotheses': diagnosticHypotheses,
-    'diagnosis': diagnosis,
-    'investigationsRequested': investigationsRequested,
-    'investigationsInterpretation': investigationsInterpretation,
-    'managementPlan': managementPlan,
-    'outpatientTreatment': outpatientTreatment,
-    'hospitalizationReason': hospitalizationReason,
-    'referralDetails': referralDetails,
-    'followUpInstructions': followUpInstructions,
-    'careDisposition': careDisposition.name,
-  };
+        'schemaVersion': schemaVersion,
+        'weightKg': weightKg,
+        'heightCm': heightCm,
+        'respiratoryRate': respiratoryRate,
+        'symptomHistory': symptomHistory,
+        'associatedSigns': associatedSigns,
+        'generalCondition': generalCondition,
+        'physicalExamination': physicalExamination,
+        'systemsExamination': systemsExamination,
+        'diagnosticHypotheses': diagnosticHypotheses,
+        'diagnosis': diagnosis,
+        'investigationsRequested': investigationsRequested,
+        'investigationsInterpretation': investigationsInterpretation,
+        'managementPlan': managementPlan,
+        'outpatientTreatment': outpatientTreatment,
+        'hospitalizationReason': hospitalizationReason,
+        'referralDetails': referralDetails,
+        'followUpInstructions': followUpInstructions,
+        'careDisposition': careDisposition.name,
+      };
 
   factory ClinicalIntake.fromJson(Map<String, dynamic> json) {
     final version = json['schemaVersion'];
     if (version != schemaVersion) {
-      throw FormatException('Version de dossier clinique non prise en charge.');
+      throw const FormatException(
+          'Version de dossier clinique non prise en charge.');
     }
-    final rawDisposition = _text(json, 'careDisposition', fallback: 'undecided');
+    final rawDisposition =
+        _text(json, 'careDisposition', fallback: 'undecided');
     final disposition = CareDisposition.values.where(
       (value) => value.name == rawDisposition,
     );
     if (disposition.isEmpty) {
-      throw FormatException('Décision de prise en charge non reconnue.');
+      throw const FormatException('Décision de prise en charge non reconnue.');
     }
     return ClinicalIntake(
       weightKg: _optionalDouble(json, 'weightKg'),

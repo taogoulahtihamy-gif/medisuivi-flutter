@@ -74,7 +74,7 @@ flutter test integration_test/p50_vercel_android_emulator_test.dart \
   --dart-define="MEDISUIVI_DEV_API_BASE_URL=${MEDISUIVI_API_BASE_URL}" \
   --dart-define=MEDISUIVI_REMOTE_SANDBOX=true
 
-# P5.2: original account A/B UI with mocked data (no Neon writes),
+# P5.3: settings signout in the original account A/B UI with mocked data (no Neon writes),
 # real Android Keystore persistence, and invitation guard on the live API.
 flutter test integration_test/p52_account_flows_android_test.dart \
   -d emulator-5554 --no-pub \

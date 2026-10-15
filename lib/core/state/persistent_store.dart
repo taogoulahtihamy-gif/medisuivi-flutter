@@ -26,6 +26,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   final db.AppDatabase _database;
 
   /// Opérations durables en attente : aucune synchronisation serveur active.
+  @override
   Future<int> get pendingSyncCount async =>
       (await _database.pendingOperationsDao.getPendingOperations()).length;
 
@@ -161,13 +162,16 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   // ==================== PATIENTS ====================
 
   /// Stream de tous les patients (réactif)
+  @override
   Stream<List<Patient>> get patientsStream =>
       _patientDao.watchAllPatients().map(_mapPatients);
 
   /// Liste de tous les patients (synchrone via cache)
+  @override
   List<Patient> get patients => List.unmodifiable(_patients);
 
   /// Récupère un patient par ID (synchrone via cache)
+  @override
   Patient? patientById(String id) {
     for (final patient in _patients) {
       if (patient.id == id) return patient;
@@ -176,14 +180,17 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   }
 
   /// Patients marqués pour suivi (synchrone via cache)
+  @override
   List<Patient> get followUpPatients =>
       _patients.where((p) => p.followUp).toList();
 
   /// Stream des patients marqués pour suivi
+  @override
   Stream<List<Patient>> get followUpPatientsStream =>
       _patientDao.watchPatientsForFollowUp().map(_mapPatients);
 
   /// Ajoute un nouveau patient
+  @override
   Future<void> addPatient({
     required String name,
     required int age,
@@ -202,6 +209,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   }
 
   /// Met à jour les infos médicales d'un patient
+  @override
   Future<void> updatePatientInfo({
     required String patientId,
     required String phone,
@@ -219,6 +227,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   }
 
   /// Active/désactive le drapeau de suivi
+  @override
   Future<void> setFollowUp(String patientId, {required bool toReview}) async {
     await _patientDao.setFollowUp(patientId, toReview: toReview);
   }
@@ -260,6 +269,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   }
 
   /// Ajoute une nouvelle visite
+  @override
   Future<void> addVisit({
     required String patientId,
     required String reason,
@@ -287,22 +297,27 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   // ==================== EXAMENS ====================
 
   /// Stream de tous les examens
+  @override
   Stream<List<LabExam>> get examsStream =>
       _examDao.watchAllExams().map(_mapExams);
 
   /// Liste de tous les examens (synchrone via cache)
+  @override
   List<LabExam> get exams => List.unmodifiable(_exams);
 
   /// Stream des examens d'un patient
+  @override
   Stream<List<LabExam>> examsForStream(String patientId) =>
       _examDao.watchExamsForPatient(patientId).map(_mapExams);
 
   /// Liste des examens d'un patient (synchrone via cache)
+  @override
   List<LabExam> examsFor(String patientId) =>
       _exams.where((e) => e.patientId == patientId).toList()
         ..sort((a, b) => b.date.compareTo(a.date));
 
   /// Examen par ID (synchrone via cache)
+  @override
   LabExam? examById(String examId) {
     for (final exam in _exams) {
       if (exam.id == examId) return exam;
@@ -311,17 +326,21 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   }
 
   /// Examens en attente (synchrone via cache)
+  @override
   List<LabExam> get pendingExams =>
       _exams.where((e) => e.status == ExamStatus.pending).toList();
 
   /// Stream des examens en attente
+  @override
   Stream<List<LabExam>> get pendingExamsStream =>
       _examDao.watchPendingExams().map(_mapExams);
 
   /// Nombre d'examens en attente (synchrone via cache)
+  @override
   int get pendingExamsCount => pendingExams.length;
 
   /// Crée un nouvel examen (prescription)
+  @override
   Future<String> addExam({
     required String patientId,
     required String title,
@@ -334,6 +353,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   }
 
   /// Enregistre le résultat d'un examen
+  @override
   Future<void> recordExamResult({
     required String examId,
     required String result,
@@ -425,6 +445,7 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
   }
 
   /// Reporte un suivi
+  @override
   Future<void> rescheduleFollowUp({
     required String followUpId,
     required DateTime scheduledAt,
@@ -561,10 +582,8 @@ class PersistentStore extends ChangeNotifier implements ClinicalStore {
     _streamCleanup = Future.wait<void>([
       if (_patientStreamSubscription != null)
         _patientStreamSubscription!.cancel(),
-      if (_visitStreamSubscription != null)
-        _visitStreamSubscription!.cancel(),
-      if (_examStreamSubscription != null)
-        _examStreamSubscription!.cancel(),
+      if (_visitStreamSubscription != null) _visitStreamSubscription!.cancel(),
+      if (_examStreamSubscription != null) _examStreamSubscription!.cancel(),
       if (_followUpStreamSubscription != null)
         _followUpStreamSubscription!.cancel(),
     ]).then<void>((_) {});

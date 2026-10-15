@@ -38,8 +38,8 @@ class _OriginalAccountAccessScreenState
   final firstName = TextEditingController();
   final lastName = TextEditingController();
   final invitation = TextEditingController();
-  static const remoteSandbox = bool.fromEnvironment(
-    'MEDISUIVI_REMOTE_SANDBOX', defaultValue: false);
+  static const remoteSandbox =
+      bool.fromEnvironment('MEDISUIVI_REMOTE_SANDBOX', defaultValue: false);
   bool busy = false;
   bool showPassword = false;
   String? error;
@@ -63,8 +63,10 @@ class _OriginalAccountAccessScreenState
     try {
       final session = widget.isRegister
           ? await widget.api.createAccount(
-              email: email.text, password: password.text,
-              firstName: firstName.text, lastName: lastName.text,
+              email: email.text,
+              password: password.text,
+              firstName: firstName.text,
+              lastName: lastName.text,
               inviteCode: remoteSandbox ? invitation.text : '')
           : await widget.api.signIn(email.text, password.text);
       if (mounted) widget.onAuthenticated(session);
@@ -90,193 +92,218 @@ class _OriginalAccountAccessScreenState
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final registering = widget.isRegister;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final headlineGap = registering
+        ? (screenHeight * .07).clamp(38.0, 58.0)
+        : (screenHeight * .125).clamp(65.0, 98.0);
     return Scaffold(
       backgroundColor: p.canvas,
       body: SafeArea(
-        child: Center(
+        child: Align(
+          alignment: Alignment.topCenter,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 14, 24, 32),
+            padding: const EdgeInsets.fromLTRB(24, 22, 24, 32),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 470),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Align(alignment: Alignment.centerLeft,
-                    child: TextButton.icon(
-                      onPressed: busy ? null : widget.onBack,
-                      icon: const Icon(Icons.arrow_back_rounded, size: 20),
-                      label: const Text('Retour'),
-                    )),
-                  const SizedBox(height: 25),
+                  Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: busy ? null : widget.onBack,
+                        icon: const Icon(Icons.arrow_back_rounded, size: 20),
+                        label: const Text('Retour'),
+                      )),
+                  const SizedBox(height: 28),
                   Row(children: [
                     Container(
-                      width: 45, height: 45,
-                      decoration: BoxDecoration(
-                        color: p.tealSoft,
-                        borderRadius: BorderRadius.circular(15)),
-                      child: Icon(Icons.health_and_safety_outlined,
-                        size: 23, color: p.forest)),
+                        width: 45,
+                        height: 45,
+                        decoration: BoxDecoration(
+                            color: p.tealSoft,
+                            borderRadius: BorderRadius.circular(15)),
+                        child: Icon(Icons.health_and_safety_outlined,
+                            size: 23, color: p.forest)),
                     const SizedBox(width: 13),
-                    Column(crossAxisAlignment: CrossAxisAlignment.start,
+                    Expanded(
+                        child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('MediSuivi', style: TextStyle(
-                          color: p.ink, fontSize: 20,
-                          fontWeight: FontWeight.w700)),
+                        Text('MediSuivi',
+                            style: TextStyle(
+                                color: p.ink,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700)),
                         const SizedBox(height: 2),
-                        Text('ESPACE PRATICIEN', style: TextStyle(
-                          color: p.muted, fontSize: 10,
-                          fontWeight: FontWeight.w700, letterSpacing: 1.2)),
+                        Text('ESPACE PRATICIEN',
+                            style: TextStyle(
+                                color: p.muted,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.2)),
                       ],
-                    ),
+                    )),
                   ]),
-                  const SizedBox(height: 32),
+                  SizedBox(height: headlineGap),
                   Text(registering ? 'Créer votre compte' : 'Se connecter',
-                    style: TextStyle(color: p.ink, fontSize: 27,
-                      fontWeight: FontWeight.w700, letterSpacing: -.55)),
+                      style: TextStyle(
+                          color: p.ink,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -.55)),
                   const SizedBox(height: 8),
-                  Text(registering
-                      ? 'Renseignez vos informations pour accéder à MediSuivi.'
-                      : 'Retrouvez votre espace clinique.',
-                    style: TextStyle(color: p.muted,
-                      fontSize: 13.5, height: 1.5)),
-                  if (remoteSandbox) ...[
-                    const SizedBox(height: 10),
-                    Text('Bac à sable distant : comptes et dossiers '
-                      'strictement fictifs.',
-                      style: TextStyle(color: p.muted, fontSize: 12)),
-                    if (registering)
-                      Text('Utilisez demo-...@example.com et '
-                        'le code d’invitation privé.',
-                        style: TextStyle(color: p.muted, fontSize: 12)),
-                  ],
-                  const SizedBox(height: 22),
+                  Text(
+                      registering
+                          ? 'Renseignez vos informations pour accéder à MediSuivi.'
+                          : 'Retrouvez votre espace clinique.',
+                      style: TextStyle(
+                          color: p.muted, fontSize: 13.5, height: 1.5)),
+                  const SizedBox(height: 28),
                   Form(
                     key: form,
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(18, 20, 18, 19),
-                      decoration: BoxDecoration(
-                        color: p.surface,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: p.border)),
+                    child: AutofillGroup(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           if (registering) ...[
                             TextFormField(
-                              key: const Key('dev-register-first-name'),
-                              controller: firstName,
-                              textCapitalization: TextCapitalization.words,
-                              textInputAction: TextInputAction.next,
-                              decoration: const InputDecoration(
-                                labelText: 'Prénom',
-                                prefixIcon: Icon(Icons.person_outline_rounded)),
-                              validator: (value) =>
-                                  (value?.trim().isEmpty ?? true)
-                                      ? 'Prénom obligatoire' : null),
+                                style: const TextStyle(fontSize: 15),
+                                key: const Key('dev-register-first-name'),
+                                controller: firstName,
+                                textCapitalization: TextCapitalization.words,
+                                textInputAction: TextInputAction.next,
+                                decoration: const InputDecoration(
+                                    labelText: 'Prénom',
+                                    prefixIcon:
+                                        Icon(Icons.person_outline_rounded)),
+                                validator: (value) =>
+                                    (value?.trim().isEmpty ?? true)
+                                        ? 'Prénom obligatoire'
+                                        : null),
                             const SizedBox(height: 13),
                             TextFormField(
-                              key: const Key('dev-register-last-name'),
-                              controller: lastName,
-                              textInputAction: TextInputAction.next,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: const InputDecoration(
-                                labelText: 'Nom',
-                                prefixIcon: Icon(Icons.badge_outlined)),
-                              validator: (value) =>
-                                  (value?.trim().isEmpty ?? true)
-                                      ? 'Nom obligatoire' : null),
+                                style: const TextStyle(fontSize: 15),
+                                key: const Key('dev-register-last-name'),
+                                controller: lastName,
+                                textInputAction: TextInputAction.next,
+                                textCapitalization: TextCapitalization.words,
+                                decoration: const InputDecoration(
+                                    labelText: 'Nom',
+                                    prefixIcon: Icon(Icons.badge_outlined)),
+                                validator: (value) =>
+                                    (value?.trim().isEmpty ?? true)
+                                        ? 'Nom obligatoire'
+                                        : null),
                             const SizedBox(height: 13),
                           ],
                           TextFormField(
+                            style: const TextStyle(fontSize: 15),
                             key: const Key('dev-auth-email'),
                             controller: email,
                             keyboardType: TextInputType.emailAddress,
                             autofillHints: const [AutofillHints.email],
                             textInputAction: TextInputAction.next,
                             decoration: const InputDecoration(
-                              labelText: 'Adresse e-mail',
-                              prefixIcon: Icon(Icons.alternate_email_rounded)),
+                                labelText: 'Adresse e-mail',
+                                prefixIcon:
+                                    Icon(Icons.alternate_email_rounded)),
                             validator: (value) {
                               final text = value?.trim() ?? '';
                               return text.contains('@') && text.contains('.')
-                                ? null : 'Adresse e-mail invalide';
+                                  ? null
+                                  : 'Adresse e-mail invalide';
                             },
                           ),
                           const SizedBox(height: 13),
                           TextFormField(
+                            style: const TextStyle(fontSize: 15),
                             key: const Key('dev-auth-password'),
                             controller: password,
                             obscureText: !showPassword,
+                            autocorrect: false,
+                            enableSuggestions: false,
                             autofillHints: [
                               registering
-                                ? AutofillHints.newPassword
-                                : AutofillHints.password,
+                                  ? AutofillHints.newPassword
+                                  : AutofillHints.password,
                             ],
                             onFieldSubmitted: (_) => submit(),
                             decoration: InputDecoration(
                               labelText: 'Mot de passe',
-                              prefixIcon: const Icon(Icons.lock_outline_rounded),
+                              prefixIcon:
+                                  const Icon(Icons.lock_outline_rounded),
                               suffixIcon: IconButton(
                                 tooltip: showPassword
-                                  ? 'Masquer le mot de passe'
-                                  : 'Afficher le mot de passe',
+                                    ? 'Masquer le mot de passe'
+                                    : 'Afficher le mot de passe',
                                 icon: Icon(showPassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined),
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined),
                                 onPressed: () => setState(
-                                  () => showPassword = !showPassword),
+                                    () => showPassword = !showPassword),
                               ),
                             ),
                             validator: (value) =>
-                              (value?.length ?? 0) < (registering ? 12 : 1)
-                                ? registering
-                                  ? '12 caractères minimum'
-                                  : 'Mot de passe obligatoire'
-                                : null,
+                                (value?.length ?? 0) < (registering ? 12 : 1)
+                                    ? registering
+                                        ? '12 caractères minimum'
+                                        : 'Mot de passe obligatoire'
+                                    : null,
                           ),
                           if (registering && remoteSandbox) ...[
                             const SizedBox(height: 13),
                             TextFormField(
+                              style: const TextStyle(fontSize: 15),
                               key: const Key('sandbox-invite-code'),
                               controller: invitation,
                               obscureText: true,
                               enableSuggestions: false,
                               autocorrect: false,
                               decoration: const InputDecoration(
-                                labelText: 'Code d’invitation',
-                                prefixIcon: Icon(Icons.key_outlined)),
+                                  labelText: 'Code d’invitation',
+                                  prefixIcon: Icon(Icons.key_outlined)),
                               validator: (value) =>
                                   (value?.trim().length ?? 0) < 32
-                                    ? 'Code d’invitation requis'
-                                    : null,
+                                      ? 'Code d’invitation requis'
+                                      : null,
                             ),
                           ],
-                          if (!registering && widget.onForgotPassword != null && !remoteSandbox)
+                          if (!registering &&
+                              widget.onForgotPassword != null &&
+                              !remoteSandbox)
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
-                                key: const Key('dev-auth-forgot-password'),
-                                onPressed: busy ? null : widget.onForgotPassword,
-                                child: const Text('Mot de passe oublié ?')),
+                                  key: const Key('dev-auth-forgot-password'),
+                                  onPressed:
+                                      busy ? null : widget.onForgotPassword,
+                                  child: const Text('Mot de passe oublié ?')),
                             ),
                           if (error != null) ...[
                             const SizedBox(height: 13),
-                            Text(error!,
-                              key: const Key('dev-auth-error'),
-                              style: TextStyle(color: p.danger, fontSize: 12)),
+                            Semantics(
+                                liveRegion: true,
+                                child: Text(error!,
+                                    key: const Key('dev-auth-error'),
+                                    style: TextStyle(
+                                        color: p.danger, fontSize: 13))),
                           ],
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            height: 48,
+                          const SizedBox(height: 24),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 54),
                             child: FilledButton(
                               key: const Key('dev-auth-submit'),
                               onPressed: busy ? null : submit,
                               child: busy
-                                  ? const SizedBox(width: 19, height: 19,
+                                  ? const SizedBox(
+                                      width: 19,
+                                      height: 19,
                                       child: CircularProgressIndicator(
-                                        strokeWidth: 2))
+                                          strokeWidth: 2))
                                   : Text(registering
-                                      ? 'Créer mon compte' : 'Se connecter'),
+                                      ? 'Créer mon compte'
+                                      : 'Se connecter'),
                             ),
                           ),
                         ],
@@ -289,16 +316,8 @@ class _OriginalAccountAccessScreenState
                     onPressed: busy ? null : widget.onToggle,
                     child: Text(registering
                         ? 'Déjà inscrit ? Se connecter'
-                        : 'Créer un compte praticien'),
+                        : 'Créer un compte'),
                   ),
-                  const SizedBox(height: 18),
-                  Text(remoteSandbox
-                    ? 'Sandbox en ligne · Aucune donnée médicale réelle'
-                    : 'Version de test · Données fictives uniquement',
-                    key: const Key('dev-auth-warning'),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: p.muted, fontSize: 11.5, height: 1.5)),
                 ],
               ),
             ),

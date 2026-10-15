@@ -12,8 +12,11 @@ import 'dev_patient_detail.dart';
 /// originate only from the signed-in API session.
 class DevAuthScreen extends StatefulWidget {
   const DevAuthScreen({
-    super.key, required this.api, required this.isRegister,
-    required this.onAuthenticated, required this.onBack,
+    super.key,
+    required this.api,
+    required this.isRegister,
+    required this.onAuthenticated,
+    required this.onBack,
     required this.onToggle,
     this.onVerificationRequired,
     this.onForgotPassword,
@@ -59,8 +62,10 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
     try {
       final session = widget.isRegister
           ? await widget.api.createAccount(
-              email: _email.text, password: _password.text,
-              firstName: _first.text, lastName: _last.text)
+              email: _email.text,
+              password: _password.text,
+              firstName: _first.text,
+              lastName: _last.text)
           : await widget.api.signIn(_email.text, _password.text);
       if (mounted) widget.onAuthenticated(session);
     } on DevVerificationRequired catch (error) {
@@ -68,15 +73,16 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
         if (widget.onVerificationRequired != null) {
           widget.onVerificationRequired!(error.email);
         } else {
-          setState(() => _error = 'Vérifiez votre adresse e-mail avant de vous connecter.');
+          setState(() => _error =
+              'Vérifiez votre adresse e-mail avant de vous connecter.');
         }
       }
     } on DevApiException catch (error) {
       if (mounted) setState(() => _error = error.message);
     } catch (_) {
       if (mounted) {
-        setState(() =>
-          _error = 'Impossible de terminer l’opération. Réessayez.');
+        setState(
+            () => _error = 'Impossible de terminer l’opération. Réessayez.');
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -97,18 +103,22 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
       ),
       body: Stack(children: [
         Positioned(
-          top: 0, left: 0, right: 0, height: 240,
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 240,
           child: Stack(fit: StackFit.expand, children: [
             Image.asset(
               widget.isRegister
-                ? 'assets/images/onboarding/records.webp'
-                : 'assets/images/onboarding/privacy.webp',
+                  ? 'assets/images/onboarding/records.webp'
+                  : 'assets/images/onboarding/privacy.webp',
               fit: BoxFit.cover,
               filterQuality: FilterQuality.high,
               alignment: Alignment.topCenter,
               excludeFromSemantics: true,
             ),
-            DecoratedBox(decoration: BoxDecoration(
+            DecoratedBox(
+                decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -124,141 +134,158 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
             )),
           ]),
         ),
-        SafeArea(child: Center(child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 440),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 175, 24, 40),
-          child: Form(
-            key: _key,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('ESPACE PRATICIEN',
-                  style: TextStyle(color: p.forest,
-                    fontSize: 11.5, letterSpacing: 1.1,
-                    fontWeight: FontWeight.w700)),
-                const SizedBox(height: 10),
-                Text(widget.isRegister
-                    ? 'Créer votre compte' : 'Se connecter',
-                  style: TextStyle(color: p.ink, fontSize: 28,
-                    letterSpacing: -.45, height: 1.15,
-                    fontWeight: FontWeight.w700)),
-                const SizedBox(height: 10),
-                Text(widget.isRegister
-                    ? 'Votre espace personnel commence ici.'
-                    : 'Retrouvez votre espace et vos dossiers personnels.',
-                  style: TextStyle(color: p.muted,
-                    fontSize: 14, height: 1.48)),
-                const SizedBox(height: 22),
-                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Icon(Icons.info_outline_rounded, color: p.forest, size: 17),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(
-                    'Version de développement : comptes et patients fictifs '
-                    'uniquement. Ne saisissez aucune donnée médicale réelle.',
-                    key: const Key('dev-auth-warning'),
-                    style: TextStyle(color: p.muted, fontSize: 12.5,
-                      height: 1.38),
-                  )),
-                ]),
-                const SizedBox(height: 21),
-                if (widget.isRegister) ...[
-                  TextFormField(
-                    key: const Key('dev-register-first-name'),
-                    controller: _first,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(labelText: 'Prénom'),
-                    validator: (value) =>
-                      (value?.trim().isEmpty ?? true)
-                        ? 'Prénom obligatoire' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    key: const Key('dev-register-last-name'),
-                    controller: _last,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(labelText: 'Nom'),
-                    validator: (value) =>
-                      (value?.trim().isEmpty ?? true)
-                        ? 'Nom obligatoire' : null,
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                TextFormField(
-                  key: const Key('dev-auth-email'),
-                  controller: _email,
-                  textInputAction: TextInputAction.next,
-                  autofillHints: const [AutofillHints.email],
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Adresse e-mail'),
-                  validator: (value) {
-                    final email = value?.trim() ?? '';
-                    return email.contains('@') && email.contains('.')
-                      ? null : 'Adresse e-mail invalide';
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  key: const Key('dev-auth-password'),
-                  controller: _password,
-                  obscureText: !_showPassword,
-                  autofillHints: [
-                    widget.isRegister
-                      ? AutofillHints.newPassword : AutofillHints.password,
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Mot de passe',
-                    suffixIcon: IconButton(
-                      tooltip: _showPassword
-                          ? 'Masquer le mot de passe' : 'Afficher le mot de passe',
-                      onPressed: () =>
-                          setState(() => _showPassword = !_showPassword),
-                      icon: Icon(_showPassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined),
+        SafeArea(
+            child: Center(
+                child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 175, 24, 40),
+            child: Form(
+              key: _key,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('ESPACE PRATICIEN',
+                      style: TextStyle(
+                          color: p.forest,
+                          fontSize: 11.5,
+                          letterSpacing: 1.1,
+                          fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 10),
+                  Text(
+                      widget.isRegister ? 'Créer votre compte' : 'Se connecter',
+                      style: TextStyle(
+                          color: p.ink,
+                          fontSize: 28,
+                          letterSpacing: -.45,
+                          height: 1.15,
+                          fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 10),
+                  Text(
+                      widget.isRegister
+                          ? 'Votre espace personnel commence ici.'
+                          : 'Retrouvez votre espace et vos dossiers personnels.',
+                      style: TextStyle(
+                          color: p.muted, fontSize: 14, height: 1.48)),
+                  const SizedBox(height: 22),
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Icon(Icons.info_outline_rounded, color: p.forest, size: 17),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(
+                      'Utilisez uniquement des identités et des données fictives.',
+                      key: const Key('dev-auth-warning'),
+                      style: TextStyle(
+                          color: p.muted, fontSize: 12.5, height: 1.38),
+                    )),
+                  ]),
+                  const SizedBox(height: 21),
+                  if (widget.isRegister) ...[
+                    TextFormField(
+                      key: const Key('dev-register-first-name'),
+                      controller: _first,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(labelText: 'Prénom'),
+                      validator: (value) => (value?.trim().isEmpty ?? true)
+                          ? 'Prénom obligatoire'
+                          : null,
                     ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      key: const Key('dev-register-last-name'),
+                      controller: _last,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(labelText: 'Nom'),
+                      validator: (value) => (value?.trim().isEmpty ?? true)
+                          ? 'Nom obligatoire'
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  TextFormField(
+                    key: const Key('dev-auth-email'),
+                    controller: _email,
+                    textInputAction: TextInputAction.next,
+                    autofillHints: const [AutofillHints.email],
+                    keyboardType: TextInputType.emailAddress,
+                    decoration:
+                        const InputDecoration(labelText: 'Adresse e-mail'),
+                    validator: (value) {
+                      final email = value?.trim() ?? '';
+                      return email.contains('@') && email.contains('.')
+                          ? null
+                          : 'Adresse e-mail invalide';
+                    },
                   ),
-                  validator: (value) => (value?.length ?? 0) <
-                          (widget.isRegister ? 12 : 1)
-                    ? widget.isRegister
-                      ? '12 caractères minimum' : 'Mot de passe obligatoire'
-                    : null,
-                  onFieldSubmitted: (_) => _submit(),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 15),
-                  Text(_error!, key: const Key('dev-auth-error'),
-                    style: TextStyle(color: p.danger, fontSize: 13)),
-                ],
-                const SizedBox(height: 23),
-                FilledButton(
-                  key: const Key('dev-auth-submit'),
-                  onPressed: _busy ? null : _submit,
-                  child: _busy
-                    ? const SizedBox(height: 19, width: 19,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : Text(widget.isRegister
-                        ? 'Créer un compte de test' : 'Se connecter'),
-                ),
-                if (!widget.isRegister && widget.onForgotPassword != null)
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: const Key('dev-auth-password'),
+                    controller: _password,
+                    obscureText: !_showPassword,
+                    autofillHints: [
+                      widget.isRegister
+                          ? AutofillHints.newPassword
+                          : AutofillHints.password,
+                    ],
+                    decoration: InputDecoration(
+                      labelText: 'Mot de passe',
+                      suffixIcon: IconButton(
+                        tooltip: _showPassword
+                            ? 'Masquer le mot de passe'
+                            : 'Afficher le mot de passe',
+                        onPressed: () =>
+                            setState(() => _showPassword = !_showPassword),
+                        icon: Icon(_showPassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined),
+                      ),
+                    ),
+                    validator: (value) =>
+                        (value?.length ?? 0) < (widget.isRegister ? 12 : 1)
+                            ? widget.isRegister
+                                ? '12 caractères minimum'
+                                : 'Mot de passe obligatoire'
+                            : null,
+                    onFieldSubmitted: (_) => _submit(),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 15),
+                    Text(_error!,
+                        key: const Key('dev-auth-error'),
+                        style: TextStyle(color: p.danger, fontSize: 13)),
+                  ],
+                  const SizedBox(height: 23),
+                  FilledButton(
+                    key: const Key('dev-auth-submit'),
+                    onPressed: _busy ? null : _submit,
+                    child: _busy
+                        ? const SizedBox(
+                            height: 19,
+                            width: 19,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : Text(widget.isRegister
+                            ? 'Créer un compte de test'
+                            : 'Se connecter'),
+                  ),
+                  if (!widget.isRegister && widget.onForgotPassword != null)
+                    TextButton(
+                      key: const Key('dev-auth-forgot-password'),
+                      onPressed: _busy ? null : widget.onForgotPassword,
+                      child: const Text('Mot de passe oublié ?'),
+                    ),
+                  const SizedBox(height: 12),
                   TextButton(
-                    key: const Key('dev-auth-forgot-password'),
-                    onPressed: _busy ? null : widget.onForgotPassword,
-                    child: const Text('Mot de passe oublié ?'),
+                    key: const Key('dev-auth-toggle'),
+                    onPressed: _busy ? null : widget.onToggle,
+                    child: Text(widget.isRegister
+                        ? 'Déjà inscrit ? Se connecter'
+                        : 'Pas encore de compte ? Inscription de test'),
                   ),
-                const SizedBox(height: 12),
-                TextButton(
-                  key: const Key('dev-auth-toggle'),
-                  onPressed: _busy ? null : widget.onToggle,
-                  child: Text(widget.isRegister
-                    ? 'Déjà inscrit ? Se connecter'
-                    : 'Pas encore de compte ? Inscription de test'),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ))),
+        ))),
       ]),
     );
   }
@@ -266,7 +293,9 @@ class _DevAuthScreenState extends State<DevAuthScreen> {
 
 class DevConnectedWorkspace extends StatefulWidget {
   const DevConnectedWorkspace({
-    super.key, required this.api, required this.session,
+    super.key,
+    required this.api,
+    required this.session,
     required this.onSignedOut,
   });
 
@@ -317,10 +346,12 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
         initial: _profile,
         avatar: _avatar,
         onChanged: (updated, bytes) {
-          if (mounted) setState(() {
-            _profile = updated;
-            _avatar = bytes;
-          });
+          if (mounted) {
+            setState(() {
+              _profile = updated;
+              _avatar = bytes;
+            });
+          }
         },
         onPasswordChanged: () {
           // Backend revoked every device; abandon profile & sensitive routes.
@@ -334,12 +365,15 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
   }
 
   void _reload() => setState(() {
-    _patients = widget.api.listPatients(widget.session);
-  });
+        _patients = widget.api.listPatients(widget.session);
+      });
 
   Future<void> _addSyntheticPatient() async {
     if (_working) return;
-    setState(() { _working = true; _error = null; });
+    setState(() {
+      _working = true;
+      _error = null;
+    });
     try {
       await widget.api.createSyntheticPatient(widget.session);
       if (mounted) _reload();
@@ -352,7 +386,10 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
 
   Future<void> _signOut({bool allDevices = false}) async {
     if (_working) return;
-    setState(() { _working = true; _error = null; });
+    setState(() {
+      _working = true;
+      _error = null;
+    });
     String? failure;
     try {
       if (allDevices) {
@@ -369,8 +406,8 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
       _avatar = null;
       if (mounted) {
         if (failure != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(failure)));
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(failure)));
         }
         widget.onSignedOut();
       }
@@ -384,7 +421,7 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
       builder: (dialogContext) => AlertDialog(
         title: const Text('Déconnecter tous les appareils ?'),
         content: const Text('Toutes les sessions de ce compte seront '
-          'révoquées, y compris sur vos autres appareils.'),
+            'révoquées, y compris sur vos autres appareils.'),
         actions: [
           TextButton(
             key: const Key('dev-session-cancel-all'),
@@ -429,8 +466,9 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
               backgroundColor: p.tealSoft,
               foregroundImage: _avatar == null ? null : MemoryImage(_avatar!),
               child: _avatar == null
-                ? Icon(Icons.person_outline_rounded, color: p.forest, size: 20)
-                : null,
+                  ? Icon(Icons.person_outline_rounded,
+                      color: p.forest, size: 20)
+                  : null,
             ),
           ),
           PopupMenuButton<String>(
@@ -444,8 +482,9 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 child: Row(children: [
                   Icon(Icons.switch_account_outlined, size: 20),
                   SizedBox(width: 10),
-                  Expanded(child: Text('Changer de praticien',
-                    softWrap: true, maxLines: 2)),
+                  Expanded(
+                      child: Text('Changer de praticien',
+                          softWrap: true, maxLines: 2)),
                 ]),
               ),
               PopupMenuItem<String>(
@@ -453,8 +492,9 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 child: Row(children: [
                   Icon(Icons.phonelink_erase_rounded, size: 20),
                   SizedBox(width: 10),
-                  Expanded(child: Text('Déconnecter tous les appareils',
-                    softWrap: true, maxLines: 2)),
+                  Expanded(
+                      child: Text('Déconnecter tous les appareils',
+                          softWrap: true, maxLines: 2)),
                 ]),
               ),
             ],
@@ -468,37 +508,49 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
           ),
         ],
       ),
-      body: SafeArea(child: Center(child: ConstrainedBox(
+      body: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 560),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(22, 16, 22, 38),
           children: [
             Text('ESPACE PERSONNEL',
-              style: TextStyle(color: p.forest,
-                letterSpacing: 1.2, fontWeight: FontWeight.w700, fontSize: 11)),
+                style: TextStyle(
+                    color: p.forest,
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11)),
             const SizedBox(height: 10),
             Text(_profile.displayName,
-              key: const Key('dev-workspace-name'),
-              style: TextStyle(color: p.ink,
-                height: 1.18, fontWeight: FontWeight.w700, fontSize: 25)),
+                key: const Key('dev-workspace-name'),
+                style: TextStyle(
+                    color: p.ink,
+                    height: 1.18,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 25)),
             const SizedBox(height: 5),
-            Text(_profile.specialty.isNotEmpty
-                ? _profile.specialty
-                : _profile.email,
-              style: TextStyle(color: p.muted, fontSize: 13)),
+            Text(
+                _profile.specialty.isNotEmpty
+                    ? _profile.specialty
+                    : _profile.email,
+                style: TextStyle(color: p.muted, fontSize: 13)),
             const SizedBox(height: 24),
             Row(children: [
-              Expanded(child: Text('Dossiers du compte',
-                style: TextStyle(color: p.ink, fontSize: 18,
-                  fontWeight: FontWeight.w700))),
+              Expanded(
+                  child: Text('Dossiers du compte',
+                      style: TextStyle(
+                          color: p.ink,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700))),
               IconButton(
-                tooltip: 'Actualiser les dossiers',
-                onPressed: _reload,
-                icon: const Icon(Icons.refresh_rounded)),
+                  tooltip: 'Actualiser les dossiers',
+                  onPressed: _reload,
+                  icon: const Icon(Icons.refresh_rounded)),
             ]),
             const SizedBox(height: 6),
             Text('Les dossiers affichés appartiennent uniquement à ce compte.',
-              style: TextStyle(color: p.muted, fontSize: 12.5)),
+                style: TextStyle(color: p.muted, fontSize: 12.5)),
             const SizedBox(height: 16),
             TextField(
               key: const Key('dev-search-patients'),
@@ -508,14 +560,16 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
               decoration: InputDecoration(
                 hintText: 'Rechercher un dossier fictif',
                 prefixIcon: const Icon(Icons.search_rounded, size: 20),
-                suffixIcon: _search.text.isEmpty ? null : IconButton(
-                  tooltip: 'Effacer la recherche',
-                  onPressed: () {
-                    _search.clear();
-                    setState(() {});
-                  },
-                  icon: const Icon(Icons.close_rounded, size: 18),
-                ),
+                suffixIcon: _search.text.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Effacer la recherche',
+                        onPressed: () {
+                          _search.clear();
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.close_rounded, size: 18),
+                      ),
               ),
             ),
             const SizedBox(height: 16),
@@ -531,8 +585,8 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Impossible de charger les dossiers de ce compte.',
-                        key: const Key('dev-patients-error'),
-                        style: TextStyle(color: p.danger, fontSize: 13)),
+                          key: const Key('dev-patients-error'),
+                          style: TextStyle(color: p.danger, fontSize: 13)),
                       TextButton.icon(
                         key: const Key('dev-patients-retry'),
                         onPressed: _reload,
@@ -544,16 +598,18 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                 }
                 final source = snapshot.data ?? const <DevPatient>[];
                 final term = _search.text.trim().toLowerCase();
-                final patients = source.where((p) =>
-                  p.displayName.toLowerCase().contains(term)).toList();
+                final patients = source
+                    .where((p) => p.displayName.toLowerCase().contains(term))
+                    .toList();
                 if (patients.isEmpty) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    child: Text(source.isEmpty
-                        ? 'Aucun patient fictif dans ce compte.'
-                        : 'Aucun dossier fictif ne correspond à cette recherche.',
-                      key: const Key('dev-patients-empty'),
-                      style: TextStyle(color: p.muted, fontSize: 14)),
+                    child: Text(
+                        source.isEmpty
+                            ? 'Aucun patient fictif dans ce compte.'
+                            : 'Aucun dossier fictif ne correspond à cette recherche.',
+                        key: const Key('dev-patients-empty'),
+                        style: TextStyle(color: p.muted, fontSize: 14)),
                   );
                 }
                 return Column(children: [
@@ -562,7 +618,7 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Text('${patients.length} dossier(s) fictif(s)',
-                        style: TextStyle(color: p.muted, fontSize: 12)),
+                          style: TextStyle(color: p.muted, fontSize: 12)),
                     ),
                   ),
                   for (final patient in patients)
@@ -577,29 +633,34 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
                         ),
                         child: InkWell(
                           key: Key('dev-open-patient-${patient.id}'),
-                          onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute<void>(builder: (_) =>
-                              DevPatientDetail(
-                                api: widget.api,
-                                session: widget.session,
-                                patient: patient,
-                              ))),
+                          onTap: () => Navigator.of(context)
+                              .push(MaterialPageRoute<void>(
+                                  builder: (_) => DevPatientDetail(
+                                        api: widget.api,
+                                        session: widget.session,
+                                        patient: patient,
+                                      ))),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 13, vertical: 16),
+                                horizontal: 13, vertical: 16),
                             child: Row(children: [
                               Icon(Icons.folder_shared_outlined,
-                                color: p.forest, size: 19),
+                                  color: p.forest, size: 19),
                               const SizedBox(width: 12),
-                              Expanded(child: Text(patient.displayName,
-                                maxLines: 2, overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: p.ink,
-                                  fontSize: 14.5, fontWeight: FontWeight.w600))),
+                              Expanded(
+                                  child: Text(patient.displayName,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          color: p.ink,
+                                          fontSize: 14.5,
+                                          fontWeight: FontWeight.w600))),
                               Text('${patient.age} ans',
-                                style: TextStyle(color: p.muted, fontSize: 12.5)),
+                                  style: TextStyle(
+                                      color: p.muted, fontSize: 12.5)),
                               const SizedBox(width: 5),
                               Icon(Icons.chevron_right_rounded,
-                                color: p.muted, size: 19),
+                                  color: p.muted, size: 19),
                             ]),
                           ),
                         ),
@@ -617,14 +678,10 @@ class _DevConnectedWorkspaceState extends State<DevConnectedWorkspace> {
             ),
             if (_error != null) ...[
               const SizedBox(height: 14),
-              Text(_error!, key: const Key('dev-workspace-error'),
-                style: TextStyle(color: p.danger, fontSize: 13)),
+              Text(_error!,
+                  key: const Key('dev-workspace-error'),
+                  style: TextStyle(color: p.danger, fontSize: 13)),
             ],
-            const SizedBox(height: 21),
-            Text('Environnement de développement · patients fictifs uniquement. '
-              'Les fonctionnalités cliniques complètes restent en validation.',
-              style: TextStyle(color: p.muted, fontSize: 12.5,
-                height: 1.5)),
           ],
         ),
       ))),

@@ -40,7 +40,10 @@ class _DevEmailVerificationScreenState
       setState(() => _message = 'Saisissez les 12 chiffres du code.');
       return;
     }
-    setState(() { _busy = true; _message = null; });
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
     try {
       await widget.api.verifyEmail(widget.email, _code.text);
       if (mounted) widget.onVerified();
@@ -57,11 +60,16 @@ class _DevEmailVerificationScreenState
 
   Future<void> _resend() async {
     if (_busy) return;
-    setState(() { _busy = true; _message = null; });
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
     try {
       await widget.api.resendEmailCode(widget.email);
-      if (mounted) setState(() => _message =
-        'Si nécessaire, un nouveau code sera envoyé.');
+      if (mounted) {
+        setState(
+            () => _message = 'Si nécessaire, un nouveau code sera envoyé.');
+      }
     } on DevApiException catch (error) {
       if (mounted) setState(() => _message = error.message);
     } finally {
@@ -81,21 +89,23 @@ class _DevEmailVerificationScreenState
           icon: const Icon(Icons.arrow_back_rounded),
         ),
       ),
-      body: SafeArea(child: Center(child: ConstrainedBox(
+      body: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 440),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 46, 24, 36),
           children: [
-            Icon(Icons.mark_email_read_outlined,
-              color: p.forest, size: 45),
+            Icon(Icons.mark_email_read_outlined, color: p.forest, size: 45),
             const SizedBox(height: 22),
             Text('Vérification de l’e-mail',
-              style: TextStyle(color: p.ink,
-                fontWeight: FontWeight.w700, fontSize: 25)),
+                style: TextStyle(
+                    color: p.ink, fontWeight: FontWeight.w700, fontSize: 25)),
             const SizedBox(height: 12),
-            Text('Saisissez le code de 12 chiffres envoyé à '
-              '${widget.email}. Il expire après 30 minutes.',
-              style: TextStyle(color: p.muted, fontSize: 14, height: 1.45)),
+            Text(
+                'Saisissez le code de 12 chiffres envoyé à '
+                '${widget.email}. Il expire après 30 minutes.',
+                style: TextStyle(color: p.muted, fontSize: 14, height: 1.45)),
             const SizedBox(height: 28),
             TextField(
               key: const Key('dev-email-code'),
@@ -112,8 +122,9 @@ class _DevEmailVerificationScreenState
             ),
             if (_message != null) ...[
               const SizedBox(height: 12),
-              Text(_message!, key: const Key('dev-email-feedback'),
-                style: TextStyle(color: p.muted, fontSize: 13)),
+              Text(_message!,
+                  key: const Key('dev-email-feedback'),
+                  style: TextStyle(color: p.muted, fontSize: 13)),
             ],
             const SizedBox(height: 25),
             FilledButton(
@@ -126,9 +137,6 @@ class _DevEmailVerificationScreenState
               onPressed: _busy ? null : _resend,
               child: const Text('Renvoyer le code'),
             ),
-            const SizedBox(height: 15),
-            Text('Espace de développement : comptes fictifs uniquement.',
-              style: TextStyle(color: p.muted, fontSize: 12)),
           ],
         ),
       ))),
@@ -154,8 +162,7 @@ class DevPasswordRecoveryScreen extends StatefulWidget {
       _DevPasswordRecoveryScreenState();
 }
 
-class _DevPasswordRecoveryScreenState
-    extends State<DevPasswordRecoveryScreen> {
+class _DevPasswordRecoveryScreenState extends State<DevPasswordRecoveryScreen> {
   final _email = TextEditingController();
   final _code = TextEditingController();
   final _password = TextEditingController();
@@ -173,12 +180,14 @@ class _DevPasswordRecoveryScreenState
   }
 
   Future<void> _requestCode() async {
-    if (_busy || !_email.text.contains('@') ||
-        !_email.text.contains('.')) {
+    if (_busy || !_email.text.contains('@') || !_email.text.contains('.')) {
       setState(() => _message = 'Adresse e-mail invalide.');
       return;
     }
-    setState(() { _busy = true; _message = null; });
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
     try {
       await widget.api.requestPasswordReset(_email.text);
       if (mounted) setState(() => _requested = true);
@@ -192,12 +201,16 @@ class _DevPasswordRecoveryScreenState
   Future<void> _reset() async {
     if (_busy) return;
     if (!RegExp(r'^[0-9]{12}$').hasMatch(_code.text.trim()) ||
-        _password.text.length < 12 || _password.text != _confirm.text) {
+        _password.text.length < 12 ||
+        _password.text != _confirm.text) {
       setState(() => _message =
-        'Vérifiez le code, le nouveau mot de passe et sa confirmation.');
+          'Vérifiez le code, le nouveau mot de passe et sa confirmation.');
       return;
     }
-    setState(() { _busy = true; _message = null; });
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
     try {
       await widget.api.resetForgottenPassword(
         email: _email.text,
@@ -208,8 +221,9 @@ class _DevPasswordRecoveryScreenState
     } on DevApiException catch (error) {
       if (mounted) setState(() => _message = error.message);
     } catch (_) {
-      if (mounted) setState(() =>
-        _message = 'Impossible de joindre le serveur.');
+      if (mounted) {
+        setState(() => _message = 'Impossible de joindre le serveur.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -227,25 +241,29 @@ class _DevPasswordRecoveryScreenState
           icon: const Icon(Icons.arrow_back_rounded),
         ),
       ),
-      body: SafeArea(child: Center(child: ConstrainedBox(
+      body: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 440),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 44, 24, 36),
           children: [
-            Icon(Icons.lock_reset_outlined,
-              size: 46, color: p.forest),
+            Icon(Icons.lock_reset_outlined, size: 46, color: p.forest),
             const SizedBox(height: 20),
-            Text(_requested ? 'Choisir un nouveau mot de passe'
-                            : 'Mot de passe oublié',
-              style: TextStyle(color: p.ink,
-                fontSize: 24, fontWeight: FontWeight.w700)),
+            Text(
+                _requested
+                    ? 'Choisir un nouveau mot de passe'
+                    : 'Mot de passe oublié',
+                style: TextStyle(
+                    color: p.ink, fontSize: 24, fontWeight: FontWeight.w700)),
             const SizedBox(height: 10),
-            Text(_requested
-                ? 'Si votre compte existe, utilisez le code reçu '
-                  'par e-mail. Il reste valable 15 minutes.'
-                : 'Un code de récupération sera envoyé si cette '
-                  'adresse est associée à un compte.',
-              style: TextStyle(color: p.muted, fontSize: 14, height: 1.5)),
+            Text(
+                _requested
+                    ? 'Si votre compte existe, utilisez le code reçu '
+                        'par e-mail. Il reste valable 15 minutes.'
+                    : 'Un code de récupération sera envoyé si cette '
+                        'adresse est associée à un compte.',
+                style: TextStyle(color: p.muted, fontSize: 14, height: 1.5)),
             const SizedBox(height: 26),
             TextField(
               key: const Key('dev-reset-email'),
@@ -263,7 +281,7 @@ class _DevPasswordRecoveryScreenState
                 maxLength: 12,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Code de récupération', counterText: ''),
+                    labelText: 'Code de récupération', counterText: ''),
               ),
               const SizedBox(height: 13),
               TextField(
@@ -272,7 +290,7 @@ class _DevPasswordRecoveryScreenState
                 obscureText: true,
                 autofillHints: const [AutofillHints.newPassword],
                 decoration: const InputDecoration(
-                  labelText: 'Nouveau mot de passe (12 caractères minimum)'),
+                    labelText: 'Nouveau mot de passe (12 caractères minimum)'),
               ),
               const SizedBox(height: 13),
               TextField(
@@ -280,33 +298,33 @@ class _DevPasswordRecoveryScreenState
                 controller: _confirm,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  labelText: 'Confirmer le mot de passe'),
+                    labelText: 'Confirmer le mot de passe'),
               ),
             ],
             if (_message != null) ...[
               const SizedBox(height: 14),
-              Text(_message!, key: const Key('dev-reset-feedback'),
-                style: TextStyle(color: p.muted, fontSize: 13)),
+              Text(_message!,
+                  key: const Key('dev-reset-feedback'),
+                  style: TextStyle(color: p.muted, fontSize: 13)),
             ],
             const SizedBox(height: 23),
             FilledButton(
               key: const Key('dev-reset-submit'),
               onPressed: _busy ? null : (_requested ? _reset : _requestCode),
               child: Text(_requested
-                  ? 'Réinitialiser le mot de passe' : 'Recevoir mon code'),
+                  ? 'Réinitialiser le mot de passe'
+                  : 'Recevoir mon code'),
             ),
             if (_requested)
               TextButton(
-                key: const Key('dev-reset-resend'),
-                onPressed: _busy ? null : () async {
-                  setState(() => _requested = false);
-                  await _requestCode();
-                },
-                child: const Text('Demander un nouveau code')),
-            const SizedBox(height: 17),
-            Text('Environnement de développement. '
-              'Ne saisissez aucune donnée de santé réelle.',
-              style: TextStyle(color: p.muted, fontSize: 12)),
+                  key: const Key('dev-reset-resend'),
+                  onPressed: _busy
+                      ? null
+                      : () async {
+                          setState(() => _requested = false);
+                          await _requestCode();
+                        },
+                  child: const Text('Demander un nouveau code')),
           ],
         ),
       ))),
