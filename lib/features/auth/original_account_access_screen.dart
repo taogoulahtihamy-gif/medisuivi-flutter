@@ -38,6 +38,8 @@ class _OriginalAccountAccessScreenState
   final firstName = TextEditingController();
   final lastName = TextEditingController();
   final invitation = TextEditingController();
+  static const publicSignup =
+      bool.fromEnvironment('MEDISUIVI_PUBLIC_SIGNUP', defaultValue: false);
   static const remoteSandbox =
       bool.fromEnvironment('MEDISUIVI_REMOTE_SANDBOX', defaultValue: false);
   bool busy = false;
@@ -67,7 +69,7 @@ class _OriginalAccountAccessScreenState
               password: password.text,
               firstName: firstName.text,
               lastName: lastName.text,
-              inviteCode: remoteSandbox ? invitation.text : '')
+              inviteCode: remoteSandbox && !publicSignup ? invitation.text : '')
           : await widget.api.signIn(email.text, password.text);
       if (mounted) widget.onAuthenticated(session);
     } on DevVerificationRequired catch (exception) {
@@ -251,7 +253,7 @@ class _OriginalAccountAccessScreenState
                                         : 'Mot de passe obligatoire'
                                     : null,
                           ),
-                          if (registering && remoteSandbox) ...[
+                          if (registering && remoteSandbox && !publicSignup) ...[
                             const SizedBox(height: 13),
                             TextFormField(
                               style: const TextStyle(fontSize: 15),
@@ -271,7 +273,7 @@ class _OriginalAccountAccessScreenState
                           ],
                           if (!registering &&
                               widget.onForgotPassword != null &&
-                              !remoteSandbox)
+                              (!remoteSandbox || publicSignup))
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
