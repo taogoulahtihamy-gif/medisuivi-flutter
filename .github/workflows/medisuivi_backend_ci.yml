@@ -46,7 +46,7 @@ jobs:
       - name: Test fail-closed config and two-account isolation
         run: python -m pytest tests/test_auth_isolation.py tests/test_clinical_isolation.py tests/test_private_profile.py tests/test_sessions_rotation.py tests/test_login_throttling.py tests/test_password_change.py tests/test_email_challenges.py -q
       - name: Sandbox and Vercel build guards
-        run: python -m pytest tests/test_p50_remote_sandbox.py tests/test_p50_vercel_build_guard.py -q
+        run: python -m pytest tests/test_p50_vercel_build_guard.py -q
       - name: Python compile check
         run: python -m compileall -q app scripts
   postgres-isolation:
@@ -86,3 +86,12 @@ jobs:
         run: python -m alembic upgrade head
       - name: Check migration and prevent cross-account clinical operations
         run: python -m pytest tests/test_postgres_isolation.py tests/test_postgres_clinical_roundtrip.py tests/test_p45_clinical_owner_session.py tests/test_p49_original_clinical_fields.py -q
+      - name: Invitation-only sandbox on disposable PostgreSQL
+        env:
+          APP_ENV: sandbox
+          APP_PUBLIC_WEB_ORIGIN: https://medisuivi-ci.invalid
+          APP_SANDBOX_INVITE_CODE: p53-ci-only-synthetic-invitation-not-for-deployment
+          APP_SANDBOX_WRITES_ENABLED: "true"
+          APP_SANDBOX_REGISTRATION_ENABLED: "true"
+          APP_ENABLE_EMAIL_AUTH: "false"
+        run: python -m pytest tests/test_p50_remote_sandbox.py -q
