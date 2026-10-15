@@ -50,6 +50,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
 
   Future<void> save() async {
     if (_saving || !(form.currentState?.validate() ?? false)) return;
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _saving = true);
     try {
       await context.store.addPatient(
@@ -256,9 +257,9 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                       context.dependOnInheritedWidgetOfExactType<
                                   ConnectedClinicalScope>() !=
                               null
-                          ? 'Utilisez uniquement des identités et des données fictives.'
+                          ? 'Environnement de test : données fictives uniquement.'
                           : kIsWeb
-                              ? 'Utilisez uniquement des identités et des données fictives.'
+                              ? 'Environnement de test : données fictives uniquement.'
                               : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
