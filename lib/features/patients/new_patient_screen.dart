@@ -235,6 +235,22 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                             maxLines: 3),
                       ]),
                     ),
+                    const SizedBox(height: 18),
+                    // Also expose the save action inside the scrollable form.
+                    // This remains reachable when Android hides the bottom bar
+                    // while the soft keyboard is open.
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        key: const Key('patient-save-inline'),
+                        onPressed: _saving ? null : save,
+                        icon: const Icon(Icons.check_rounded),
+                        label: Text(_saving
+                            ? 'Enregistrement…'
+                            : 'Enregistrer le patient'),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       context.dependOnInheritedWidgetOfExactType<
@@ -266,6 +282,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                   width: double.infinity,
                   height: 46,
                   child: ElevatedButton.icon(
+                    key: const Key('patient-save-bottom'),
                     onPressed: _saving ? null : save,
                     icon: const Icon(Icons.check_rounded),
                     label: Text(
