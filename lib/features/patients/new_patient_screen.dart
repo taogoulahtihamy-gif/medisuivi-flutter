@@ -141,8 +141,8 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                                   context.dependOnInheritedWidgetOfExactType<
                                               ConnectedClinicalScope>() !=
                                           null
-                                      ? 'Ex. PATIENT FICTIF A'
-                                      : 'Ex. Aminata Diallo',
+                                      ? 'Nom complet du patient'
+                                      : 'Nom complet du patient',
                             ),
                             validator: (v) => (v?.trim().length ?? 0) < 2
                                 ? 'Saisissez au moins deux caractères.'
@@ -257,7 +257,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                       context.dependOnInheritedWidgetOfExactType<
                                   ConnectedClinicalScope>() !=
                               null
-                          ? 'Environnement de test : données fictives uniquement.'
+                          ? 'Enregistrement sécurisé du dossier.'
                           : kIsWeb
                               ? 'Environnement de test : données fictives uniquement.'
                               : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
