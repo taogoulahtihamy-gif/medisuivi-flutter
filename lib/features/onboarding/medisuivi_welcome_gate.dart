@@ -965,7 +965,7 @@ class _AccessChoice extends StatelessWidget {
                         letterSpacing: -.8,
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
                     Text(
                       'Dossiers et bilans au même endroit.',
                       style: TextStyle(
@@ -974,7 +974,7 @@ class _AccessChoice extends StatelessWidget {
                         height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 42),
+                    const SizedBox(height: 12),
                     FilledButton(
                       key: const Key('welcome-login'),
                       onPressed: onSignIn,
