@@ -878,13 +878,14 @@ class _OnboardSecondaryButton extends StatelessWidget {
 }
 
 class _AccessChoice extends StatelessWidget {
-  const _AccessChoice(
-      {super.key,
-      required this.isWebDemo,
-      required this.onCreate,
-      required this.onSignIn,
-      required this.onLocalAccess,
-      required this.allowLocalAccess});
+  const _AccessChoice({
+    super.key,
+    required this.isWebDemo,
+    required this.onCreate,
+    required this.onSignIn,
+    required this.onLocalAccess,
+    required this.allowLocalAccess,
+  });
 
   final bool isWebDemo;
   final bool allowLocalAccess;
@@ -898,96 +899,118 @@ class _AccessChoice extends StatelessWidget {
     return Scaffold(
       backgroundColor: p.canvas,
       body: SafeArea(
-          child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-          child: Center(
+        child: LayoutBuilder(
+          builder: (context, viewport) => SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+            child: Center(
               child: ConstrainedBox(
-            constraints: BoxConstraints(
-                maxWidth: 470,
-                minHeight:
-                    (constraints.maxHeight - 48).clamp(0, double.infinity)),
-            child: IntrinsicHeight(
+                constraints: const BoxConstraints(maxWidth: 440),
                 child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(children: [
-                  Container(
-                    key: const Key('welcome-clinical-brand'),
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                        color: p.tealSoft,
-                        borderRadius: BorderRadius.circular(15)),
-                    child: Icon(Icons.health_and_safety_outlined,
-                        color: p.forest, size: 25),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Text('MediSuivi',
-                            style: TextStyle(
-                                color: p.ink,
-                                fontSize: 21,
-                                fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 3),
-                        Text('ESPACE PRATICIEN',
-                            style: TextStyle(
-                                color: p.muted,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.15)),
-                      ])),
-                ]),
-                const Spacer(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
                       children: [
-                        Text('Votre espace clinique',
-                            style: TextStyle(
-                                color: p.ink,
-                                fontSize: 27,
-                                height: 1.2,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -.6)),
-                        const SizedBox(height: 12),
-                        Text('Dossiers patients et suivi au quotidien.',
-                            style: TextStyle(
-                                color: p.muted, fontSize: 15, height: 1.5)),
-                      ]),
+                        Container(
+                          key: const Key('welcome-clinical-brand'),
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: p.tealSoft,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Icon(
+                            Icons.health_and_safety_outlined,
+                            color: p.forest,
+                            size: 25,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'MediSuivi',
+                                style: TextStyle(
+                                  color: p.ink,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                'ESPACE PRATICIEN',
+                                style: TextStyle(
+                                  color: p.muted,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: (viewport.maxHeight * .11).clamp(42.0, 82.0),
+                    ),
+                    Text(
+                      'Vos patients,\nvos suivis.',
+                      style: TextStyle(
+                        color: p.ink,
+                        fontSize: 34,
+                        height: 1.13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -.8,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      'Dossiers et bilans au même endroit.',
+                      style: TextStyle(
+                        color: p.muted,
+                        fontSize: 15,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 42),
+                    FilledButton(
+                      key: const Key('welcome-login'),
+                      onPressed: onSignIn,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(56),
+                      ),
+                      child: const Text('Se connecter'),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton(
+                      key: const Key('welcome-create'),
+                      onPressed: onCreate,
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(56),
+                      ),
+                      child: const Text('Créer un compte'),
+                    ),
+                    if (allowLocalAccess) ...[
+                      const SizedBox(height: 12),
+                      TextButton(
+                        key: const Key('welcome-demo'),
+                        onPressed: onLocalAccess,
+                        child: Text(
+                          isWebDemo
+                              ? 'Explorer la démonstration'
+                              : 'Ouvrir les dossiers locaux',
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-                const Spacer(flex: 2),
-                FilledButton(
-                    key: const Key('welcome-login'),
-                    onPressed: onSignIn,
-                    style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52)),
-                    child: const Text('Se connecter')),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                    key: const Key('welcome-create'),
-                    onPressed: onCreate,
-                    style: OutlinedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(52)),
-                    child: const Text('Créer un compte')),
-                if (allowLocalAccess) ...[
-                  const SizedBox(height: 12),
-                  TextButton(
-                      key: const Key('welcome-demo'),
-                      onPressed: onLocalAccess,
-                      child: Text(isWebDemo
-                          ? 'Explorer la démonstration'
-                          : 'Ouvrir les dossiers locaux')),
-                ],
-              ],
-            )),
-          )),
+              ),
+            ),
+          ),
         ),
-      )),
+      ),
     );
   }
 }
