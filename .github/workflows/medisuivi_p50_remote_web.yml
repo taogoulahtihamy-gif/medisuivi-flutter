@@ -3,7 +3,7 @@ name: MediSuivi P5.0 public HTTPS Web build
 on:
   push:
     branches:
-      - feat/medisuivi-p50-remote-web-android-sandbox
+      - feat/medisuivi-p50-vercel-api-neon
     paths:
       - "lib/**"
       - "web/**"
@@ -26,11 +26,11 @@ permissions:
 
 jobs:
   web-build:
-    name: Compile original Flutter UI for public Render HTTPS API
+    name: Compile original Flutter UI for public Vercel HTTPS API
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
-      MEDISUIVI_API_BASE_URL: https://medisuivi-api-staging.onrender.com
+      MEDISUIVI_API_BASE_URL: https://medisuivi-api-staging.vercel.app
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2

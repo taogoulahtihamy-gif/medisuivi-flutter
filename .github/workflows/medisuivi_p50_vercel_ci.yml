@@ -1,0 +1,65 @@
+name: MediSuivi P5.0 Vercel / Neon deploy guard
+
+on:
+  push:
+    branches:
+      - feat/medisuivi-p50-vercel-api-neon
+    paths:
+      - "backend/**"
+      - ".github/workflows/medisuivi_p50_vercel_ci.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/medisuivi_p50_vercel_ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  vercel-guard:
+    name: Verify secure FastAPI Vercel entrypoint and Neon-only migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend requirements
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Validate Vercel project configuration
+        working-directory: backend
+        run: |
+          python - <<'PY'
+          import json, tomllib
+          with open("pyproject.toml", "rb") as file:
+              metadata = tomllib.load(file)
+          assert metadata["project"]["name"] == "medisuivi-api-staging"
+          assert metadata["project"]["requires-python"] == "==3.12.*"
+          requirements = [
+              line.strip()
+              for line in open("requirements.txt", encoding="utf-8")
+              if line.strip() and not line.startswith("#")
+          ]
+          assert metadata["project"]["dependencies"] == requirements
+          assert metadata["tool"]["vercel"]["entrypoint"] == "index:app"
+          assert metadata["tool"]["vercel"]["scripts"]["build"] == (
+              "python scripts/prepare_vercel_sandbox.py"
+          )
+          config = json.load(open("vercel.json", encoding="utf-8"))
+          assert config["regions"] == ["fra1"]
+          assert config["framework"] == "fastapi"
+          assert open(".python-version", encoding="utf-8").read().strip() == "3.12"
+          PY
+      - name: Verify uv can resolve the Vercel Python project
+        working-directory: backend
+        run: |
+          pip install uv
+          uv lock --python 3.12
+      - name: Test fail-closed sandbox migration guard
+        working-directory: backend
+        run: python -m pytest -q tests/test_p50_vercel_build_guard.py
+      - name: Compile Python entrypoints
+        working-directory: backend
+        run: python -m py_compile index.py scripts/prepare_vercel_sandbox.py

@@ -1,0 +1,26 @@
+[project]
+name = "medisuivi-api-staging"
+version = "0.1.0"
+requires-python = "==3.12.*"
+# Vercel resolves Python dependencies from this project table via uv.
+# Keep the entries in sync with requirements.txt for Docker/local tests.
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
+  "pydantic[email]>=2.9,<3",
+  "argon2-cffi>=23.1,<26",
+  "PyJWT>=2.9,<3",
+  "pytest>=8,<10",
+  "httpx>=0.27,<1",
+  "alembic>=1.14,<2",
+  "Pillow>=11.2,<13",
+]
+
+[tool.vercel]
+entrypoint = "index:app"
+
+[tool.vercel.scripts]
+# Migrate only the dedicated Neon sandbox before making functions available.
+build = "python scripts/prepare_vercel_sandbox.py"

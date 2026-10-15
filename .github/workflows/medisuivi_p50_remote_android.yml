@@ -3,11 +3,13 @@ name: MediSuivi P5.0 remote HTTPS Android APK
 on:
   push:
     branches:
-      - feat/medisuivi-p50-remote-web-android-sandbox
+      - feat/medisuivi-p50-vercel-api-neon
     paths:
       - "android/**"
       - "lib/**"
+      - "integration_test/**"
       - "scripts/check_remote_api_url.py"
+      - "scripts/ci_p50_android_emulator.sh"
       - "scripts/check_android_p46_security.py"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
       - "pubspec.yaml"
@@ -16,7 +18,9 @@ on:
     paths:
       - "android/**"
       - "lib/**"
+      - "integration_test/**"
       - "scripts/check_remote_api_url.py"
+      - "scripts/ci_p50_android_emulator.sh"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
       - "pubspec.yaml"
       - "pubspec.lock"
@@ -26,12 +30,12 @@ permissions:
   contents: read
 
 env:
-  MEDISUIVI_API_BASE_URL: https://medisuivi-api-staging.onrender.com
+  MEDISUIVI_API_BASE_URL: https://medisuivi-api-staging.vercel.app
   MEDISUIVI_REMOTE_SANDBOX_APK: "true"
 
 jobs:
   connected-apk:
-    name: Android APK pointing to Render HTTPS (no USB tunnel)
+    name: Android APK pointing to Vercel HTTPS (no USB tunnel)
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -82,7 +86,75 @@ jobs:
             grep -q "package: name='com.example.medisuivi.sandbox'"
       - uses: actions/upload-artifact@v4
         with:
-          name: medisuivi-p50-render-connected-android-debug-apk
+          name: medisuivi-p50-vercel-connected-android-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
           if-no-files-found: error
+
+  android-emulator:
+    name: Android ${{ matrix.api-level }} HTTPS + original UI
+    needs: connected-apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      MEDISUIVI_ANDROID_API_LEVEL: ${{ matrix.api-level }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Android 10 (older devices) and Android 15 (modern devices).
+        api-level: [29, 35]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+      - name: Download the EXACT APK from the signed-debug build
+        uses: actions/download-artifact@v4
+        with:
+          name: medisuivi-p50-vercel-connected-android-debug-apk
+          path: downloaded-apk
+      - name: Verify HTTPS origin and resolve test dependencies
+        run: |
+          set -euo pipefail
+          python3 scripts/check_remote_api_url.py "$MEDISUIVI_API_BASE_URL"
+          flutter pub get
+      - name: Enable KVM acceleration for the GitHub-hosted emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -e /dev/kvm ]; then
+            echo "::error::/dev/kvm is unavailable: Android emulator cannot use hardware acceleration."
+            exit 1
+          fi
+          # GitHub ubuntu-latest runner has /dev/kvm but the runner account
+          # does not belong to the device's group by default.
+          sudo chmod a+rw /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          ls -l /dev/kvm
+
+      - name: Boot Android, install APK and call real Vercel API from device
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -accel on -no-snapshot -noaudio -no-boot-anim
+          # The action runs each line via /bin/sh; use a single Bash invocation.
+          script: bash scripts/ci_p50_android_emulator.sh
+      - name: Save emulator startup screenshot (synthetic only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: medisuivi-android-${{ matrix.api-level }}-screenshot
+          path: medisuivi-android-${{ matrix.api-level }}.png
+          retention-days: 3
+          if-no-files-found: ignore
