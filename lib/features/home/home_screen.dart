@@ -374,7 +374,7 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClinicalSectionHeading(title: 'À consulter'),
+        const ClinicalSectionHeading(title: 'À consulter'),
         const SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
