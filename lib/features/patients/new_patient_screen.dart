@@ -269,7 +269,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                     onPressed: _saving ? null : save,
                     icon: const Icon(Icons.check_rounded),
                     label: Text(
-                        _saving ? 'Enregistrement…' : 'Ajouter le patient'),
+                        _saving ? 'Enregistrement…' : 'Enregistrer le patient'),
                   ),
                 ),
               ),
