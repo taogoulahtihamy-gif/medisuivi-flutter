@@ -39,6 +39,7 @@ flutter:
   assets:
     - assets/illustrations/
     - assets/images/home_hero_hd.webp
+    - assets/images/home_hero_pro.webp
     - assets/images/onboarding/
   # Même typographie sur Web, Android, iOS et hors connexion.
   fonts:
