@@ -79,6 +79,12 @@ class _OriginalConnectedClinicalGateState
 
   @override
   Widget build(BuildContext context) {
+    if (_signingOut) {
+      return const Scaffold(
+        key: Key('account-signing-out'),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return FutureBuilder<void>(
       future: _ready,
       builder: (context, snapshot) {
@@ -91,7 +97,9 @@ class _OriginalConnectedClinicalGateState
         if (snapshot.hasError || !_store.active) {
           return Scaffold(
             key: const Key('original-connected-error'),
-            body: SafeArea(child: Center(child: Padding(
+            body: SafeArea(
+                child: Center(
+                    child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -102,9 +110,11 @@ class _OriginalConnectedClinicalGateState
                   const SizedBox(height: 15),
                   FilledButton(
                     key: const Key('original-connected-retry'),
-                    onPressed: _signingOut ? null : () {
-                      setState(() => _ready = _store.refresh());
-                    },
+                    onPressed: _signingOut
+                        ? null
+                        : () {
+                            setState(() => _ready = _store.refresh());
+                          },
                     child: const Text('Réessayer'),
                   ),
                   TextButton(
@@ -121,34 +131,30 @@ class _OriginalConnectedClinicalGateState
         // The original widgets continue to use context.store as before.
         return ConnectedClinicalScope(
           store: _store,
-          child: Stack(children: [
-            // Nested Navigator is essential: original patient/detail/profile
-            // screens use Navigator.push. Those routes must inherit the
-            // account-only ClinicalStore, never a shared DemoScope.
-            Navigator(
+          child: AccountSignOutScope(
+            onSignOut: _signOut,
+            child: Navigator(
               key: ObjectKey(widget.session),
               onGenerateRoute: (settings) => MaterialPageRoute<void>(
                 settings: settings,
                 builder: (_) => widget.child,
               ),
             ),
-            Positioned(
-              top: MediaQuery.paddingOf(context).top + 6,
-              right: 3,
-              child: Material(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(26),
-                child: IconButton(
-                  key: const Key('original-connected-signout'),
-                  tooltip: 'Changer de praticien',
-                  onPressed: _signingOut ? null : _signOut,
-                  icon: const Icon(Icons.logout_rounded, size: 18),
-                ),
-              ),
-            ),
-          ]),
+          ),
         );
       },
     );
   }
+}
+
+/// Carries only the action; credentials remain owned by the account boundary.
+class AccountSignOutScope extends InheritedWidget {
+  const AccountSignOutScope(
+      {super.key, required this.onSignOut, required super.child});
+  final VoidCallback onSignOut;
+  static AccountSignOutScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<AccountSignOutScope>();
+  @override
+  bool updateShouldNotify(AccountSignOutScope oldWidget) =>
+      onSignOut != oldWidget.onSignOut;
 }

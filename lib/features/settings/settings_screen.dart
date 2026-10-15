@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../auth/original_connected_clinical_gate.dart';
 import '../../app/theme_controller.dart';
 import '../../app/display_preferences.dart';
 import '../../core/state/store_context.dart';
@@ -31,8 +32,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _open(Widget page) => Navigator.of(context).push(
-    MaterialPageRoute<void>(builder: (_) => page),
-  );
+        MaterialPageRoute<void>(builder: (_) => page),
+      );
 
   void _editProfile(PractitionerPreview? profile) {
     if (profile == null) {
@@ -40,9 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: 'Mon profil',
         icon: Icons.person_outline_rounded,
         heading: 'Aucun profil configuré',
-        description:
-            'Pour modifier votre identité, passez par le parcours de '
-            'prévisualisation du praticien. Aucun compte distant n’est actif.',
+        description: 'Renseignez votre profil depuis l’accueil.',
       ));
       return;
     }
@@ -52,18 +51,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
       controller: profile,
       isWebDemo: kIsWeb,
       connectedAccount: connected != null,
-      onPersist: connected == null ? null : (draft) async {
-        if (!connected.active) {
-          throw StateError('Session fermée.');
-        }
-        await connected.api.updateProfile(
-          connected.session,
-          firstName: draft.firstName,
-          lastName: draft.lastName,
-          phone: draft.phone,
-          specialty: draft.specialty,
-        );
-      },
+      onPersist: connected == null
+          ? null
+          : (draft) async {
+              if (!connected.active) {
+                throw StateError('Session fermée.');
+              }
+              await connected.api.updateProfile(
+                connected.session,
+                firstName: draft.firstName,
+                lastName: draft.lastName,
+                phone: draft.phone,
+                specialty: draft.specialty,
+              );
+            },
       onSaved: () => Navigator.of(context).pop(),
     ));
   }
@@ -82,8 +83,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil et paramètres'),
-        titleTextStyle: TextStyle(color: p.ink, fontSize: 18.5,
-          fontWeight: FontWeight.w700),
+        titleTextStyle: TextStyle(
+            color: p.ink, fontSize: 18.5, fontWeight: FontWeight.w700),
         automaticallyImplyLeading: Navigator.of(context).canPop(),
       ),
       body: SafeArea(
@@ -99,7 +100,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   controller: practitioner,
                   onEdit: () => _editProfile(practitioner),
                 ),
-                if (!kIsWeb) ...[
+                if (!kIsWeb && !connected) ...[
                   const SizedBox(height: 21),
                   _OfflineOperationsSummary(future: _pendingSyncCountFuture),
                 ],
@@ -124,7 +125,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     key: const Key('settings-notifications'),
                     icon: Icons.notifications_none_rounded,
                     title: 'Notifications',
-                    subtitle: 'Vos alertes cliniques locales',
+                    subtitle: 'Vos alertes cliniques',
                     onTap: () => _open(const ClinicalAlertsScreen()),
                   ),
                   _SettingsLine(
@@ -132,9 +133,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.folder_copy_outlined,
                     title: 'Données et stockage',
                     subtitle: connected
-                      ? 'Dossiers fictifs du compte connecté'
-                      : kIsWeb ? 'Dossiers fictifs du navigateur'
-                        : 'Dossiers sur cet appareil',
+                        ? 'Vos dossiers'
+                        : kIsWeb
+                            ? 'Vos dossiers'
+                            : 'Dossiers sur cet appareil',
                     onTap: _openStorage,
                   ),
                   _SettingsLine(
@@ -142,8 +144,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     icon: Icons.cloud_off_outlined,
                     title: 'Synchronisation',
                     subtitle: connected
-                      ? 'Serveur connecté · Mode hors ligne non activé'
-                      : 'Non disponible pour le moment',
+                        ? 'Connexion requise'
+                        : 'Non disponible pour le moment',
                     onTap: _openSync,
                     last: true,
                   ),
@@ -179,16 +181,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     last: true,
                   ),
                 ]),
-                const SizedBox(height: 24),
-                Center(child: Text(
-                  connected
-                    ? 'Compte praticien connecté · Dossiers fictifs uniquement'
-                    : kIsWeb
-                      ? 'Profil de démonstration · Aucun compte distant'
-                      : 'Profil local de prévisualisation · Aucun compte distant',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: p.muted, fontSize: 11.5),
-                )),
+                if (AccountSignOutScope.maybeOf(context) case final scope?) ...[
+                  const SizedBox(height: 24),
+                  ListTile(
+                    key: const Key('settings-signout'),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14),
+                    leading: Icon(Icons.logout_rounded, color: p.danger),
+                    title: Text('Se déconnecter',
+                        style: TextStyle(color: p.danger, fontSize: 15)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    onTap: scope.onSignOut,
+                  ),
+                ],
               ],
             ),
           ),
@@ -208,7 +213,8 @@ class _ProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = Palette.of(context);
     final name = controller?.displayName.isNotEmpty == true
-        ? controller!.displayName : 'Votre profil';
+        ? controller!.displayName
+        : 'Votre profil';
     final specialty = controller?.specialty.trim() ?? '';
     final email = controller?.email.trim() ?? '';
     final photo = controller?.photo;
@@ -216,7 +222,8 @@ class _ProfileHeader extends StatelessWidget {
     return Column(children: [
       const SizedBox(height: 7),
       Semantics(
-        label: photo == null ? 'Photo de profil non définie'
+        label: photo == null
+            ? 'Photo de profil non définie'
             : 'Photo du profil praticien',
         child: GestureDetector(
           key: const Key('settings-avatar-edit'),
@@ -229,19 +236,23 @@ class _ProfileHeader extends StatelessWidget {
               foregroundImage: photo == null ? null : MemoryImage(photo),
               child: photo == null
                   ? Icon(Icons.person_outline_rounded,
-                      size: 43, color: p.forest) : null,
+                      size: 43, color: p.forest)
+                  : null,
             ),
             Positioned(
-              right: -3, bottom: -1,
+              right: -3,
+              bottom: -1,
               child: Container(
-                width: 29, height: 29,
+                width: 29,
+                height: 29,
                 decoration: BoxDecoration(
                   color: p.forest,
                   shape: BoxShape.circle,
                   border: Border.all(color: p.canvas, width: 2.5),
                 ),
-                child: Icon(Icons.edit_outlined, size: 13,
-                  color: p.isDark ? const Color(0xFF082017) : Colors.white),
+                child: Icon(Icons.edit_outlined,
+                    size: 13,
+                    color: p.isDark ? const Color(0xFF082017) : Colors.white),
               ),
             ),
           ]),
@@ -249,20 +260,25 @@ class _ProfileHeader extends StatelessWidget {
       ),
       const SizedBox(height: 14),
       Text(name,
-        key: const Key('settings-profile-name'),
-        textAlign: TextAlign.center,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700,
-          letterSpacing: -.55, color: p.ink)),
+          key: const Key('settings-profile-name'),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -.55,
+              color: p.ink)),
       const SizedBox(height: 4),
       Text(specialty.isNotEmpty ? specialty : 'Espace personnel MediSuivi',
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 13, color: p.muted)),
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13, color: p.muted)),
       if (email.isNotEmpty) ...[
         const SizedBox(height: 3),
-        Text(email, maxLines: 1, overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 12, color: p.muted)),
+        Text(email,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: p.muted)),
       ],
       const SizedBox(height: 13),
       OutlinedButton.icon(
@@ -275,7 +291,8 @@ class _ProfileHeader extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 8),
           side: BorderSide(color: p.border),
           foregroundColor: p.ink,
-          textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5),
+          textStyle:
+              const TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5),
         ),
       ),
     ]);
@@ -309,20 +326,22 @@ class _OfflineOperationsSummary extends StatelessWidget {
             border: Border.all(color: p.border),
             borderRadius: BorderRadius.circular(17),
           ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Modifications à envoyer',
-              style: TextStyle(color: p.ink, fontSize: 12.5,
-                fontWeight: FontWeight.w700)),
+                style: TextStyle(
+                    color: p.ink, fontSize: 12.5, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
-            Text(details, style: TextStyle(
-              color: p.muted, fontSize: 11.5, height: 1.4)),
+            Text(details,
+                style: TextStyle(color: p.muted, fontSize: 11.5, height: 1.4)),
             const SizedBox(height: 10),
             Text('Synchronisation distante',
-              style: TextStyle(color: p.ink, fontSize: 12.5,
-                fontWeight: FontWeight.w700)),
+                style: TextStyle(
+                    color: p.ink, fontSize: 12.5, fontWeight: FontWeight.w700)),
             const SizedBox(height: 3),
-            Text('Non configurée. Aucune transmission automatique à un serveur.',
-              style: TextStyle(color: p.muted, fontSize: 11.5, height: 1.4)),
+            Text(
+                'Non configurée. Aucune transmission automatique à un serveur.',
+                style: TextStyle(color: p.muted, fontSize: 11.5, height: 1.4)),
           ]),
         );
       },
@@ -339,9 +358,12 @@ class _GroupHeading extends StatelessWidget {
     final p = Palette.of(context);
     return Padding(
       padding: const EdgeInsets.only(left: 5),
-      child: Text(text, style: TextStyle(
-        color: p.muted, fontSize: 11.5,
-        letterSpacing: 1.05, fontWeight: FontWeight.w700)),
+      child: Text(text,
+          style: TextStyle(
+              color: p.muted,
+              fontSize: 11.5,
+              letterSpacing: 1.05,
+              fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -359,7 +381,8 @@ class _SettingsGroup extends StatelessWidget {
       decoration: BoxDecoration(
         color: p.surface.withValues(alpha: p.isDark ? .65 : .98),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: p.border.withValues(alpha: p.isDark ? .74 : .98)),
+        border:
+            Border.all(color: p.border.withValues(alpha: p.isDark ? .74 : .98)),
       ),
       child: Column(children: children),
     );
@@ -369,8 +392,10 @@ class _SettingsGroup extends StatelessWidget {
 class _SettingsLine extends StatelessWidget {
   const _SettingsLine({
     super.key,
-    required this.icon, required this.title,
-    required this.subtitle, required this.onTap,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
     this.last = false,
   });
 
@@ -394,16 +419,23 @@ class _SettingsLine extends StatelessWidget {
             child: Row(children: [
               Icon(icon, size: 20, color: p.forest),
               const SizedBox(width: 13),
-              Expanded(child: Column(
+              Expanded(
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.ink, fontSize: 14.6,
-                      fontWeight: FontWeight.w600)),
+                  Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: p.ink,
+                          fontSize: 14.6,
+                          fontWeight: FontWeight.w600)),
                   const SizedBox(height: 3),
-                  Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: p.muted, fontSize: 12.5,
-                      height: 1.35)),
+                  Text(subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: p.muted, fontSize: 12.5, height: 1.35)),
                 ],
               )),
               const SizedBox(width: 6),
@@ -412,10 +444,11 @@ class _SettingsLine extends StatelessWidget {
           ),
         ),
       ),
-      if (!last) Padding(
-        padding: const EdgeInsets.only(left: 47, right: 16),
-        child: Divider(height: 1, thickness: .8, color: p.border),
-      ),
+      if (!last)
+        Padding(
+          padding: const EdgeInsets.only(left: 47, right: 16),
+          child: Divider(height: 1, thickness: .8, color: p.border),
+        ),
     ]);
   }
 }
@@ -442,8 +475,8 @@ class _AppearanceQuickChoice extends StatelessWidget {
             label: Text(option.$2),
             avatar: Icon(option.$3, size: 16),
             selected: selected == option.$1,
-            onSelected: controller == null
-                ? null : (_) => controller.choose(option.$1),
+            onSelected:
+                controller == null ? null : (_) => controller.choose(option.$1),
             visualDensity: VisualDensity.compact,
           ),
       ]),
@@ -456,21 +489,25 @@ class _AppearanceDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Apparence et thème')),
-    body: SafeArea(child: Center(child: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 540),
-      child: ListView(padding: const EdgeInsets.all(23), children: [
-        Text('Personnalisez votre espace',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700,
-            color: Palette.of(context).ink)),
-        const SizedBox(height: 9),
-        Text('Le thème s’applique immédiatement à MediSuivi.',
-          style: TextStyle(color: Palette.of(context).muted)),
-        const SizedBox(height: 22),
-        const _AppearanceOptions(),
-      ]),
-    ))),
-  );
+        appBar: AppBar(title: const Text('Apparence et thème')),
+        body: SafeArea(
+            child: Center(
+                child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: ListView(padding: const EdgeInsets.all(23), children: [
+            Text('Personnalisez votre espace',
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Palette.of(context).ink)),
+            const SizedBox(height: 9),
+            Text('Le thème s’applique immédiatement à MediSuivi.',
+                style: TextStyle(color: Palette.of(context).muted)),
+            const SizedBox(height: 22),
+            const _AppearanceOptions(),
+          ]),
+        ))),
+      );
 }
 
 class _AppearanceOptions extends StatelessWidget {
@@ -487,9 +524,9 @@ class _AppearanceOptions extends StatelessWidget {
           leading: Icon(option.$3, color: p.forest),
           title: Text(option.$2),
           trailing: (controller?.value ?? ThemeMode.system) == option.$1
-              ? Icon(Icons.check_circle_rounded, color: p.forest) : null,
-          onTap: controller == null ? null
-              : () => controller.choose(option.$1),
+              ? Icon(Icons.check_circle_rounded, color: p.forest)
+              : null,
+          onTap: controller == null ? null : () => controller.choose(option.$1),
         ),
     ]);
   }
@@ -497,7 +534,9 @@ class _AppearanceOptions extends StatelessWidget {
 
 class _SettingsDetailPage extends StatelessWidget {
   const _SettingsDetailPage({
-    required this.title, required this.icon, required this.heading,
+    required this.title,
+    required this.icon,
+    required this.heading,
     required this.description,
   });
 
@@ -511,7 +550,9 @@ class _SettingsDetailPage extends StatelessWidget {
     final p = Palette.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(title)),
-      body: SafeArea(child: Center(child: ConstrainedBox(
+      body: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 540),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 23, 24, 35),
@@ -519,11 +560,11 @@ class _SettingsDetailPage extends StatelessWidget {
             Icon(icon, size: 37, color: p.forest),
             const SizedBox(height: 18),
             Text(heading,
-              style: TextStyle(fontSize: 22,
-                fontWeight: FontWeight.w700, color: p.ink)),
+                style: TextStyle(
+                    fontSize: 22, fontWeight: FontWeight.w700, color: p.ink)),
             const SizedBox(height: 12),
-            Text(description, style: TextStyle(
-              fontSize: 14, height: 1.6, color: p.muted)),
+            Text(description,
+                style: TextStyle(fontSize: 14, height: 1.6, color: p.muted)),
           ],
         ),
       ))),
@@ -533,7 +574,8 @@ class _SettingsDetailPage extends StatelessWidget {
 
 class _MoreSettingsPage extends StatelessWidget {
   const _MoreSettingsPage({
-    required this.onStorage, required this.onPrivacy,
+    required this.onStorage,
+    required this.onPrivacy,
     required this.onAbout,
   });
   final VoidCallback onStorage;
@@ -545,58 +587,69 @@ class _MoreSettingsPage extends StatelessWidget {
     final p = Palette.of(context);
     final display = DisplayPreferencesScope.maybeOf(context);
     void openLanguage() => Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const _LanguageSettingsPage(),
-      ),
-    );
+          MaterialPageRoute<void>(
+            builder: (_) => const _LanguageSettingsPage(),
+          ),
+        );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Paramètres supplémentaires')),
-      body: SafeArea(child: Center(child: ConstrainedBox(
+      body: SafeArea(
+          child: Center(
+              child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 550),
         child: ListView(
           padding: const EdgeInsets.fromLTRB(21, 21, 21, 42),
           children: [
             Text('Préférences de l’application',
-              style: TextStyle(color: p.ink, fontSize: 22,
-                fontWeight: FontWeight.w700)),
+                style: TextStyle(
+                    color: p.ink, fontSize: 22, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Text('Retrouvez les informations et réglages complémentaires.',
-              style: TextStyle(color: p.muted, fontSize: 13)),
+                style: TextStyle(color: p.muted, fontSize: 13)),
             const SizedBox(height: 25),
-            Text('AFFICHAGE', style: TextStyle(
-              color: p.muted, fontSize: 11.5,
-              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            Text('AFFICHAGE',
+                style: TextStyle(
+                    color: p.muted,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: .7)),
             const SizedBox(height: 10),
             _SettingsGroup(children: [
               Material(
                 color: Colors.transparent,
                 child: SwitchListTile.adaptive(
-                key: const Key('settings-reduce-motion'),
-                title: const Text('Réduire les animations'),
-                subtitle: const Text('Transitions plus discrètes dans MediSuivi'),
-                value: display?.value.reduceMotion ?? false,
-                onChanged: display == null
-                    ? null : (enabled) => display.setReduceMotion(enabled),
+                  key: const Key('settings-reduce-motion'),
+                  title: const Text('Réduire les animations'),
+                  subtitle:
+                      const Text('Transitions plus discrètes dans MediSuivi'),
+                  value: display?.value.reduceMotion ?? false,
+                  onChanged: display == null
+                      ? null
+                      : (enabled) => display.setReduceMotion(enabled),
                 ),
               ),
               Divider(height: 1, color: p.border),
               Material(
                 color: Colors.transparent,
                 child: SwitchListTile.adaptive(
-                key: const Key('settings-compact-lists'),
-                title: const Text('Listes compactes'),
-                subtitle: const Text('Lignes resserrées ou plus espacées'),
-                value: display?.value.compactLists ?? true,
-                onChanged: display == null
-                    ? null : (enabled) => display.setCompactLists(enabled),
+                  key: const Key('settings-compact-lists'),
+                  title: const Text('Listes compactes'),
+                  subtitle: const Text('Lignes resserrées ou plus espacées'),
+                  value: display?.value.compactLists ?? true,
+                  onChanged: display == null
+                      ? null
+                      : (enabled) => display.setCompactLists(enabled),
                 ),
               ),
             ]),
             const SizedBox(height: 24),
-            Text('INFORMATIONS', style: TextStyle(
-              color: p.muted, fontSize: 11.5,
-              fontWeight: FontWeight.w700, letterSpacing: .7)),
+            Text('INFORMATIONS',
+                style: TextStyle(
+                    color: p.muted,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: .7)),
             const SizedBox(height: 10),
             _SettingsGroup(children: [
               _SettingsLine(
@@ -644,14 +697,16 @@ class _LanguageSettingsPage extends StatelessWidget {
     final p = Palette.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Langue')),
-      body: SafeArea(child: ListView(
+      body: SafeArea(
+          child: ListView(
         padding: const EdgeInsets.fromLTRB(21, 24, 21, 38),
         children: [
-          Text('Langue de l’interface', style: TextStyle(color: p.ink,
-            fontSize: 23, fontWeight: FontWeight.w700)),
+          Text('Langue de l’interface',
+              style: TextStyle(
+                  color: p.ink, fontSize: 23, fontWeight: FontWeight.w700)),
           const SizedBox(height: 9),
           Text('Langue actuellement prise en charge par MediSuivi.',
-            style: TextStyle(color: p.muted, fontSize: 13.5)),
+              style: TextStyle(color: p.muted, fontSize: 13.5)),
           const SizedBox(height: 20),
           Material(
             color: p.surface,
@@ -665,7 +720,7 @@ class _LanguageSettingsPage extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text('Les autres langues ne sont pas encore disponibles.',
-            style: TextStyle(color: p.muted, fontSize: 12.5)),
+              style: TextStyle(color: p.muted, fontSize: 12.5)),
         ],
       )),
     );

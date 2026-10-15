@@ -21,14 +21,20 @@ void main() {
 
     final demo = DemoStore(); // deliberately seeded, must never be selected.
     addTearDown(demo.dispose);
-    final api = DevAuthApi(Uri.parse('https://medisuivi-ci.invalid'),
+    final api = DevAuthApi(
+      Uri.parse('https://medisuivi-ci.invalid'),
       client: MockClient((request) async {
         expect(request.headers['authorization'], 'Bearer only-account-A');
         if (request.url.path == '/api/v1/patients') {
-          return http.Response(jsonEncode([
-            {'id':'remote-A', 'display_name':'PATIENT FICTIF SERVEUR A',
-             'age':29},
-          ]), 200);
+          return http.Response(
+              jsonEncode([
+                {
+                  'id': 'remote-A',
+                  'display_name': 'PATIENT FICTIF SERVEUR A',
+                  'age': 29
+                },
+              ]),
+              200);
         }
         if (request.url.path.startsWith('/api/v1/patients/remote-A/')) {
           return http.Response('[]', 200);
@@ -39,8 +45,10 @@ void main() {
     addTearDown(api.close);
     final session = DevSession(
       practitioner: const DevPractitioner(
-        id: 'account-A', email: 'a@medisuvi-ci.org',
-        firstName: 'Compte', lastName: 'Fictif',
+        id: 'account-A',
+        email: 'a@medisuvi-ci.org',
+        firstName: 'Compte',
+        lastName: 'Fictif',
       ),
       accessToken: 'only-account-A',
     );
@@ -50,7 +58,9 @@ void main() {
       child: MaterialApp(
         theme: MediTheme.light(),
         home: OriginalConnectedClinicalGate(
-          api: api, session: session, onSignedOut: () {},
+          api: api,
+          session: session,
+          onSignedOut: () {},
           child: const MainShell(),
         ),
       ),
@@ -59,19 +69,29 @@ void main() {
 
     expect(find.byKey(const Key('medisuivi-home')), findsOneWidget);
     expect(find.text('PATIENT FICTIF SERVEUR A'), findsWidgets);
-    expect(find.byKey(const Key('original-connected-signout')),
-        findsOneWidget);
+    expect(find.byKey(const Key('original-connected-signout')), findsNothing);
+    await tester.tap(find.text('Réglages'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+        find.byKey(const Key('settings-signout')), 300);
+    expect(find.byKey(const Key('settings-signout')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets('P4.9 pushed original detail routes retain connected owner scope',
       (tester) async {
-    final api = DevAuthApi(Uri.parse('https://medisuivi-ci.invalid'),
+    final api = DevAuthApi(
+      Uri.parse('https://medisuivi-ci.invalid'),
       client: MockClient((request) async {
         if (request.url.path == '/api/v1/patients') {
-          return http.Response(jsonEncode([
-            {'id': 'private-A', 'display_name': 'PATIENT FICTIF PRIVÉ A',
-             'age': 31},
-          ]), 200);
+          return http.Response(
+              jsonEncode([
+                {
+                  'id': 'private-A',
+                  'display_name': 'PATIENT FICTIF PRIVÉ A',
+                  'age': 31
+                },
+              ]),
+              200);
         }
         if (request.url.path.startsWith('/api/v1/patients/private-A/')) {
           return http.Response('[]', 200);
@@ -82,8 +102,10 @@ void main() {
     addTearDown(api.close);
     final session = DevSession(
       practitioner: const DevPractitioner(
-        id: 'A', email: 'a@medisuvi-ci.org',
-        firstName: 'Compte', lastName: 'Fictif',
+        id: 'A',
+        email: 'a@medisuvi-ci.org',
+        firstName: 'Compte',
+        lastName: 'Fictif',
       ),
       accessToken: 'token-A',
     );
@@ -93,22 +115,23 @@ void main() {
         api: api,
         session: session,
         onSignedOut: () {},
-        child: Builder(builder: (context) => Scaffold(
-          body: TextButton(
-            key: const Key('open-original-detail'),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (routeContext) => Scaffold(
-                  body: Text(
-                    routeContext.store.patients.single.name,
-                    key: const Key('private-patient-detail'),
+        child: Builder(
+            builder: (context) => Scaffold(
+                  body: TextButton(
+                    key: const Key('open-original-detail'),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (routeContext) => Scaffold(
+                          body: Text(
+                            routeContext.store.patients.single.name,
+                            key: const Key('private-patient-detail'),
+                          ),
+                        ),
+                      ),
+                    ),
+                    child: const Text('Ouvrir un dossier'),
                   ),
-                ),
-              ),
-            ),
-            child: const Text('Ouvrir un dossier'),
-          ),
-        )),
+                )),
       ),
     ));
     await tester.pumpAndSettle();
@@ -118,5 +141,4 @@ void main() {
     expect(find.text('PATIENT FICTIF PRIVÉ A'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
-
 }

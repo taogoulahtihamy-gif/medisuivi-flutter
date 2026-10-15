@@ -15,8 +15,7 @@ void main() {
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
-          final api = DevAuthApi(
-            Uri.parse('https://medisuivi-ci.invalid'));
+          final api = DevAuthApi(Uri.parse('https://medisuivi-ci.invalid'));
           addTearDown(api.close);
 
           await tester.pumpWidget(MaterialApp(
@@ -38,7 +37,7 @@ void main() {
           expect(find.byKey(const Key('dev-auth-email')), findsOneWidget);
           expect(find.byKey(const Key('dev-auth-password')), findsOneWidget);
           expect(find.byKey(const Key('dev-auth-submit')), findsOneWidget);
-          expect(find.byKey(const Key('dev-auth-warning')), findsOneWidget);
+          expect(find.byKey(const Key('dev-auth-warning')), findsNothing);
           expect(find.byKey(const Key('dev-register-first-name')),
               isRegister ? findsOneWidget : findsNothing);
           expect(tester.takeException(), isNull);

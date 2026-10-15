@@ -8,7 +8,8 @@ import '../database.dart';
 part 'pending_operations_dao.g.dart';
 
 @DriftAccessor(tables: [PendingOperations])
-class PendingOperationsDao extends DatabaseAccessor<AppDatabase> with _$PendingOperationsDaoMixin {
+class PendingOperationsDao extends DatabaseAccessor<AppDatabase>
+    with _$PendingOperationsDaoMixin {
   PendingOperationsDao(super.db);
 
   /// Ajoute une opération en attente
@@ -52,9 +53,11 @@ class PendingOperationsDao extends DatabaseAccessor<AppDatabase> with _$PendingO
 
   /// Marque une opération comme synchronisée
   Future<void> markSynced(String operationId, int serverRevision) async {
-    await (update(pendingOperations)..where((o) => o.operationId.equals(operationId))).write(
+    await (update(pendingOperations)
+          ..where((o) => o.operationId.equals(operationId)))
+        .write(
       PendingOperationsCompanion(
-        status: Value(1), // synced
+        status: const Value(1), // synced
         baseRevision: Value(serverRevision),
       ),
     );
@@ -64,12 +67,16 @@ class PendingOperationsDao extends DatabaseAccessor<AppDatabase> with _$PendingO
   Future<void> markFailed(String operationId) async {
     final now = DateTime.now().toUtc();
     // Lire le compteur actuel pour l'incrémenter
-    final current = await (select(pendingOperations)..where((o) => o.operationId.equals(operationId))).getSingleOrNull();
+    final current = await (select(pendingOperations)
+          ..where((o) => o.operationId.equals(operationId)))
+        .getSingleOrNull();
     final nextRetryCount = (current?.retryCount ?? 0) + 1;
-    
-    await (update(pendingOperations)..where((o) => o.operationId.equals(operationId))).write(
+
+    await (update(pendingOperations)
+          ..where((o) => o.operationId.equals(operationId)))
+        .write(
       PendingOperationsCompanion(
-        status: Value(2), // failed
+        status: const Value(2), // failed
         lastAttemptAt: Value(now),
         retryCount: Value(nextRetryCount),
       ),
@@ -78,18 +85,24 @@ class PendingOperationsDao extends DatabaseAccessor<AppDatabase> with _$PendingO
 
   /// Marque une opération comme en conflit
   Future<void> markConflict(String operationId) async {
-    await (update(pendingOperations)..where((o) => o.operationId.equals(operationId))).write(
-      PendingOperationsCompanion(status: Value(3)), // conflict
+    await (update(pendingOperations)
+          ..where((o) => o.operationId.equals(operationId)))
+        .write(
+      const PendingOperationsCompanion(status: Value(3)), // conflict
     );
   }
 
   /// Incrémente le compteur de tentative
   Future<void> incrementRetryCount(String operationId) async {
     final now = DateTime.now().toUtc();
-    final current = await (select(pendingOperations)..where((o) => o.operationId.equals(operationId))).getSingleOrNull();
+    final current = await (select(pendingOperations)
+          ..where((o) => o.operationId.equals(operationId)))
+        .getSingleOrNull();
     final nextRetryCount = (current?.retryCount ?? 0) + 1;
-    
-    await (update(pendingOperations)..where((o) => o.operationId.equals(operationId))).write(
+
+    await (update(pendingOperations)
+          ..where((o) => o.operationId.equals(operationId)))
+        .write(
       PendingOperationsCompanion(
         retryCount: Value(nextRetryCount),
         lastAttemptAt: Value(now),
@@ -99,9 +112,11 @@ class PendingOperationsDao extends DatabaseAccessor<AppDatabase> with _$PendingO
 
   /// Supprime les anciennes opérations synchronisées (nettoyage)
   Future<void> cleanupSyncedOperations({int olderThanDays = 30}) async {
-    final cutoff = DateTime.now().toUtc().subtract(Duration(days: olderThanDays));
+    final cutoff =
+        DateTime.now().toUtc().subtract(Duration(days: olderThanDays));
     await (delete(pendingOperations)
-          ..where((o) => o.status.equals(1) & o.timestamp.isSmallerThanValue(cutoff)))
+          ..where((o) =>
+              o.status.equals(1) & o.timestamp.isSmallerThanValue(cutoff)))
         .go();
   }
 }

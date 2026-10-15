@@ -6,7 +6,7 @@ import 'design_tokens.dart';
 /// Source unique pour toute la coloration de l'application.
 abstract final class ClinicalTheme {
   // ===== PALETTES =====
-  static final ClinicalPalette _lightPalette = ClinicalPalette(
+  static final ClinicalPalette _lightPalette = const ClinicalPalette(
     brightness: Brightness.light,
     background: ClinicalColors.lightBackground,
     surface: ClinicalColors.lightSurface,
@@ -26,7 +26,7 @@ abstract final class ClinicalTheme {
     shadowStrong: ClinicalColors.lightShadowStrong,
   );
 
-  static final ClinicalPalette _darkPalette = ClinicalPalette(
+  static final ClinicalPalette _darkPalette = const ClinicalPalette(
     brightness: Brightness.dark,
     background: ClinicalColors.darkBackground,
     surface: ClinicalColors.darkSurface,
@@ -55,8 +55,7 @@ abstract final class ClinicalTheme {
   static ThemeData dark() => _buildTheme(_darkPalette);
 
   static ThemeData _buildTheme(ClinicalPalette p) {
-    final inputStroke = p.isDark
-        ? p.border : ClinicalColors.lightBorderStrong;
+    final inputStroke = p.isDark ? p.border : ClinicalColors.lightBorderStrong;
 
     final scheme = ColorScheme(
       brightness: p.brightness,
@@ -115,7 +114,8 @@ abstract final class ClinicalTheme {
       textTheme: TextTheme(
         displayLarge: ClinicalTypography.display.copyWith(color: p.ink),
         headlineLarge: ClinicalTypography.headlineLarge.copyWith(color: p.ink),
-        headlineMedium: ClinicalTypography.headlineMedium.copyWith(color: p.ink),
+        headlineMedium:
+            ClinicalTypography.headlineMedium.copyWith(color: p.ink),
         headlineSmall: ClinicalTypography.headlineSmall.copyWith(color: p.ink),
         titleLarge: ClinicalTypography.titleLarge.copyWith(color: p.ink),
         titleMedium: ClinicalTypography.titleMedium.copyWith(color: p.ink),
@@ -138,8 +138,8 @@ abstract final class ClinicalTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: p.surfaceElevated,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 12, vertical: 10),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         hintStyle: TextStyle(color: p.inkSubtle, fontSize: 13),
         labelStyle: TextStyle(color: p.inkMuted, fontSize: 13),
         prefixIconColor: p.inkMuted,
@@ -169,7 +169,8 @@ abstract final class ClinicalTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: p.isDark
-              ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill,
+              ? ClinicalColors.darkActionFill
+              : ClinicalColors.lightActionFill,
           foregroundColor: ClinicalColors.actionOnDarkFill,
           elevation: 0,
           minimumSize: const Size(0, 46),
@@ -181,7 +182,8 @@ abstract final class ClinicalTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: p.isDark
-              ? ClinicalColors.darkActionFill : ClinicalColors.lightActionFill,
+              ? ClinicalColors.darkActionFill
+              : ClinicalColors.lightActionFill,
           foregroundColor: ClinicalColors.actionOnDarkFill,
           minimumSize: const Size(0, 46),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
@@ -238,7 +240,7 @@ abstract final class ClinicalTheme {
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: p.surface,
         modalBackgroundColor: p.surface,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(ClinicalRadius.modal),
             topRight: Radius.circular(ClinicalRadius.modal),

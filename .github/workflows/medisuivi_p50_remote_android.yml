@@ -1,9 +1,10 @@
-name: MediSuivi P5.0 remote HTTPS Android APK
+name: MediSuivi P5.3 remote HTTPS Android APK
 
 on:
   push:
     branches:
       - feat/medisuivi-p50-vercel-api-neon
+      - feat/medisuivi-p53-auth-settings
     paths:
       - "android/**"
       - "lib/**"
@@ -56,13 +57,10 @@ jobs:
           python3 scripts/check_android_p46_security.py
       - name: Resolve packages
         run: flutter pub get
-      - name: Verify cross-account and session tests
-        run: >-
-          flutter test
-          test/p49_original_clinical_store_test.dart
-          test/p49_original_shell_connected_test.dart
-          test/p49_original_account_entry_test.dart
-          test/p42_secure_session_resume_test.dart
+      - name: Analyze Flutter
+        run: flutter analyze
+      - name: Complete Flutter regression suite
+        run: flutter test
       - name: Test invitation-only sandbox signup
         run: flutter test test/p50_remote_signup_test.dart --dart-define=MEDISUIVI_REMOTE_SANDBOX=true
       - name: Build installable HTTPS-only remote Android debug APK
@@ -77,6 +75,7 @@ jobs:
           apk=build/app/outputs/flutter-apk/app-debug.apk
           test -s "$apk"
           unzip -tq "$apk"
+          python3 scripts/check_p53_apk.py "$apk"
           build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 \
             -maxdepth 1 -type d | sort -V | tail -1)"
           "$build_tools/apksigner" verify --verbose "$apk"
@@ -86,7 +85,7 @@ jobs:
             grep -q "package: name='com.example.medisuivi.sandbox'"
       - uses: actions/upload-artifact@v4
         with:
-          name: medisuivi-p50-vercel-connected-android-debug-apk
+          name: medisuivi-p53-vercel-connected-android-debug-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
           if-no-files-found: error
@@ -118,7 +117,7 @@ jobs:
       - name: Download the EXACT APK from the signed-debug build
         uses: actions/download-artifact@v4
         with:
-          name: medisuivi-p50-vercel-connected-android-debug-apk
+          name: medisuivi-p53-vercel-connected-android-debug-apk
           path: downloaded-apk
       - name: Verify HTTPS origin and resolve test dependencies
         run: |

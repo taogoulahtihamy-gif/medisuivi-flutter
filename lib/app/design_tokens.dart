@@ -346,25 +346,29 @@ abstract final class ClinicalMotion {
 // Compatibilité des anciens styles : tous utilisent la police locale DM Sans.
 class ClinicalTypographyGoogleFonts {
   // Display — Fraunces
-  static TextStyle display = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle display = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 40,
     fontWeight: FontWeight.w700,
     height: 1.05,
     letterSpacing: -1.2,
   );
-  static TextStyle headlineLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle headlineLarge = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 28,
     fontWeight: FontWeight.w600,
     height: 1.15,
     letterSpacing: -0.6,
   );
-  static TextStyle headlineMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle headlineMedium = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 22,
     fontWeight: FontWeight.w500,
     height: 1.2,
     letterSpacing: -0.3,
   );
-  static TextStyle headlineSmall = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle headlineSmall = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 18,
     fontWeight: FontWeight.w500,
     height: 1.25,
@@ -372,31 +376,36 @@ class ClinicalTypographyGoogleFonts {
   );
 
   // UI — DM Sans
-  static TextStyle titleLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle titleLarge = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.35,
     letterSpacing: 0,
   );
-  static TextStyle titleMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle titleMedium = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 14,
     fontWeight: FontWeight.w500,
     height: 1.4,
     letterSpacing: 0.1,
   );
-  static TextStyle bodyLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle bodyLarge = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 15.5,
     fontWeight: FontWeight.w400,
     height: 1.6,
     letterSpacing: 0,
   );
-  static TextStyle bodyMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle bodyMedium = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.55,
     letterSpacing: 0,
   );
-  static TextStyle bodySmall = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle bodySmall = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 13,
     fontWeight: FontWeight.w400,
     height: 1.5,
@@ -404,19 +413,22 @@ class ClinicalTypographyGoogleFonts {
   );
 
   // Mono — JetBrains Mono
-  static TextStyle monoLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle monoLarge = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 20,
     fontWeight: FontWeight.w600,
     height: 1.2,
     letterSpacing: 0,
   );
-  static TextStyle monoMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle monoMedium = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 15,
     fontWeight: FontWeight.w500,
     height: 1.3,
     letterSpacing: 0,
   );
-  static TextStyle monoSmall = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle monoSmall = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     height: 1.35,
@@ -424,13 +436,15 @@ class ClinicalTypographyGoogleFonts {
   );
 
   // Étiquettes — DM Sans
-  static TextStyle labelLarge = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle labelLarge = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 1.3,
     letterSpacing: 0.1,
   );
-  static TextStyle labelMedium = TextStyle(fontFamily: ClinicalTypography.fontFamilyUI, 
+  static TextStyle labelMedium = const TextStyle(
+    fontFamily: ClinicalTypography.fontFamilyUI,
     fontSize: 13,
     fontWeight: FontWeight.w500,
     height: 1.35,

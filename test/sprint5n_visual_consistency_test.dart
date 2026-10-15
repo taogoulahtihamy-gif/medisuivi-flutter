@@ -18,8 +18,12 @@ void main() {
     expect(ClinicalTypography.fontFamilyDisplay, 'DM Sans');
     expect(ClinicalTypography.fontFamilyUI, 'DM Sans');
     expect(ClinicalTypography.fontFamilyMono, 'DM Sans');
-    for (final theme in [MediTheme.light(), MediTheme.dark(),
-      ClinicalTheme.light(), ClinicalTheme.dark()]) {
+    for (final theme in [
+      MediTheme.light(),
+      MediTheme.dark(),
+      ClinicalTheme.light(),
+      ClinicalTheme.dark()
+    ]) {
       expect(theme.textTheme.bodyMedium?.fontFamily, 'DM Sans');
       expect(theme.textTheme.titleLarge?.fontFamily, 'DM Sans');
     }
@@ -34,9 +38,8 @@ void main() {
       addTearDown(tester.view.resetDevicePixelRatio);
       await tester.pumpWidget(MaterialApp(
         theme: ClinicalTheme.dark(),
-        home: MediSuiviWelcomeGate(
-          isWebDemo: true,
-          child: const MediSuiviApp(themeMode: ThemeMode.dark)),
+        home: const MediSuiviWelcomeGate(
+            isWebDemo: true, child: MediSuiviApp(themeMode: ThemeMode.dark)),
       ));
       await tester.pump();
       final title = find.byKey(const Key('welcome-splash-title'));
@@ -49,7 +52,8 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('Sprint 5N : registres ouverts et typographie à ${width.toInt()} px',
+    testWidgets(
+        'Sprint 5N : registres ouverts et typographie à ${width.toInt()} px',
         (tester) async {
       tester.view.physicalSize = Size(width, 850);
       tester.view.devicePixelRatio = 1;
@@ -63,10 +67,10 @@ void main() {
       final patients = find.byKey(const Key('patients-compact-register'));
       expect(patients, findsOneWidget);
       expect(tester.widget<ClinicalGroupedList>(patients).children.length,
-        greaterThan(1));
+          greaterThan(1));
       // Le registre est composé de lignes Material indépendantes.
-      expect(find.descendant(of: patients,
-        matching: find.byType(Material)), findsWidgets);
+      expect(find.descendant(of: patients, matching: find.byType(Material)),
+          findsWidgets);
       expect(tester.takeException(), isNull);
 
       await tester.tap(find.byKey(const Key('dock-bilans')));

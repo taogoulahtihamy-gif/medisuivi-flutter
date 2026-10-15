@@ -13,23 +13,23 @@ import 'test_encryption_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   // Désactiver l'avertissement de multiples instances pour les tests
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-  
+
   group('Persistance Drift + SQLite3MultipleCiphers', () {
     late Directory tempDir;
     late TestEncryptionService encryptionService;
     late String validKey;
 
     // Fonction pour générer un chemin de base unique par test
-    String _generateDbPath(String testName) {
+    String generateDbPath(String testName) {
       return '${tempDir.path}/medisuivi_test_$testName.db';
     }
 
     // Fonction de nettoyage
-    void _cleanupDb(String dbPath) {
-      final files = ['$dbPath', '$dbPath-wal', '$dbPath-shm'];
+    void cleanupDb(String dbPath) {
+      final files = [dbPath, '$dbPath-wal', '$dbPath-shm'];
       for (final name in files) {
         final f = File(name);
         if (f.existsSync()) f.deleteSync();
@@ -38,7 +38,7 @@ void main() {
 
     setUpAll(() async {
       tempDir = Directory.systemTemp.createTempSync('medisuivi_test_');
-      
+
       encryptionService = TestEncryptionService();
       validKey = await encryptionService.getSqlCipherKey();
     });
@@ -49,33 +49,35 @@ void main() {
       }
     });
 
-    test('1. SQLite3MultipleCiphers est disponible (détection PRAGMA cipher)', () {
+    test('1. SQLite3MultipleCiphers est disponible (détection PRAGMA cipher)',
+        () {
       final db = sqlite3.openInMemory();
       final result = db.select('PRAGMA cipher;');
-      db.dispose();
-      
-      expect(result.isNotEmpty, isTrue, 
-        reason: 'SQLite3MultipleCiphers doit être disponible (build hooks sqlite3mc)');
+      db.close();
+
+      expect(result.isNotEmpty, isTrue,
+          reason:
+              'SQLite3MultipleCiphers doit être disponible (build hooks sqlite3mc)');
     });
 
     test('2. Création et ouverture de base chiffrée avec clé valide', () async {
-      final dbPath = _generateDbPath('create_open');
-      _cleanupDb(dbPath);
-      
+      final dbPath = generateDbPath('create_open');
+      cleanupDb(dbPath);
+
       final db = await _openTestDatabase(validKey, dbPath);
       expect(db, isNotNull);
-      
+
       final patients = await db.patientDao.getAllPatients();
       expect(patients, isEmpty);
-      
+
       await db.close();
-      _cleanupDb(dbPath);
+      cleanupDb(dbPath);
     });
 
     test('3. Échec d\'ouverture avec une mauvaise clé', () async {
-      final dbPath = _generateDbPath('wrong_key');
-      _cleanupDb(dbPath);
-      
+      final dbPath = generateDbPath('wrong_key');
+      cleanupDb(dbPath);
+
       // D'abord créer la base avec la bonne clé
       final db1 = await _openTestDatabase(validKey, dbPath);
       await db1.patientDao.createPatient(
@@ -89,7 +91,7 @@ void main() {
       // Essayer d'ouvrir avec une mauvaise clé
       final wrongKey = '0'.padLeft(64, '0');
       bool threwError = false;
-      
+
       try {
         final db2 = await _openTestDatabase(wrongKey, dbPath);
         await db2.patientDao.getAllPatients();
@@ -97,17 +99,17 @@ void main() {
       } catch (e) {
         threwError = true;
       }
-      
-      expect(threwError, isTrue, 
-        reason: 'L\'ouverture avec une mauvaise clé doit échouer');
-      
-      _cleanupDb(dbPath);
+
+      expect(threwError, isTrue,
+          reason: 'L\'ouverture avec une mauvaise clé doit échouer');
+
+      cleanupDb(dbPath);
     });
 
     test('4. CRUD complet Patient → Consultation → Examen → Suivi', () async {
-      final dbPath = _generateDbPath('crud_complete');
-      _cleanupDb(dbPath);
-      
+      final dbPath = generateDbPath('crud_complete');
+      cleanupDb(dbPath);
+
       final db = await _openTestDatabase(validKey, dbPath);
 
       // 4.1 Créer un patient
@@ -117,7 +119,7 @@ void main() {
         sex: 'F',
         phone: '0123456789',
       );
-      
+
       final patients = await db.patientDao.getAllPatients();
       expect(patients.length, 1);
       final patient = patients.first;
@@ -136,7 +138,7 @@ void main() {
         spo2: 98,
         notes: 'Traitement ajusté',
       );
-      
+
       final visits = await db.visitDao.getVisitsForPatient(patient.id);
       expect(visits.length, 1);
       final visit = visits.first;
@@ -150,13 +152,13 @@ void main() {
         patientId: patient.id,
         title: 'Numération formule sanguine',
       );
-      
+
       // 4.4 Enregistrer le résultat
       await db.examDao.recordExamResult(
         examId: examId,
         result: 'Hémoglobine: 13.2 g/dl, Leucocytes: 7200/mm³',
       );
-      
+
       final exams = await db.examDao.getExamsForPatient(patient.id);
       expect(exams.length, 1);
       final exam = exams.first;
@@ -172,7 +174,7 @@ void main() {
         reason: 'Contrôle tensionnel',
         notes: 'Apporter les résultats NFS',
       );
-      
+
       final followUps = await db.followUpDao.getFollowUpsForPatient(patient.id);
       expect(followUps.length, 1);
       final followUp = followUps.first;
@@ -186,35 +188,35 @@ void main() {
         allergies: 'Pénicilline',
         medicalHistory: 'Hypertension artérielle',
       );
-      
+
       final updatedPatient = await db.patientDao.getPatientById(patient.id);
       expect(updatedPatient!.allergies, 'Pénicilline');
       expect(updatedPatient.medicalHistory, 'Hypertension artérielle');
 
       await db.close();
-      _cleanupDb(dbPath);
+      cleanupDb(dbPath);
     });
 
     test('5. Persistance après fermeture/réouverture complète', () async {
-      final dbPath = _generateDbPath('persistence');
-      _cleanupDb(dbPath);
-      
+      final dbPath = generateDbPath('persistence');
+      cleanupDb(dbPath);
+
       const testPatientName = 'Fatou Sarr';
-      
+
       // 5.1 Créer et remplir la base
       {
         final db = await _openTestDatabase(validKey, dbPath);
-        
+
         await db.patientDao.createPatient(
           name: testPatientName,
           age: 27,
           sex: 'F',
           phone: '0987654321',
         );
-        
+
         final patients = await db.patientDao.getAllPatients();
         final patient = patients.first;
-        
+
         await db.visitDao.createVisit(
           patientId: patient.id,
           reason: 'Consultation prénatale',
@@ -224,85 +226,86 @@ void main() {
           pulse: 72,
           spo2: 99,
         );
-        
+
         final examId = await db.examDao.createExam(
           patientId: patient.id,
           title: 'Glycémie à jeun',
         );
-        
+
         await db.examDao.recordExamResult(
           examId: examId,
           result: 'Glycémie: 0.92 g/l (normale)',
         );
-        
+
         await db.followUpDao.scheduleFollowUp(
           patientId: patient.id,
           scheduledAt: DateTime.now().add(const Duration(days: 14)),
           reason: 'Échographie T2',
         );
-        
+
         await db.close();
       }
-      
+
       // 5.2 Réouvrir la base et vérifier la persistance
       {
         final db = await _openTestDatabase(validKey, dbPath);
-        
+
         final patients = await db.patientDao.getAllPatients();
         expect(patients.length, 1);
         expect(patients.first.name, testPatientName);
         expect(patients.first.age, 27);
-        
+
         final visits = await db.visitDao.getVisitsForPatient(patients.first.id);
         expect(visits.length, 1);
         expect(visits.first.reason, 'Consultation prénatale');
         expect(visits.first.systolic, 118);
-        
+
         final exams = await db.examDao.getExamsForPatient(patients.first.id);
         expect(exams.length, 1);
         expect(exams.first.title, 'Glycémie à jeun');
         expect(exams.first.status, 1);
         expect(exams.first.result, 'Glycémie: 0.92 g/l (normale)');
-        
-        final followUps = await db.followUpDao.getFollowUpsForPatient(patients.first.id);
+
+        final followUps =
+            await db.followUpDao.getFollowUpsForPatient(patients.first.id);
         expect(followUps.length, 1);
         expect(followUps.first.reason, 'Échographie T2');
         expect(followUps.first.status, 0);
-        
+
         await db.close();
       }
-      
-      _cleanupDb(dbPath);
+
+      cleanupDb(dbPath);
     });
 
     test('6. Aucune donnée sensible en clair dans le fichier SQLite', () async {
-      final dbPath = _generateDbPath('no_cleartext');
-      _cleanupDb(dbPath);
-      
+      final dbPath = generateDbPath('no_cleartext');
+      cleanupDb(dbPath);
+
       final db = await _openTestDatabase(validKey, dbPath);
-      
+
       await db.patientDao.createPatient(
         name: 'Patient Secret',
         age: 45,
         sex: 'M',
         phone: '0555123456',
       );
-      
+
       await db.visitDao.createVisit(
         patientId: (await db.patientDao.getAllPatients()).first.id,
         reason: 'Consultation confidentielle',
         notes: 'Antécédents: VIH, Traitement: ARV',
       );
-      
+
       await db.close();
-      
+
       // Lire le fichier brut
       final file = File(dbPath);
       expect(file.existsSync(), isTrue);
-      
+
       final bytes = file.readAsBytesSync();
       final content = String.fromCharCodes(bytes);
-      
+
       // Vérifier qu'aucune donnée sensible n'est en clair
       expect(content, isNot(contains('Patient Secret')));
       expect(content, isNot(contains('confidentielle')));
@@ -312,39 +315,43 @@ void main() {
       expect(content, isNot(contains('Antécédents: VIH, Traitement: ARV')));
       expect(content, isNot(contains('Traitement: ARV')));
       // Une base SQLite non chiffrée commence par cet en-tête canonique.
-      expect(bytes.take(15).toList(), isNot(equals('SQLite format 3'.codeUnits)));
+      expect(
+          bytes.take(15).toList(), isNot(equals('SQLite format 3'.codeUnits)));
       expect(content, isNot(contains('0555123456')));
-      
+
       // Le fichier doit contenir du binaire (chiffré)
       expect(bytes.length, greaterThan(1000));
-      
-      _cleanupDb(dbPath);
+
+      cleanupDb(dbPath);
     });
 
-    test('7. Vérification _debugCheckHasCipher active (base non chiffrée)', () async {
-      final dbPath = _generateDbPath('cipher_check');
-      _cleanupDb(dbPath);
-      
+    test('7. Vérification _debugCheckHasCipher active (base non chiffrée)',
+        () async {
+      final dbPath = generateDbPath('cipher_check');
+      cleanupDb(dbPath);
+
       // Ouvrir une base SANS clé pour vérifier PRAGMA cipher
       final file = File(dbPath);
       final executor = NativeDatabase.createInBackground(file);
       final db = AppDatabase.createWithExecutor(executor);
-      
+
       // Exécuter PRAGMA cipher directement sur une base non chiffrée
       final cipherResult = await db.customSelect('PRAGMA cipher;').get();
-      expect(cipherResult.isNotEmpty, isTrue, 
-        reason: 'PRAGMA cipher doit être disponible même sans clé');
-      
+      expect(cipherResult.isNotEmpty, isTrue,
+          reason: 'PRAGMA cipher doit être disponible même sans clé');
+
       await db.close();
-      _cleanupDb(dbPath);
+      cleanupDb(dbPath);
     });
 
-    test('8. rotateMasterKey() comportement documenté (pas de ré-chiffrement auto)', () async {
-      final dbPath = _generateDbPath('rotate_key');
-      _cleanupDb(dbPath);
-      
+    test(
+        '8. rotateMasterKey() comportement documenté (pas de ré-chiffrement auto)',
+        () async {
+      final dbPath = generateDbPath('rotate_key');
+      cleanupDb(dbPath);
+
       final db = await _openTestDatabase(validKey, dbPath);
-      
+
       // Créer des données
       await db.patientDao.createPatient(
         name: 'Test Rotation',
@@ -352,106 +359,120 @@ void main() {
         sex: 'M',
         phone: '0102030405',
       );
-      
+
       await db.close();
-      
+
       // Tenter rotateMasterKey (change la clé en mémoire seulement)
       await encryptionService.rotateMasterKey();
-      
+
       // Vérifier que les données existent toujours dans le fichier
       final file = File(dbPath);
       expect(file.existsSync(), isTrue);
       expect(file.lengthSync(), greaterThan(1000));
-      
-      _cleanupDb(dbPath);
+
+      cleanupDb(dbPath);
     });
 
     test('9. Streams réactifs fonctionnent', () async {
-      final dbPath = _generateDbPath('streams');
-      _cleanupDb(dbPath);
-      
+      final dbPath = generateDbPath('streams');
+      cleanupDb(dbPath);
+
       final db = await _openTestDatabase(validKey, dbPath);
-      
+
       final patientStream = db.patientDao.watchAllPatients();
       final emissions = <List>[];
-      
+
       final sub = patientStream.listen((patients) {
         emissions.add(patients);
       });
-      
+
       await Future.delayed(const Duration(milliseconds: 400));
-      
+
       await db.patientDao.createPatient(
         name: 'Stream Test',
         age: 40,
         sex: 'F',
         phone: '0101010101',
       );
-      
+
       await Future.delayed(const Duration(milliseconds: 400));
-      
+
       await sub.cancel();
       await db.close();
-      
+
       expect(emissions.length, greaterThanOrEqualTo(2));
       expect(emissions.last.length, 1);
       expect(emissions.last.first.name, 'Stream Test');
-      
-      _cleanupDb(dbPath);
+
+      cleanupDb(dbPath);
     });
 
     test('11. Les changements métiers alimentent une outbox durable', () async {
-      final dbPath = _generateDbPath('outbox_restart');
-      _cleanupDb(dbPath);
+      final dbPath = generateDbPath('outbox_restart');
+      cleanupDb(dbPath);
       final database = await _openTestDatabase(validKey, dbPath);
 
       await database.patientDao.createPatient(
-        name: 'Patiente fictive', age: 35, sex: 'F', phone: '0101010101',
+        name: 'Patiente fictive',
+        age: 35,
+        sex: 'F',
+        phone: '0101010101',
       );
       final patient = (await database.patientDao.getAllPatients()).single;
 
       await database.patientDao.updatePatientInfo(
-        patientId: patient.id, phone: '0202020202',
-        allergies: 'Aucune', medicalHistory: 'Aucun',
+        patientId: patient.id,
+        phone: '0202020202',
+        allergies: 'Aucune',
+        medicalHistory: 'Aucun',
       );
       await database.visitDao.createVisit(
-        patientId: patient.id, reason: 'Contrôle fictif',
+        patientId: patient.id,
+        reason: 'Contrôle fictif',
       );
       final exam = await database.examDao.createExam(
-        patientId: patient.id, title: 'Bilan fictif',
+        patientId: patient.id,
+        title: 'Bilan fictif',
       );
       await database.examDao.recordExamResult(
-        examId: exam, result: 'Résultat fictif',
+        examId: exam,
+        result: 'Résultat fictif',
       );
       await database.followUpDao.scheduleFollowUp(
         patientId: patient.id,
         scheduledAt: DateTime.now().add(const Duration(days: 2)),
         reason: 'Suivi fictif',
       );
-      final followup = (await database.followUpDao.getFollowUpsForPatient(patient.id)).single;
+      final followup =
+          (await database.followUpDao.getFollowUpsForPatient(patient.id))
+              .single;
       await database.followUpDao.closeFollowUp(
-        followUpId: followup.id, completed: true,
+        followUpId: followup.id,
+        completed: true,
       );
-      final pending = await database.pendingOperationsDao.getPendingOperations();
+      final pending =
+          await database.pendingOperationsDao.getPendingOperations();
       expect(pending.length, 7);
       expect(pending.map((x) => x.operationId).toSet().length, 7);
       expect(pending.map((x) => x.entityType),
-        containsAll(['patient', 'visit', 'exam', 'followup']));
+          containsAll(['patient', 'visit', 'exam', 'followup']));
       expect(pending.every((x) => x.baseRevision == 0), isTrue);
       await database.close();
 
       final reopened = await _openTestDatabase(validKey, dbPath);
-      expect((await reopened.pendingOperationsDao.getPendingOperations()).length, 7,
-        reason: 'La file doit survivre à un redémarrage hors connexion');
+      expect(
+          (await reopened.pendingOperationsDao.getPendingOperations()).length,
+          7,
+          reason: 'La file doit survivre à un redémarrage hors connexion');
       expect((await reopened.patientDao.getAllPatients()).single.name,
-        'Patiente fictive');
+          'Patiente fictive');
       await reopened.close();
-      _cleanupDb(dbPath);
+      cleanupDb(dbPath);
     });
 
     test('12. Échec outbox annule la création du dossier patient', () async {
-      final dbPath = _generateDbPath('outbox_rollback');
-      _cleanupDb(dbPath);
+      final dbPath = generateDbPath('outbox_rollback');
+      cleanupDb(dbPath);
       final database = await _openTestDatabase(validKey, dbPath);
       // Simule une écriture outbox refusée par SQLite.
       await database.customStatement('''
@@ -462,19 +483,22 @@ void main() {
 
       await expectLater(
         database.patientDao.createPatient(
-          name: 'Jamais enregistrée', age: 29, sex: 'F', phone: '0101010101',
+          name: 'Jamais enregistrée',
+          age: 29,
+          sex: 'F',
+          phone: '0101010101',
         ),
         throwsA(isA<Exception>()),
       );
       expect(await database.patientDao.getAllPatients(), isEmpty,
-        reason: 'Aucun dossier partiel si la transaction outbox échoue');
+          reason: 'Aucun dossier partiel si la transaction outbox échoue');
       await database.close();
-      _cleanupDb(dbPath);
+      cleanupDb(dbPath);
     });
 
     test('10. Clé dérivée format hex 64 caractères', () async {
       final key = await encryptionService.getSqlCipherKey();
-      
+
       expect(key.length, 64);
       expect(key, matches(RegExp(r'^[0-9a-f]{64}$')));
     });
@@ -482,7 +506,8 @@ void main() {
 }
 
 /// Helper pour ouvrir la base de test - utilise la même logique que openEncryptedDatabase
-Future<AppDatabase> _openTestDatabase(String encryptionKey, String dbPath) async {
+Future<AppDatabase> _openTestDatabase(
+    String encryptionKey, String dbPath) async {
   final file = File(dbPath);
 
   final executor = NativeDatabase.createInBackground(
@@ -491,7 +516,8 @@ Future<AppDatabase> _openTestDatabase(String encryptionKey, String dbPath) async
       // Vérification runtime (pas seulement assert)
       final cipherResult = db.select('PRAGMA cipher;');
       if (cipherResult.isEmpty) {
-        throw StateError('SQLite3MultipleCiphers non disponible - build hooks sqlite3mc manquants');
+        throw StateError(
+            'SQLite3MultipleCiphers non disponible - build hooks sqlite3mc manquants');
       }
       // Syntaxe correcte pour SQLite3MultipleCiphers: PRAGMA key = "x'hex_key'"
       db.execute('PRAGMA key = "x\'$encryptionKey\'";');

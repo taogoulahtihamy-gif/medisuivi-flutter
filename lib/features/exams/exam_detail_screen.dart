@@ -38,124 +38,152 @@ class ExamDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('EXAMEN MÉDICAL',
-                    style: TextStyle(
-                      color: Palette.of(context).forest,
-                      letterSpacing: .55,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700)),
+                      style: TextStyle(
+                          color: Palette.of(context).forest,
+                          letterSpacing: .55,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700)),
                   const SizedBox(height: 10),
-                  Text(exam.title, style: TextStyle(
-                    color: Palette.of(context).ink, fontSize: 22, height: 1.25,
-                    fontWeight: FontWeight.w700, letterSpacing: -.55)),
+                  Text(exam.title,
+                      style: TextStyle(
+                          color: Palette.of(context).ink,
+                          fontSize: 22,
+                          height: 1.25,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -.55)),
                   const SizedBox(height: 17),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 13, vertical: 12),
+                        horizontal: 13, vertical: 12),
                     decoration: BoxDecoration(
-                      color: completed ? Palette.of(context).tealSoft : Palette.of(context).blueSoft,
+                      color: completed
+                          ? Palette.of(context).tealSoft
+                          : Palette.of(context).blueSoft,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(children: [
                       Icon(
-                        completed
-                          ? Icons.check_circle_outline_rounded
-                          : Icons.hourglass_top_rounded,
-                        color: Palette.of(context).forest, size: 21),
+                          completed
+                              ? Icons.check_circle_outline_rounded
+                              : Icons.hourglass_top_rounded,
+                          color: Palette.of(context).forest,
+                          size: 21),
                       const SizedBox(width: 10),
-                      Expanded(child: Text(
-                        completed ? 'Résultat disponible' : 'Résultat en attente',
-                        style: TextStyle(
-                          fontSize: 15.5, color: Palette.of(context).ink,
-                          fontWeight: FontWeight.w600))),
+                      Expanded(
+                          child: Text(
+                              completed
+                                  ? 'Résultat disponible'
+                                  : 'Résultat en attente',
+                              style: TextStyle(
+                                  fontSize: 15.5,
+                                  color: Palette.of(context).ink,
+                                  fontWeight: FontWeight.w600))),
                     ]),
                   ),
                   const SizedBox(height: 23),
                   const SectionHeading(title: 'Informations de l’examen'),
                   const SizedBox(height: 10),
-                  SurfaceCard(child: Column(
+                  SurfaceCard(
+                      child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _DetailField(
-                        label: 'Patient',
-                        value: patient?.name ?? 'Patient introuvable'),
+                          label: 'Patient',
+                          value: patient?.name ?? 'Patient introuvable'),
                       const Divider(height: 26),
                       _DetailField(
-                        label: 'Date de prescription',
-                        value: shortDate(exam.date)),
+                          label: 'Date de prescription',
+                          value: shortDate(exam.date)),
                       if (exam.resultRecordedAt != null) ...[
                         const Divider(height: 26),
                         _DetailField(
-                          label: 'Résultat enregistré le',
-                          value: shortDate(exam.resultRecordedAt!)),
+                            label: 'Résultat enregistré le',
+                            value: shortDate(exam.resultRecordedAt!)),
                       ],
                       const SizedBox(height: 11),
                       OutlinedButton.icon(
-                        onPressed: patient == null ? null : () =>
-                          Navigator.of(context).push(MaterialPageRoute<void>(
-                            builder: (_) =>
-                              PatientDetailScreen(patientId: exam.patientId))),
-                        icon: const Icon(Icons.folder_shared_outlined, size: 20),
+                        onPressed: patient == null
+                            ? null
+                            : () => Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                    builder: (_) => PatientDetailScreen(
+                                        patientId: exam.patientId))),
+                        icon:
+                            const Icon(Icons.folder_shared_outlined, size: 20),
                         label: const Text('Ouvrir le dossier patient'),
                       ),
                     ],
                   )),
                   const SizedBox(height: 26),
                   SectionHeading(
-                    title: completed ? 'Compte rendu de l’examen' : 'Compte rendu',
+                    title:
+                        completed ? 'Compte rendu de l’examen' : 'Compte rendu',
                   ),
                   const SizedBox(height: 10),
                   SurfaceCard(
                     child: completed
-                      ? Column(crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(children: [
-                              Icon(Icons.description_outlined,
-                                color: Palette.of(context).forest, size: 21),
-                              SizedBox(width: 9),
-                              Expanded(child: Text('Résultat enregistré',
-                                style: TextStyle(
-                                  fontSize: 16, color: Palette.of(context).ink,
-                                  fontWeight: FontWeight.w700))),
-                            ]),
-                            const Divider(height: 29),
-                            SelectableText(
-                              exam.result?.trim().isNotEmpty == true
-                                ? exam.result! : 'Aucun texte de résultat.',
-                              style: TextStyle(
-                                color: Palette.of(context).ink,
-                                fontSize: 16, height: 1.6)),
-                          ])
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(Icons.pending_actions_outlined,
-                              size: 25, color: Palette.of(context).forest),
-                            SizedBox(height: 10),
-                            Text('Aucun résultat enregistré pour le moment.',
-                              style: TextStyle(
-                                fontSize: 15, height: 1.5,
-                                color: Palette.of(context).ink)),
-                            SizedBox(height: 7),
-                            Text('Le compte rendu apparaîtra ici après sa saisie.',
-                              style: TextStyle(
-                                fontSize: 14, height: 1.5,
-                                color: Palette.of(context).muted)),
-                          ]),
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                Row(children: [
+                                  Icon(Icons.description_outlined,
+                                      color: Palette.of(context).forest,
+                                      size: 21),
+                                  const SizedBox(width: 9),
+                                  Expanded(
+                                      child: Text('Résultat enregistré',
+                                          style: TextStyle(
+                                              fontSize: 16,
+                                              color: Palette.of(context).ink,
+                                              fontWeight: FontWeight.w700))),
+                                ]),
+                                const Divider(height: 29),
+                                SelectableText(
+                                    exam.result?.trim().isNotEmpty == true
+                                        ? exam.result!
+                                        : 'Aucun texte de résultat.',
+                                    style: TextStyle(
+                                        color: Palette.of(context).ink,
+                                        fontSize: 16,
+                                        height: 1.6)),
+                              ])
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                Icon(Icons.pending_actions_outlined,
+                                    size: 25,
+                                    color: Palette.of(context).forest),
+                                const SizedBox(height: 10),
+                                Text(
+                                    'Aucun résultat enregistré pour le moment.',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        height: 1.5,
+                                        color: Palette.of(context).ink)),
+                                const SizedBox(height: 7),
+                                Text(
+                                    'Le compte rendu apparaîtra ici après sa saisie.',
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        height: 1.5,
+                                        color: Palette.of(context).muted)),
+                              ]),
                   ),
                   if (!completed) ...[
                     const SizedBox(height: 20),
-                    SizedBox(width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ExamEditorScreen(
-                              patientId: exam.patientId,
-                              exam: exam,
-                              openDetailOnSave: false,
-                            ))),
-                        icon: const Icon(Icons.edit_note_rounded),
-                        label: const Text('Saisir le résultat'),
-                      )),
+                    SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .push(MaterialPageRoute<void>(
+                                  builder: (_) => ExamEditorScreen(
+                                        patientId: exam.patientId,
+                                        exam: exam,
+                                        openDetailOnSave: false,
+                                      ))),
+                          icon: const Icon(Icons.edit_note_rounded),
+                          label: const Text('Saisir le résultat'),
+                        )),
                   ],
                   const SizedBox(height: 16),
                   Text(
@@ -163,7 +191,9 @@ class ExamDetailScreen extends StatelessWidget {
                     'n’est encore configurée.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Palette.of(context).muted, fontSize: 13, height: 1.4),
+                        color: Palette.of(context).muted,
+                        fontSize: 13,
+                        height: 1.4),
                   ),
                 ],
               ),
@@ -181,14 +211,20 @@ class _DetailField extends StatelessWidget {
   final String value;
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: TextStyle(
-        fontSize: 13.5, height: 1.35, color: Palette.of(context).muted)),
-      const SizedBox(height: 6),
-      Text(value, style: TextStyle(
-        fontSize: 16, height: 1.4,
-        fontWeight: FontWeight.w600, color: Palette.of(context).ink)),
-    ],
-  );
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 13.5,
+                  height: 1.35,
+                  color: Palette.of(context).muted)),
+          const SizedBox(height: 6),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                  fontWeight: FontWeight.w600,
+                  color: Palette.of(context).ink)),
+        ],
+      );
 }
