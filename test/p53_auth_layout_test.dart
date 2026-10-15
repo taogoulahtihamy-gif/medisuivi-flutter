@@ -46,6 +46,11 @@ void main() {
 
           await render();
           expect(find.byType(Card), findsNothing);
+          expect(find.textContaining('Compte de test'), findsNothing);
+          expect(
+            tester.getSize(find.byKey(const Key('dev-auth-email'))).height,
+            greaterThanOrEqualTo(50),
+          );
           await tester
               .ensureVisible(find.byTooltip('Afficher le mot de passe'));
           await tester.tap(find.byTooltip('Afficher le mot de passe'));
