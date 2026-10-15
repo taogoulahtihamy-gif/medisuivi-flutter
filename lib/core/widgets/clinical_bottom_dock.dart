@@ -36,8 +36,8 @@ class ClinicalBottomDock extends StatelessWidget {
               filter: ImageFilter.blur(sigmaX: 7, sigmaY: 7),
               child: Container(
                 key: const Key('clinical-bottom-dock'),
-                height: 68,
-                padding: const EdgeInsets.fromLTRB(5, 4, 5, 4),
+                height: 76,
+                padding: const EdgeInsets.fromLTRB(5, 6, 5, 4),
                 decoration: BoxDecoration(
                   color: p.raisedSurface.withValues(alpha: p.isDark ? .79 : .97),
                   borderRadius: BorderRadius.circular(29),
@@ -136,20 +136,20 @@ class _DockItem extends StatelessWidget {
                 children: [
                   AnimatedSlide(
                     key: Key('dock-lift-${label.toLowerCase()}'),
-                    offset: active ? const Offset(0, -.19) : Offset.zero,
+                    offset: active ? const Offset(0, -.25) : Offset.zero,
                     duration: duration,
                     curve: Curves.easeOutBack,
                     child: AnimatedScale(
-                      scale: active ? 1.10 : 1,
+                      scale: active ? 1.06 : 1,
                       duration: duration,
                       curve: Curves.easeOutCubic,
                       child: AnimatedContainer(
                         duration: duration,
                         curve: Curves.easeOutCubic,
-                        width: 37,
-                        height: 37,
+                        width: 46,
+                        height: 43,
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(17),
                           color: active
                               ? p.tealSoft.withValues(alpha: .94)
                               : Colors.transparent,
