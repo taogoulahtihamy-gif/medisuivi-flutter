@@ -73,6 +73,19 @@ void main() {
             lessThan(80));
         expect(find.byKey(const Key('welcome-login')).hitTestable(),
             findsOneWidget);
+        // Keep the welcome copy and primary actions visually connected:
+        // a Spacer-driven layout used to produce very large blank gaps.
+        const headline = 'Vos patients,\nvos suivis.';
+        expect(find.text(headline), findsOneWidget);
+        final brandBottom = tester
+            .getBottomLeft(find.byKey(const Key('welcome-clinical-brand')))
+            .dy;
+        final titleTop = tester.getTopLeft(find.text(headline)).dy;
+        final loginTop =
+            tester.getTopLeft(find.byKey(const Key('welcome-login'))).dy;
+        expect(titleTop - brandBottom, inInclusiveRange(40, 110));
+        expect(loginTop - titleTop, lessThan(250));
+        expect(loginTop, lessThan(size.height * .8));
         await snapshot('welcome');
         await tester.tap(find.byKey(const Key('welcome-login')));
         await tester.pumpAndSettle();
