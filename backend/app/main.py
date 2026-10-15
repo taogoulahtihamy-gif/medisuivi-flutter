@@ -65,6 +65,9 @@ class Settings:
         self.allow_registration = (
             os.environ.get("APP_ALLOW_DEVELOPMENT_REGISTRATION", "false").lower() == "true"
         )
+        self.staging_synthetic_writes_enabled = (
+            os.environ.get("APP_STAGING_SYNTHETIC_WRITES_ENABLED", "false").lower() == "true"
+        )
         self.sandbox_writes_enabled = (
             os.environ.get("APP_SANDBOX_WRITES_ENABLED", "false").lower() == "true"
         )
@@ -478,6 +481,8 @@ def dev_write_only() -> None:
     if settings.environment == "development":
         return
     if settings.environment == "sandbox" and settings.sandbox_writes_enabled:
+        return
+    if settings.environment == "staging" and settings.staging_synthetic_writes_enabled:
         return
     raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
 
@@ -1061,10 +1066,10 @@ def api_app() -> FastAPI:
     def create_patient(data: PatientIn, user: User = Depends(current_user),
                        db: Session = Depends(get_db)):
         dev_write_only()
-        if (settings.environment == "sandbox" and not
+        if (settings.environment in {"sandbox", "staging"} and not
                 data.display_name.strip().upper().startswith("PATIENT FICTIF")):
             raise HTTPException(status_code=422,
-                detail="Uniquement des patients fictifs dans la sandbox")
+                detail="Dossiers fictifs uniquement dans cet environnement de test")
         patient = Patient(
             owner_user_id=user.id, display_name=data.display_name.strip(),
             age=data.age, sex=data.sex, phone=data.phone, profile=data.profile)
