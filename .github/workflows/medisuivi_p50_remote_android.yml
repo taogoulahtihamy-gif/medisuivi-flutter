@@ -10,6 +10,9 @@ on:
       - "lib/**"
       - "integration_test/**"
       - "scripts/check_remote_api_url.py"
+      - "scripts/check_p53_apk.py"
+      - "scripts/test_check_p53_apk.py"
+      - "test/**"
       - "scripts/ci_p50_android_emulator.sh"
       - "scripts/check_android_p46_security.py"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
@@ -21,6 +24,9 @@ on:
       - "lib/**"
       - "integration_test/**"
       - "scripts/check_remote_api_url.py"
+      - "scripts/check_p53_apk.py"
+      - "scripts/test_check_p53_apk.py"
+      - "test/**"
       - "scripts/ci_p50_android_emulator.sh"
       - ".github/workflows/medisuivi_p50_remote_android.yml"
       - "pubspec.yaml"
@@ -55,6 +61,7 @@ jobs:
         run: |
           python3 scripts/check_remote_api_url.py "$MEDISUIVI_API_BASE_URL"
           python3 scripts/check_android_p46_security.py
+          python3 scripts/test_check_p53_apk.py
       - name: Resolve packages
         run: flutter pub get
       - name: Analyze Flutter
