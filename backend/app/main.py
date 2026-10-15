@@ -59,8 +59,14 @@ class Settings:
         self.email_auth_enabled = (
             os.environ.get("APP_ENABLE_EMAIL_AUTH", "false").lower() == "true"
         )
+        self.public_registration_enabled = (
+            os.environ.get("APP_PUBLIC_REGISTRATION_ENABLED", "false").lower() == "true"
+        )
         self.allow_registration = (
             os.environ.get("APP_ALLOW_DEVELOPMENT_REGISTRATION", "false").lower() == "true"
+        )
+        self.staging_synthetic_writes_enabled = (
+            os.environ.get("APP_STAGING_SYNTHETIC_WRITES_ENABLED", "false").lower() == "true"
         )
         self.sandbox_writes_enabled = (
             os.environ.get("APP_SANDBOX_WRITES_ENABLED", "false").lower() == "true"
@@ -89,6 +95,13 @@ class Settings:
                 sslmode = parse_qs(database.query).get("sslmode", [""])[0]
                 if sslmode not in {"require", "verify-ca", "verify-full"}:
                     raise RuntimeError("Remote sandbox PostgreSQL must require TLS")
+        if self.public_registration_enabled:
+            if self.environment != "staging":
+                raise RuntimeError("Public registration is supported only in reviewed staging")
+            if not self.email_auth_enabled:
+                raise RuntimeError("Public registration requires email verification")
+            if not os.environ.get("APP_SMTP_HOST") or not os.environ.get("APP_SMTP_FROM"):
+                raise RuntimeError("Public registration requires a mail provider")
         # This foundation explicitly REFUSES production traffic.
         if self.environment not in {"development", "test", "staging", "sandbox"}:
             raise RuntimeError("Prototype API: production prohibited until security approval")
@@ -469,6 +482,8 @@ def dev_write_only() -> None:
         return
     if settings.environment == "sandbox" and settings.sandbox_writes_enabled:
         return
+    if settings.environment == "staging" and settings.staging_synthetic_writes_enabled:
+        return
     raise HTTPException(status_code=403, detail="Saisie clinique désactivée")
 
 
@@ -739,7 +754,9 @@ def api_app() -> FastAPI:
                     and str(data.email).lower().endswith("@example.com")):
                 raise HTTPException(status_code=422,
                     detail="Compte fictif demo-...@example.com requis")
-        elif settings.environment != "development" or not settings.allow_registration:
+        elif not ((settings.environment == "development" and settings.allow_registration)
+                   or (settings.environment == "staging" and settings.public_registration_enabled
+                       and settings.email_auth_enabled)):
             raise HTTPException(status_code=403, detail="Inscription indisponible")
         if settings.email_auth_enabled:
             _email_flow_enabled()
@@ -772,7 +789,7 @@ def api_app() -> FastAPI:
     @app.post("/api/v1/auth/email/resend", status_code=202)
     def resend_email_verification(data: EmailRequestIn, db: Session = Depends(get_db)):
         _email_flow_enabled()
-        if settings.environment != "development":
+        if settings.environment not in {"development", "staging"}:
             raise HTTPException(status_code=403, detail="Envoi indisponible")
         now = datetime.now(timezone.utc)
         user = db.scalar(select(User).where(
@@ -824,7 +841,7 @@ def api_app() -> FastAPI:
     @app.post("/api/v1/auth/password/reset", status_code=204)
     def reset_password(data: PasswordResetIn, db: Session = Depends(get_db)):
         _email_flow_enabled()
-        if settings.environment != "development":
+        if settings.environment not in {"development", "staging"}:
             raise HTTPException(status_code=403, detail="Récupération indisponible")
         now = datetime.now(timezone.utc)
         user = db.scalar(select(User).where(
@@ -1049,10 +1066,10 @@ def api_app() -> FastAPI:
     def create_patient(data: PatientIn, user: User = Depends(current_user),
                        db: Session = Depends(get_db)):
         dev_write_only()
-        if (settings.environment == "sandbox" and not
+        if (settings.environment in {"sandbox", "staging"} and not
                 data.display_name.strip().upper().startswith("PATIENT FICTIF")):
             raise HTTPException(status_code=422,
-                detail="Uniquement des patients fictifs dans la sandbox")
+                detail="Dossiers fictifs uniquement dans cet environnement de test")
         patient = Patient(
             owner_user_id=user.id, display_name=data.display_name.strip(),
             age=data.age, sex=data.sex, phone=data.phone, profile=data.profile)

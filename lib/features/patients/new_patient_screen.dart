@@ -50,6 +50,7 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
 
   Future<void> save() async {
     if (_saving || !(form.currentState?.validate() ?? false)) return;
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() => _saving = true);
     try {
       await context.store.addPatient(
@@ -140,8 +141,8 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                                   context.dependOnInheritedWidgetOfExactType<
                                               ConnectedClinicalScope>() !=
                                           null
-                                      ? 'Ex. PATIENT FICTIF A'
-                                      : 'Ex. Aminata Diallo',
+                                      ? 'Nom complet du patient'
+                                      : 'Nom complet du patient',
                             ),
                             validator: (v) => (v?.trim().length ?? 0) < 2
                                 ? 'Saisissez au moins deux caractères.'
@@ -235,14 +236,30 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                             maxLines: 3),
                       ]),
                     ),
+                    const SizedBox(height: 18),
+                    // Also expose the save action inside the scrollable form.
+                    // This remains reachable when Android hides the bottom bar
+                    // while the soft keyboard is open.
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton.icon(
+                        key: const Key('patient-save-inline'),
+                        onPressed: _saving ? null : save,
+                        icon: const Icon(Icons.check_rounded),
+                        label: Text(_saving
+                            ? 'Enregistrement…'
+                            : 'Enregistrer le patient'),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       context.dependOnInheritedWidgetOfExactType<
                                   ConnectedClinicalScope>() !=
                               null
-                          ? 'Utilisez uniquement des identités et des données fictives.'
+                          ? 'Enregistrement sécurisé du dossier.'
                           : kIsWeb
-                              ? 'Utilisez uniquement des identités et des données fictives.'
+                              ? 'Environnement de test : données fictives uniquement.'
                               : 'Enregistrement local hors connexion ; synchronisation distante indisponible.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -266,10 +283,11 @@ class _NewPatientScreenState extends State<NewPatientScreen> {
                   width: double.infinity,
                   height: 46,
                   child: ElevatedButton.icon(
+                    key: const Key('patient-save-bottom'),
                     onPressed: _saving ? null : save,
                     icon: const Icon(Icons.check_rounded),
                     label: Text(
-                        _saving ? 'Enregistrement…' : 'Ajouter le patient'),
+                        _saving ? 'Enregistrement…' : 'Enregistrer le patient'),
                   ),
                 ),
               ),

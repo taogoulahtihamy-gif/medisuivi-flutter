@@ -137,3 +137,20 @@ def test_production_configuration_fails_closed(monkeypatch):
     monkeypatch.setenv("APP_ENV", "production")
     with pytest.raises(RuntimeError, match="production prohibited"):
         Settings()
+
+
+def test_staging_opt_in_accepts_only_synthetic_patients(client, monkeypatch):
+    register(client, "staging-synthetic@medisuvi-ci.org")
+    token = login(client, "staging-synthetic@medisuvi-ci.org")
+    monkeypatch.setattr(settings, "environment", "staging")
+    monkeypatch.setattr(settings, "staging_synthetic_writes_enabled", True)
+    assert client.post("/api/v1/patients", headers=token, json={
+        "display_name": "Personne réelle", "age": 30,
+    }).status_code == 422
+    response = client.post("/api/v1/patients", headers=token, json={
+        "display_name": "PATIENT FICTIF DEMO", "age": 30,
+    })
+    assert response.status_code == 201, response.text
+    rows = client.get("/api/v1/patients", headers=token)
+    assert rows.status_code == 200
+    assert any(x["display_name"] == "PATIENT FICTIF DEMO" for x in rows.json())
